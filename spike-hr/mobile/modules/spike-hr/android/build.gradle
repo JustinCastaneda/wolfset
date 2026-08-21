@@ -18,6 +18,12 @@ android {
 }
 
 dependencies {
+  // Declared explicitly because this module calls ServiceCompat/NotificationCompat directly.
+  // expo-modules-core's core-ktx is compileOnly here, so it never lands on the runtime
+  // classpath; without this, consistent resolution pins core to the 1.2.0 that
+  // play-services-wearable drags in and ServiceCompat.startForeground(_,_,_,type) — added in
+  // core 1.12.0 — fails to resolve.
+  implementation 'androidx.core:core-ktx:1.13.1'
   implementation 'com.google.android.gms:play-services-wearable:19.0.0'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0'

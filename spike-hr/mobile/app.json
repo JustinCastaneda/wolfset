@@ -18,6 +18,7 @@
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
+      "./plugins/withSharedDebugKeystore",
       [
         "expo-build-properties",
         {
