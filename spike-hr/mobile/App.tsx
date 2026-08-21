@@ -19,8 +19,15 @@ type PendingSample = { sample: HrSampleEvent; jsRecvMs: number };
 export default function App() {
   const metrics = useRef(new MetricsCollector()).current;
 
+  // Samples queue in a ref, NOT state: the watch delivers in bursts (39 samples in 1.9s
+  // observed after a link stall), and React 18 batches a burst into one commit. A single
+  // pending-sample state slot keeps only the last sample per commit — session 1 recorded
+  // 51 of 145 samples and fabricated 93 "drops" that never happened at the bridge.
+  const pendingQueue = useRef<PendingSample[]>([]);
+  const [sampleTick, setSampleTick] = useState(0);
+  const [lastSampleAtMs, setLastSampleAtMs] = useState<number | null>(null);
+
   const [sessionOn, setSessionOn] = useState(false);
-  const [pending, setPending] = useState<PendingSample | null>(null);
   const [bpm, setBpm] = useState<number | null>(null);
   const [gate, setGate] = useState<GateEvent | null>(null);
   const [timer, setTimer] = useState<TimerEvent>({ state: 'idle', remainingMs: 0, durationMs: 0 });
@@ -32,8 +39,12 @@ export default function App() {
   useEffect(() => {
     const subs = [
       SpikeHr.addListener('onHrSample', (sample: HrSampleEvent) => {
-        setPending({ sample, jsRecvMs: Date.now() });
+        const jsRecvMs = Date.now();
+        pendingQueue.current.push({ sample, jsRecvMs });
         setBpm(sample.bpm);
+        setLastSampleAtMs(jsRecvMs);
+        // Tick guarantees a commit even when bpm is unchanged between samples.
+        setSampleTick((n) => n + 1);
       }),
       SpikeHr.addListener('onGate', setGate),
       SpikeHr.addListener('onTimer', (t: TimerEvent) => {
@@ -48,12 +59,25 @@ export default function App() {
     return () => subs.forEach((s) => s.remove());
   }, []);
 
-  // Post-commit: the sample is now on screen — this timestamp closes the e2e latency loop.
+  // Post-commit: drain everything that arrived before this commit. All drained samples share
+  // one renderMs — honest, because this commit is the first paint any of them reached. Only
+  // the last of a burst is actually visible, but "reached the screen" is what e2e measures.
   useEffect(() => {
-    if (!pending) return;
-    metrics.record(pending.sample, pending.jsRecvMs, Date.now());
+    if (pendingQueue.current.length === 0) return;
+    const renderMs = Date.now();
+    const drained = pendingQueue.current;
+    pendingQueue.current = [];
+    for (const { sample, jsRecvMs } of drained) metrics.record(sample, jsRecvMs, renderMs);
     setStatsTick((n) => n + 1);
-  }, [pending]);
+  }, [sampleTick]);
+
+  // 1 Hz repaint so signal age stays current while the pipe is silent — a stalled link
+  // otherwise looks identical to a healthy one showing its last value (session 1: 72s stall
+  // froze the display at peak BPM with no visible difference from live data).
+  useEffect(() => {
+    const id = setInterval(() => setStatsTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const toggleSession = () => {
     if (sessionOn) {
@@ -82,14 +106,28 @@ export default function App() {
   const stats = metrics.stats();
   const recovered = gate?.recovered ?? true;
 
+  // Stale = no sample for 3× the watch's observed 1.92s cadence. Session 1's 72s transport
+  // stall proved the pipe can go quiet while the watch keeps sampling; the product gate must
+  // treat a quiet pipe as "unknown", never as "still at the last value".
+  const signalAgeMs = lastSampleAtMs === null ? null : Date.now() - lastSampleAtMs;
+  const signalStale = signalAgeMs !== null && signalAgeMs > 6000;
+
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>WOLFSET · HR spike</Text>
 
-        <Text style={styles.bpm}>{bpm !== null ? Math.round(bpm) : '--'}</Text>
-        <Text style={styles.bpmLabel}>bpm from watch</Text>
+        <Text style={[styles.bpm, signalStale && { color: '#6d7077' }]}>
+          {bpm !== null ? Math.round(bpm) : '--'}
+        </Text>
+        <Text style={[styles.bpmLabel, signalStale && { color: '#f04245' }]}>
+          {signalAgeMs === null
+            ? 'bpm from watch'
+            : signalStale
+              ? `SIGNAL STALE — last sample ${Math.round(signalAgeMs / 1000)}s ago`
+              : `bpm from watch · ${(signalAgeMs / 1000).toFixed(1)}s ago`}
+        </Text>
 
         <View style={[styles.gate, { backgroundColor: recovered ? '#1d4a2a' : '#5c1f21' }]}>
           <Text style={styles.gateText}>

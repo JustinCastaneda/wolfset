@@ -48,10 +48,13 @@ export class MetricsCollector {
   private nativeToJs: number[] = [];
   private jsLog: Array<HrSampleEvent & LatencyBreakdown & { jsRecvMs: number; renderMs: number }> =
     [];
+  // Set, not a running gap counter: the transport delivers out of order (2 observed in
+  // session 1), and a late-but-delivered sample must un-count the gap it briefly left.
+  private seenSeqs = new Set<number>();
+  private minSeq = 0;
 
   startedAtMs: number | null = null;
   jsSamplesSeen = 0;
-  droppedSeqGaps = 0;
   lastSeq = 0;
   watchBatteryFirst: number | null = null;
   watchBatteryLast: number | null = null;
@@ -62,9 +65,10 @@ export class MetricsCollector {
     this.watchToPhone = [];
     this.nativeToJs = [];
     this.jsLog = [];
+    this.seenSeqs = new Set();
+    this.minSeq = 0;
     this.startedAtMs = Date.now();
     this.jsSamplesSeen = 0;
-    this.droppedSeqGaps = 0;
     this.lastSeq = 0;
     this.watchBatteryFirst = null;
     this.watchBatteryLast = null;
@@ -83,9 +87,8 @@ export class MetricsCollector {
     };
 
     this.jsSamplesSeen += 1;
-    if (this.lastSeq > 0 && sample.seq > this.lastSeq + 1) {
-      this.droppedSeqGaps += sample.seq - this.lastSeq - 1;
-    }
+    this.seenSeqs.add(sample.seq);
+    if (this.minSeq === 0 || sample.seq < this.minSeq) this.minSeq = sample.seq;
     this.lastSeq = Math.max(this.lastSeq, sample.seq);
     if (this.watchBatteryFirst === null && sample.watchBattery >= 0) {
       this.watchBatteryFirst = sample.watchBattery;
@@ -102,10 +105,12 @@ export class MetricsCollector {
   }
 
   stats(): SessionStats {
+    const droppedSeqGaps =
+      this.seenSeqs.size === 0 ? 0 : this.lastSeq - this.minSeq + 1 - this.seenSeqs.size;
     return {
       startedAtMs: this.startedAtMs,
       jsSamplesSeen: this.jsSamplesSeen,
-      droppedSeqGaps: this.droppedSeqGaps,
+      droppedSeqGaps,
       lastSeq: this.lastSeq,
       e2e: percentiles(this.e2e),
       watchToPhone: percentiles(this.watchToPhone),
