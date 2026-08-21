@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Wolfset HR Spike",
+    "slug": "wolfset-hr-spike",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#111214",
+    "android": {
+      "package": "app.wolfset.spike",
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
+    ]
+  }
+}
