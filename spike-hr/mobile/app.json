@@ -4,17 +4,10 @@
     "slug": "wolfset-hr-spike",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#111214",
     "android": {
       "package": "app.wolfset.spike",
-      "adaptiveIcon": {
-        "backgroundColor": "#111214",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
       "predictiveBackGestureEnabled": false
     },
     "plugins": [

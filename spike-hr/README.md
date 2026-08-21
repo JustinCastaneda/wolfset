@@ -36,7 +36,8 @@ real one from session data is exit criterion B.
 
 ```bash
 cd spike-hr/wear
-./gradlew assembleDebug          # or open in Android Studio and Run
+gradle wrapper --gradle-version 8.7   # one-time: generates the wrapper jar (not committed)
+./gradlew assembleDebug               # or just open in Android Studio and Run
 # Pair watch for ADB: Pixel Watch → Settings → System → About → tap Build number 7×,
 # then Developer options → Wireless debugging → Pair new device
 adb connect <watch-ip>:<port>
