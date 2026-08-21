@@ -21,10 +21,29 @@ Message protocol (`/wolfset-spike/hr`, `/ping`, `/pong`) is duplicated by hand o
 fine for a spike, keep in sync manually.
 
 > ⚠️ **The Wearable Data Layer only routes between watch/phone apps that share the same
-> `applicationId` (`app.wolfset.spike`) and the same signing certificate.** Build both apps
-> on the same machine so they share your `~/.android/debug.keystore`. An EAS cloud build signs
-> with EAS-managed credentials and will NOT talk to a locally built watch app — use local
-> builds for the spike (or configure EAS `credentials.json` with your debug keystore).
+> `applicationId` (`app.wolfset.spike`) and the same signing certificate.** Building both on
+> one machine is *not* sufficient on its own: the Expo/RN template ships its own
+> `android/app/debug.keystore` and pins `signingConfigs.debug` to it, while the watch app uses
+> the machine-wide `~/.android/debug.keystore` that AGP picks by default. Left alone, the two
+> halves get different certs and every message is dropped **silently, with no error on either
+> side** — which reads exactly like "the pipe doesn't work."
+>
+> `mobile/plugins/withSharedDebugKeystore.js` repoints the phone app at
+> `~/.android/debug.keystore` during prebuild so both halves match. It throws if that keystore
+> is missing (build the watch app first, or Android Studio creates it on first run) or if the
+> template's signing block changes shape.
+>
+> **Verify before every hardware session** — the check is two commands and it costs less than
+> a wasted session:
+>
+> ```bash
+> apksigner verify --print-certs wear/app/build/outputs/apk/debug/app-debug.apk | grep SHA-1
+> apksigner verify --print-certs mobile/android/app/build/outputs/apk/debug/app-debug.apk | grep SHA-1
+> ```
+>
+> An EAS cloud build signs with EAS-managed credentials and will NOT talk to a locally built
+> watch app — use local builds for the spike (or configure EAS `credentials.json` with your
+> debug keystore).
 
 **Placeholder gate rule** (`SpikeBus.evaluateGate`): recovered when BPM ≤ 65% of session peak,
 floor 110. It exists to exercise the mechanism. It is **not** the product rule — defining the
@@ -36,8 +55,7 @@ real one from session data is exit criterion B.
 
 ```bash
 cd spike-hr/wear
-gradle wrapper --gradle-version 8.7   # one-time: generates gradlew + wrapper jar (not committed)
-./gradlew assembleDebug               # or just open in Android Studio and Run
+./gradlew assembleDebug          # or open in Android Studio and Run
 # Pair watch for ADB: Pixel Watch → Settings → System → About → tap Build number 7×,
 # then Developer options → Wireless debugging → Pair new device
 adb connect <watch-ip>:<port>
@@ -48,7 +66,7 @@ adb -s <watch-ip>:<port> install app/build/outputs/apk/debug/app-debug.apk
 
 ```bash
 cd spike-hr/mobile
-npm install        # commit the package-lock.json this generates (couldn't be pushed remotely)
+npm install
 npx expo-doctor && npx expo install --check   # habit, per build plan
 
 # Local debug build (Android Studio / SDK on your machine, phone plugged in).
