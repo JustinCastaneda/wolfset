@@ -36,8 +36,7 @@ real one from session data is exit criterion B.
 
 ```bash
 cd spike-hr/wear
-gradle wrapper --gradle-version 8.7   # one-time: generates gradlew + wrapper jar (not committed)
-./gradlew assembleDebug               # or just open in Android Studio and Run
+./gradlew assembleDebug          # or open in Android Studio and Run
 # Pair watch for ADB: Pixel Watch → Settings → System → About → tap Build number 7×,
 # then Developer options → Wireless debugging → Pair new device
 adb connect <watch-ip>:<port>
@@ -48,7 +47,7 @@ adb -s <watch-ip>:<port> install app/build/outputs/apk/debug/app-debug.apk
 
 ```bash
 cd spike-hr/mobile
-npm install        # commit the package-lock.json this generates (couldn't be pushed remotely)
+npm install
 npx expo-doctor && npx expo install --check   # habit, per build plan
 
 # Local debug build (Android Studio / SDK on your machine, phone plugged in).
