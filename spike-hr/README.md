@@ -13,7 +13,7 @@ pure Kotlin would validate the wrong half.
 
 | Path | What | Language |
 |---|---|---|
-| `wear/` | Watch app: Health Services `MeasureClient` in a foreground service, streams every sample (seq, bpm, accuracy, watch clock, battery) over `MessageClient`; answers latency pings | Kotlin/Compose |
+| `wear/` | Watch app: Health Services `ExerciseClient` (active workout session — `MeasureClient` delivery stalls in ambient mode, see session 2 in `docs/spike-findings.md`) in a foreground service with an ongoing-activity chip and in-app ambient support; streams every sample (seq, bpm, accuracy, watch clock, battery, ambient flag) over `MessageClient`; answers latency pings | Kotlin/Compose |
 | `mobile/modules/spike-hr/` | The native seam: `DataLayerListenerService` (receives samples in any app state), `SessionService` (foreground service: doze-proof rest timer + clock-skew pings), placeholder gate rule, Expo module emitting events to JS | Kotlin |
 | `mobile/` | Expo dev-client app: live BPM, gated timer, metrics panel (e2e latency percentiles, drops, battery), JSON session export | TypeScript |
 

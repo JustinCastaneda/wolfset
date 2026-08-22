@@ -9,6 +9,7 @@ source for what's still undecided; entries here resolve or supersede rows there.
 | 2026-08-21 | — | **Test watch: Pixel Watch** | Wear OS 3+, Health Services live HR. All Wear OS 3+ watches share the API, so this affects setup docs, not code. |
 | 2026-08-21 | 5 | **HR sources at launch: watch only** | No BLE chest strap in v1. Spike measures optical accuracy under grip tension so this can be revisited with data. Phone-side ingestion keeps HR source as a parameter so a second source can slot in later. |
 | 2026-08-21 | — | **Day 1 scope: Day Zero scaffold + full Phase 0 spike code** | Spike written end-to-end (watch → Data Layer → foreground service → RN bridge → React render); Justin runs it on hardware. |
+| 2026-08-22 | — | **Watch HR streaming runs as an ExerciseClient session, not MeasureClient** | Spike evidence (session 2): in ambient "blur" mode MeasureClient keeps sampling but message delivery stalls until the user taps the watch (141 s + 38 s stalls observed; drains on tap). Workout apps get workout-grade scheduling by holding an active exercise session — the spike now does the same (+ ongoing-activity chip, in-app ambient mode). Carries to the real `wear/` app in Phase 7. |
 
 ## Still open (see build-plan.md for full table)
 

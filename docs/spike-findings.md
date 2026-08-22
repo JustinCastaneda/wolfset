@@ -9,6 +9,35 @@
 | Date | Watch | Phone | Duration | Notes |
 |---|---|---|---|---|
 | 2026-08-20 | Pixel Watch 4 | Pixel 10 Pro | 150 s | Shakedown, screen mostly on, ADB attached. Log: `wolfset-spike-1787286145549.json`. Ran with the pre-fix metrics collector — its drop/latency stats are wrong; per-sample logs are trustworthy. |
+| 2026-08-22 | Pixel Watch 4 | Pixel 10 Pro | 256 s | Curls/squats/pushups, real HR spike (peak 117). Log: `wolfset-spike-1787374237862.json`. Fixed collector: 134/134 samples, 0 drops. **Identified the stall mechanism: watch ambient ("blur") mode.** |
+
+### Session 2 (2026-08-22, 256 s workout) — the stall has a name
+
+Justin's field observation: when the watch blurs, sync stops; tapping the watch triggers a
+flush. The log confirms it exactly:
+
+- Two stalls: **141.4 s** (t+3.8→145.2, the entire workout) and **38.4 s** (t+203→241.6,
+  after the 30 s screen timeout cycled the watch back to ambient). Each ended in a single
+  drain burst at the moment of a tap — 75 samples in 2.8 s, then 20 samples in 0.1 s.
+- Watch settings during the run: always-on display enabled, screen timeout 30 s (max).
+- The watch sampled on **1920 ± 1 ms cadence through both stalls** and delivered everything
+  eventually (134/134, zero loss). Ambient throttles *delivery*, not sampling — the radio
+  queues messages until an interaction returns the watch to interactive mode.
+- When interactive, the pipe is healthy: samples in pairs every ~4 s, oldest ~3.5 s stale —
+  matches session 1's steady state.
+- **This retroactively explains session 1's 72 s stall at peak HR**: peak HR is when you're
+  mid-set and haven't touched the watch in 30+ s. One mechanism covers all three observed
+  stalls. Bluetooth attenuation is off the hook.
+- Instrument validation: the reworked collector reported 0 fabricated drops (previous
+  session: 93), and the stale-signal indicator is what made Justin notice the stall live.
+
+**Consequence — MeasureClient is disqualified.** A gate that only updates when the user taps
+the watch is not a product. Real workout apps (Fitbit) hold an active **ExerciseClient**
+session, which gets workout-grade radio/CPU scheduling from Wear OS (and is why Fitbit's
+screen never blurs mid-workout). The spike's watch app has been switched to ExerciseClient +
+ongoing-activity chip + in-app ambient mode; every sample now carries an `amb` flag (1 =
+ambient) so the next session's log directly correlates delivery health with ambient state.
+**Next session's headline question: do samples flow while blurred, without tapping?**
 
 ### Session 1 (2026-08-20, 150 s shakedown) — what the raw logs actually said
 

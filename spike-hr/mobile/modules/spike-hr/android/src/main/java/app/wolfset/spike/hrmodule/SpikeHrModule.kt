@@ -82,6 +82,7 @@ class SpikeHrModule : Module() {
                             .put("watchBattery", b.getInt("watchBattery"))
                             .put("phoneRecvMs", b.getLong("phoneRecvMs"))
                             .put("clockOffsetMs", b.getLong("clockOffsetMs"))
+                            .put("amb", b.getInt("amb"))
                     )
                 }
             }

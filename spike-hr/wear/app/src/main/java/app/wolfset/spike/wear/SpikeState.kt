@@ -12,6 +12,9 @@ object SpikeState {
         val messagesSent: Long = 0,
         val sendFailures: Long = 0,
         val connectedNodes: Int = 0,
+        // True while the activity is in ambient (blurred) mode — stamped onto every HR
+        // sample so the phone-side log can correlate delivery stalls with ambient state.
+        val isAmbient: Boolean = false,
     )
 
     val snapshot = MutableStateFlow(Snapshot())

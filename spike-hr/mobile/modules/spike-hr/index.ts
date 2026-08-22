@@ -9,6 +9,8 @@ export type HrSampleEvent = {
   phoneRecvMs: number;
   clockOffsetMs: number;
   bridgeSendMs: number;
+  /** 1 = watch was in ambient (blurred) mode when sampled; 0 = interactive; -1 = unknown. */
+  amb: number;
 };
 
 export type TimerEvent = {

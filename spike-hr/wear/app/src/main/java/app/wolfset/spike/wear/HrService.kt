@@ -3,6 +3,7 @@ package app.wolfset.spike.wear
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -15,14 +16,18 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import androidx.health.services.client.ExerciseUpdateCallback
 import androidx.health.services.client.HealthServices
-import androidx.health.services.client.MeasureCallback
 import androidx.health.services.client.data.Availability
-import androidx.health.services.client.data.DataPointContainer
 import androidx.health.services.client.data.DataType
-import androidx.health.services.client.data.DeltaDataType
+import androidx.health.services.client.data.ExerciseConfig
+import androidx.health.services.client.data.ExerciseLapSummary
+import androidx.health.services.client.data.ExerciseType
+import androidx.health.services.client.data.ExerciseUpdate
 import androidx.health.services.client.data.HeartRateAccuracy
 import androidx.health.services.client.data.SampleDataPoint
+import androidx.wear.ongoing.OngoingActivity
+import androidx.wear.ongoing.Status
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
@@ -30,21 +35,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
-import java.time.Instant
 
 /**
- * Foreground service: samples live HR via Health Services MeasureClient and streams every
- * sample to all connected nodes over MessageClient.
+ * Foreground service: streams live HR to all connected nodes over MessageClient.
  *
- * Spike notes:
- * - MeasureClient is the high-power "sensor always on" API. Production may prefer
- *   ExerciseClient (+ batching overrides); one of the spike's jobs is to measure what
- *   MeasureClient actually costs in battery over a 90-minute session.
- * - A partial wakelock keeps our processing alive under doze so any gap we observe on the
- *   phone is the transport's fault, not ours.
+ * Session 2 evidence (2026-08-22) forced the switch from MeasureClient to ExerciseClient:
+ * with MeasureClient, sampling continued on perfect 1.92s cadence in ambient ("blur") mode,
+ * but *delivery* stalled — 141s and 38s queues that only flushed when the user tapped the
+ * watch. An active exercise session is how real workout apps (Fitbit et al.) get
+ * workout-grade radio/CPU scheduling from Wear OS. Whether it also fixes ambient delivery
+ * is exactly what the next hardware session measures — every sample now carries an `amb`
+ * flag so the log can correlate stalls with ambient state directly.
+ *
+ * The OngoingActivity chip is part of the same posture: it marks this app as the active
+ * workout on the watchface, which is both the Wear UX convention and part of how the system
+ * decides we deserve workout treatment.
  */
 class HrService : Service() {
 
@@ -53,20 +62,32 @@ class HrService : Service() {
     private var seq: Long = 0
     @Volatile private var nodes: List<Node> = emptyList()
 
-    private val measureClient by lazy { HealthServices.getClient(this).measureClient }
+    private val exerciseClient by lazy { HealthServices.getClient(this).exerciseClient }
     private val messageClient by lazy { Wearable.getMessageClient(this) }
     private val nodeClient by lazy { Wearable.getNodeClient(this) }
 
     // Health Services timestamps are durations from boot; anchor them to wall clock once.
     private val bootWallMs = System.currentTimeMillis() - SystemClock.elapsedRealtime()
 
-    private val measureCallback = object : MeasureCallback {
-        override fun onAvailabilityChanged(dataType: DeltaDataType<*, *>, availability: Availability) {
+    private val exerciseCallback = object : ExerciseUpdateCallback {
+        override fun onExerciseUpdateReceived(update: ExerciseUpdate) {
+            SpikeState.update { it.copy(availability = update.exerciseStateInfo.state.toString()) }
+            update.latestMetrics.getData(DataType.HEART_RATE_BPM).forEach { sample -> onSample(sample) }
+        }
+
+        override fun onAvailabilityChanged(dataType: DataType<*, *>, availability: Availability) {
             SpikeState.update { it.copy(availability = availability.toString()) }
         }
 
-        override fun onDataReceived(data: DataPointContainer) {
-            data.getData(DataType.HEART_RATE_BPM).forEach { sample -> onSample(sample) }
+        override fun onLapSummaryReceived(lapSummary: ExerciseLapSummary) {}
+
+        override fun onRegistered() {
+            Log.i(TAG, "exercise callback registered")
+        }
+
+        override fun onRegistrationFailed(throwable: Throwable) {
+            Log.e(TAG, "exercise callback registration failed", throwable)
+            SpikeState.update { it.copy(availability = "REGISTRATION_FAILED") }
         }
     }
 
@@ -76,7 +97,19 @@ class HrService : Service() {
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "wolfset-spike:hr").apply { acquire() }
 
-        measureClient.registerMeasureCallback(DataType.HEART_RATE_BPM, measureCallback)
+        exerciseClient.setUpdateCallback(exerciseCallback)
+        scope.launch {
+            val config = ExerciseConfig.Builder(ExerciseType.WEIGHTLIFTING)
+                .setDataTypes(setOf(DataType.HEART_RATE_BPM))
+                .setIsAutoPauseAndResumeEnabled(false)
+                .setIsGpsEnabled(false)
+                .build()
+            runCatching { exerciseClient.startExerciseAsync(config).await() }
+                .onFailure {
+                    Log.e(TAG, "startExercise failed", it)
+                    SpikeState.update { s -> s.copy(availability = "START_FAILED: ${it.message}") }
+                }
+        }
         SpikeState.update { it.copy(serviceRunning = true) }
 
         // Refresh the connected-node list periodically instead of per sample.
@@ -100,6 +133,9 @@ class HrService : Service() {
             .put("acc", accuracy)
             .put("watchWallMs", wallMs)
             .put("watchBattery", batteryPercent())
+            // 1 = the activity was in ambient (blurred) when this sample was processed.
+            // Best-effort: only meaningful while our activity is the foreground one.
+            .put("amb", if (SpikeState.snapshot.value.isAmbient) 1 else 0)
             .toString().toByteArray()
 
         SpikeState.update { it.copy(bpm = sample.value, samplesSeen = seq) }
@@ -127,12 +163,26 @@ class HrService : Service() {
         nm.createNotificationChannel(
             NotificationChannel(channelId, "HR Spike", NotificationManager.IMPORTANCE_LOW)
         )
-        val notification: Notification = NotificationCompat.Builder(this, channelId)
+        val touchIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val builder: NotificationCompat.Builder = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Wolfset HR spike")
-            .setContentText("Streaming heart rate to phone")
+            .setContentText("Workout session — streaming HR to phone")
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_WORKOUT)
+        // The ongoing-activity chip on the watchface: marks this as the active workout and
+        // gives a one-tap way back into the app from ambient.
+        OngoingActivity.Builder(applicationContext, NOTIFICATION_ID, builder)
+            .setStaticIcon(android.R.drawable.ic_menu_compass)
+            .setTouchIntent(touchIntent)
+            .setStatus(Status.Builder().addTemplate("Streaming HR").build())
             .build()
+            .apply(applicationContext)
+        val notification: Notification = builder.build()
         val type = if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else 0
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
     }
@@ -140,7 +190,8 @@ class HrService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onDestroy() {
-        runCatching { measureClient.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, measureCallback) }
+        runCatching { exerciseClient.endExerciseAsync() }
+        runCatching { exerciseClient.clearUpdateCallbackAsync(exerciseCallback) }
         wakeLock?.let { if (it.isHeld) it.release() }
         scope.cancel()
         SpikeState.update { it.copy(serviceRunning = false, availability = "stopped") }
