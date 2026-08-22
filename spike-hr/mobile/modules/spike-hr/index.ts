@@ -11,6 +11,8 @@ export type HrSampleEvent = {
   bridgeSendMs: number;
   /** 1 = watch was in ambient (blurred) mode when sampled; 0 = interactive; -1 = unknown. */
   amb: number;
+  /** 1 = HEART_RATE_5_SECONDS batching override active on the watch; 0 = unsupported; -1 = unknown. */
+  bm: number;
 };
 
 export type TimerEvent = {

@@ -15,6 +15,9 @@ object SpikeState {
         // True while the activity is in ambient (blurred) mode — stamped onto every HR
         // sample so the phone-side log can correlate delivery stalls with ambient state.
         val isAmbient: Boolean = false,
+        // Whether this watch supports the HEART_RATE_5_SECONDS batching override — the
+        // documented fix for ambient delivery stalls. If false, expect stalls to persist.
+        val batching5s: Boolean = false,
     )
 
     val snapshot = MutableStateFlow(Snapshot())

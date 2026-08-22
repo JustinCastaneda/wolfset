@@ -83,7 +83,11 @@ private fun SpikeScreen(onToggle: (Boolean) -> Unit) {
             // Dim in ambient (and skip the brand red — ambient wants low-emission pixels).
             color = if (state.isAmbient) Color(0xFF9A9DA3) else Color(0xFFF04245),
         )
-        Text("bpm · ${state.availability}${if (state.isAmbient) " · ambient" else ""}", fontSize = 10.sp)
+        Text(
+            "bpm · ${state.availability}${if (state.isAmbient) " · ambient" else ""}" +
+                (if (state.serviceRunning) (if (state.batching5s) " · 5s-batch" else " · NO-OVERRIDE") else ""),
+            fontSize = 10.sp,
+        )
         Text(
             "sent ${state.messagesSent}/${state.samplesSeen}" +
                 (if (state.sendFailures > 0) " · ${state.sendFailures} failed" else "") +

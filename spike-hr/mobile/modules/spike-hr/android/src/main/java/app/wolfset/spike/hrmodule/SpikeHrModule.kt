@@ -83,6 +83,7 @@ class SpikeHrModule : Module() {
                             .put("phoneRecvMs", b.getLong("phoneRecvMs"))
                             .put("clockOffsetMs", b.getLong("clockOffsetMs"))
                             .put("amb", b.getInt("amb"))
+                            .put("bm", b.getInt("bm"))
                     )
                 }
             }

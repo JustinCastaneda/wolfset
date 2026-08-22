@@ -19,6 +19,7 @@ import androidx.core.app.ServiceCompat
 import androidx.health.services.client.ExerciseUpdateCallback
 import androidx.health.services.client.HealthServices
 import androidx.health.services.client.data.Availability
+import androidx.health.services.client.data.BatchingMode
 import androidx.health.services.client.data.DataType
 import androidx.health.services.client.data.ExerciseConfig
 import androidx.health.services.client.data.ExerciseLapSummary
@@ -99,16 +100,38 @@ class HrService : Service() {
 
         exerciseClient.setUpdateCallback(exerciseCallback)
         scope.launch {
-            val config = ExerciseConfig.Builder(ExerciseType.WEIGHTLIFTING)
+            // Health Services batches deliveries in non-interactive power states (ambient /
+            // screen off) for ExerciseClient too — the documented fix for our measured
+            // tap-to-flush stalls is the HEART_RATE_5_SECONDS BatchingMode override.
+            // Support is per-device and this client version (1.0.0-rc02) exposes no
+            // capability query for it, so: try with the override, fall back without and
+            // record which config actually started. The `bm` flag on every sample carries
+            // that fact into the session log.
+            fun config(withBatching: Boolean) = ExerciseConfig.Builder(ExerciseType.WEIGHTLIFTING)
                 .setDataTypes(setOf(DataType.HEART_RATE_BPM))
                 .setIsAutoPauseAndResumeEnabled(false)
                 .setIsGpsEnabled(false)
-                .build()
-            runCatching { exerciseClient.startExerciseAsync(config).await() }
-                .onFailure {
-                    Log.e(TAG, "startExercise failed", it)
-                    SpikeState.update { s -> s.copy(availability = "START_FAILED: ${it.message}") }
+                .apply {
+                    if (withBatching) setBatchingModeOverrides(setOf(BatchingMode.HEART_RATE_5_SECONDS))
                 }
+                .build()
+
+            val withOverride = runCatching { exerciseClient.startExerciseAsync(config(true)).await() }
+            if (withOverride.isSuccess) {
+                SpikeState.update { it.copy(batching5s = true) }
+                Log.i(TAG, "exercise started WITH HEART_RATE_5_SECONDS batching override")
+            } else {
+                Log.w(TAG, "override rejected, retrying without", withOverride.exceptionOrNull())
+                runCatching { exerciseClient.startExerciseAsync(config(false)).await() }
+                    .onSuccess {
+                        SpikeState.update { s -> s.copy(batching5s = false) }
+                        Log.i(TAG, "exercise started WITHOUT batching override — expect ambient stalls")
+                    }
+                    .onFailure {
+                        Log.e(TAG, "startExercise failed", it)
+                        SpikeState.update { s -> s.copy(availability = "START_FAILED: ${it.message}") }
+                    }
+            }
         }
         SpikeState.update { it.copy(serviceRunning = true) }
 
@@ -136,6 +159,9 @@ class HrService : Service() {
             // 1 = the activity was in ambient (blurred) when this sample was processed.
             // Best-effort: only meaningful while our activity is the foreground one.
             .put("amb", if (SpikeState.snapshot.value.isAmbient) 1 else 0)
+            // Whether the 5s batching override was active — the log must be able to say
+            // "stall happened WITH the fix on" vs "fix unsupported on this watch".
+            .put("bm", if (SpikeState.snapshot.value.batching5s) 1 else 0)
             .toString().toByteArray()
 
         SpikeState.update { it.copy(bpm = sample.value, samplesSeen = seq) }
