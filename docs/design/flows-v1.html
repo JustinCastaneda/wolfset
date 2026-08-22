@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #121110; }
+  a { color: #e5372b; text-decoration: none; }
+  a:hover { color: #ff5b4d; }
+</style>
+</helmet>
+
+<div style="background:#121110;padding:56px 64px 90px;font-family:Barlow,sans-serif;min-width:1720px">
+
+<div style="max-width:1600px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#e5372b">GYM WOLF · V1</div>
+  <div style="font:700 44px/1.05 Barlow,sans-serif;color:#e8e4df;margin-top:8px">Flow of record</div>
+  <p style="font:400 15px/1.5 Barlow,sans-serif;color:#a49c94;margin:14px 0 0;max-width:760px;text-wrap:pretty">Every node is a screen that already exists in the storyboard — the red badge links to it. Nothing here is a new design. The point is to agree on the wiring, and to have named slots for the things we are deliberately not building yet.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:22px">
+    <div style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:14px;border-radius:4px;background:#1f1c1a;border:1px solid #2c2925"></span><span style="font:600 12px Barlow,sans-serif;color:#8a827a">Screen</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:14px;border-radius:4px;background:#201d1a;border:1px solid #f2b63c"></span><span style="font:600 12px Barlow,sans-serif;color:#8a827a">Decision</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:14px;border-radius:4px;background:transparent;border:1px dashed #3a3530"></span><span style="font:600 12px Barlow,sans-serif;color:#8a827a">Out of scope — slot only</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font:700 12px Barlow,sans-serif;color:#e5372b">23a</span><span style="font:600 12px Barlow,sans-serif;color:#8a827a">Storyboard id, links out</span></div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:0;margin-top:44px">
+
+<!-- STAGE 0 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 0</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Launch</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:18px">
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Splash</span><a href="nextset%20UX%20Storyboard.dc.html#21a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">21a</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Claw animation completes at ~600ms. Holds only while the stored session is checked.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:252px;border-radius:8px;background:#201d1a;border:1px solid #f2b63c;padding:12px 14px;box-sizing:border-box">
+      <div style="font:700 15px Barlow,sans-serif;color:#f2b63c">◆ Valid session?</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Supabase token check.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">YES → STAGE 5 HOME</div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">NO → STAGE 1 SIGN IN</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="font:700 15px Barlow,sans-serif;color:#e8e4df">Skipped setup? Assume it</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Onboarding is never forced. Anything skipped gets a sane default and stays editable in Settings.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">→ SETTINGS · JC AVATAR ON HUB <a href="nextset%20UX%20Storyboard.dc.html#7b" style="font:700 10px Barlow,sans-serif;color:#e5372b">7b</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 1 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 1</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Auth</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">four entrances, one exit each</span>
+  </div>
+  <div style="display:flex;gap:18px;margin-top:18px;align-items:flex-start">
+
+    <div style="display:flex;flex-direction:column;gap:8px;width:250px">
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.14em;color:#e5372b">PATH A · RETURNING</div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Sign in</span><a href="nextset%20UX%20Storyboard.dc.html#22a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">22a</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Email + password. Subhead names your live plan and week.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="border-radius:8px;background:#201d1a;border:1px solid #f2b63c;padding:12px 14px">
+        <div style="font:700 15px Barlow,sans-serif;color:#f2b63c">◆ Credentials good?</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+          <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">YES → HOME</div>
+          <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">NO → ERROR, STAY PUT <a href="nextset%20UX%20Storyboard.dc.html#21b" style="font:700 10px Barlow,sans-serif;color:#e5372b">21b</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;width:250px">
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.14em;color:#e5372b">PATH B · NEW ACCOUNT</div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Create account</span><a href="nextset%20UX%20Storyboard.dc.html#22c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">22c</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Credentials only. No preferences on this screen.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Confirm your email</span><a href="nextset%20UX%20Storyboard.dc.html#21d" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">21d</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Hard gate. Open Mail in one tap, resend on visible cooldown.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">You're in</span><a href="nextset%20UX%20Storyboard.dc.html#22c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">22c</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Let's Get to Work → Stage 2. The only door into onboarding.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;width:250px">
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.14em;color:#e5372b">PATH C · RECOVERY</div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Forgot password</span><a href="nextset%20UX%20Storyboard.dc.html#22b" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">22b</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Never confirms whether the address has an account.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Check your mail · resend</span><a href="nextset%20UX%20Storyboard.dc.html#22b" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">22b</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Cooldown line becomes a live Resend button in the same slot.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Set new password</span><a href="nextset%20UX%20Storyboard.dc.html#21f" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">21f</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Link route for V1 — the tap lands you here already signed in. Code screen is the fallback only.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94;text-align:center">→ HOME</div>
+      <div style="border-radius:8px;background:#201d1a;border:1px solid #f2b63c;padding:12px 14px;margin-top:6px">
+        <div style="font:700 13px Barlow,sans-serif;color:#f2b63c">Security constraints</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <div style="font:400 11px/1.4 Barlow,sans-serif;color:#a49c94"><b style="color:#d8d2cc">Token.</b> Single use, 15–30 min TTL, dead the moment it's spent. Never in a redirect URL that leaks via Referer.</div>
+          <div style="font:400 11px/1.4 Barlow,sans-serif;color:#a49c94"><b style="color:#d8d2cc">Resend.</b> Rate limited server side — the visible cooldown can't be the only gate.</div>
+          <div style="font:400 11px/1.4 Barlow,sans-serif;color:#a49c94"><b style="color:#d8d2cc">Recovery session.</b> Scoped until the new password is set. An abandoned tab is not a logged-in account.</div>
+          <div style="font:400 11px/1.4 Barlow,sans-serif;color:#a49c94"><b style="color:#d8d2cc">On success.</b> Revoke every other session, phone and watch. An existing attacker session dies here.</div>
+          <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8a827a;padding-top:2px;border-top:1px solid #2c2925">Residual: whoever owns the inbox owns the account. Inherent to email reset — Google SSO reduces it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;width:250px">
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.14em;color:#6f6862">PATH D · GOOGLE</div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Google SSO</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">In the layout from day one, behind a config toggle. Button is drawn, wiring is off.</div>
+      </div>
+      <span style="font:400 13px Barlow,sans-serif;color:#3a3530;text-align:center">▼</span>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Coming back from Google</span><a href="nextset%20UX%20Storyboard.dc.html#21g" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">21g</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">Skips credentials, still runs Stage 2 — that's where account defaults come from.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 2 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 2</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Preferences</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">one question per screen, no keyboard</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
+    <div style="width:230px;border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Units</span><a href="nextset%20UX%20Storyboard.dc.html#23a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">23a</a></div>
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.08em;color:#e5372b;margin-top:4px">REQUIRED · NO SKIP</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Sets exercise defaults downstream, so it can't be deferred.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:230px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Experience</span><a href="nextset%20UX%20Storyboard.dc.html#23a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">23a</a></div>
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.08em;color:#8a827a;margin-top:4px">SKIPPABLE → INTERMEDIATE</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Seeds starting weights and default set counts.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:230px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Equipment</span><a href="nextset%20UX%20Storyboard.dc.html#23a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">23a</a></div>
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.08em;color:#8a827a;margin-top:4px">SKIPPABLE → FULL GYM</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Filters the catalog and every swap list from here on.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:230px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Goal</span><a href="nextset%20UX%20Storyboard.dc.html#23a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">23a</a></div>
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.08em;color:#8a827a;margin-top:4px">SKIPPABLE → HYPERTROPHY</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Chooses which plan shortlist Stage 3 shows.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:230px;border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Body stats · schedule</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">Bodyweight, days available, injuries. Slot is here if the four screens prove too thin.</div>
+    </div>
+  </div>
+  <p style="font:400 13px/1.5 Barlow,sans-serif;color:#8a827a;margin:14px 0 0;max-width:1080px;text-wrap:pretty">Open call from turn 23, unresolved: <strong style="color:#c9c2ba">step labelling</strong>. Signup used Step 1 of 2, and these four have no indicator. Either label them Step 1–4 of 4, or drop indicators here entirely on the grounds that skippable steps make a counter a lie. Needs a decision before build — it changes every header on the row.</p>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 3 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 3</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Choose a plan</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">the fork that decides how much work the user does next</span>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-top:18px">
+    <div style="width:252px;border-radius:8px;background:#201d1a;border:1px solid #f2b63c;padding:12px 14px;box-sizing:border-box">
+      <div style="font:700 15px Barlow,sans-serif;color:#f2b63c">◆ Library has plans for this goal?</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Server-side. Same screen either way — the list is just longer.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">YES → 24a POPULATED</div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">NO → 24b ONE OPTION</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="display:flex;flex-direction:column;gap:10px;width:252px">
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Plan list</span><a href="nextset%20UX%20Storyboard.dc.html#24a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">24a</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">2+ curated plans, chips carrying the Stage 2 answers, Build my own as a card.</div>
+      </div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Launch state</span><a href="nextset%20UX%20Storyboard.dc.html#24b" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">24b</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.08em;color:#e5372b;margin-top:4px">WHAT SHIPS FOR TESTING</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Build my own only, plus the line about plans coming.</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="display:flex;flex-direction:column;gap:10px;width:252px">
+      <div style="font:600 10px Barlow,sans-serif;letter-spacing:.14em;color:#e5372b">THREE EXITS</div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="font:700 15px Barlow,sans-serif;color:#e8e4df">Use this plan</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Curated plan is copied into your account as an editable meso → HOME. Skips Stage 4 entirely.</div>
+      </div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="font:700 15px Barlow,sans-serif;color:#e8e4df">Build my own</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">→ STAGE 4.</div>
+      </div>
+      <div style="border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px">
+        <div style="font:700 15px Barlow,sans-serif;color:#e8e4df">Skip, just log a workout</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">→ FREESTYLE, no plan on the account. Lands on the empty state <a href="nextset%20UX%20Storyboard.dc.html#11f">11f</a>.</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="display:flex;flex-direction:column;gap:10px;width:252px">
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Plan detail before commit</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">OPEN</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">Tap a plan to see its weeks and lifts before choosing. Undecided in turn 24.</div>
+      </div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Plan library · strength, fat loss</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">Goals beyond hypertrophy. Same screen, different shortlist.</div>
+      </div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Swap plans mid-cycle</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">24b promises this. Needs history to survive the move.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 4 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 4</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Build the mesocycle</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">three answers and you're standing in a workout — never handed an empty container</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
+    <div style="width:226px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Name + progression</span><a href="nextset%20UX%20Storyboard.dc.html#11a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">11a</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Progression as a sentence with inline chips. Named strategies <a href="nextset%20UX%20Storyboard.dc.html#11b">11b</a> for anyone who doesn't know what they want.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:226px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">First lift</span><a href="nextset%20UX%20Storyboard.dc.html#13c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">13c</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Shell is skipped. Picking one exercise creates the meso and day 1 behind you.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:226px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Edit Meso</span><a href="nextset%20UX%20Storyboard.dc.html#11c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">11c</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">The plan's shape: days, weeks, two summary rows that read out the current rule. No settings table.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:226px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Edit Day</span><a href="nextset%20UX%20Storyboard.dc.html#11d" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">11d</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Each row states the whole prescription. Drag to reorder. Add appends to the end.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:226px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Catalog</span><a href="nextset%20UX%20Storyboard.dc.html#8b" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">8b</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Thumbnails, no multi-select, filtered by the equipment answer. Rows are navigational.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:226px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Exercise · planning mode</span><a href="nextset%20UX%20Storyboard.dc.html#9c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">9c</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Sets, reps, starting weight — pre-filled from history or a related lift. Commits back to the day.</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap">
+    <div style="font:600 10px Barlow,sans-serif;letter-spacing:.14em;color:#8a827a;width:242px">SIDE DOORS &amp; STATES</div>
+    <div style="width:242px;border-radius:8px;background:#1a1817;border:1px solid #241f1c;padding:11px 13px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#c9c2ba">Add Day</span><a href="nextset%20UX%20Storyboard.dc.html#11e" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">11e</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:4px">Three of four options are a copy of an existing day.</div>
+    </div>
+    <div style="width:242px;border-radius:8px;background:#1a1817;border:1px solid #241f1c;padding:11px 13px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#c9c2ba">No plan yet</span><a href="nextset%20UX%20Storyboard.dc.html#11f" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">11f</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:4px">Freestyle is a first-class exit here, not a footnote.</div>
+    </div>
+    <div style="width:242px;border-radius:8px;background:#1a1817;border:1px solid #241f1c;padding:11px 13px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#c9c2ba">Plan with no days</span><a href="nextset%20UX%20Storyboard.dc.html#11g" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">11g</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:4px">Reachable if someone deletes their way back to empty.</div>
+    </div>
+    <div style="width:242px;border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:11px 13px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#6f6862">Deload week</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:4px">Property of the plan per <a href="nextset%20UX%20Storyboard.dc.html#9a">9a</a>. Set in Edit Meso, unbuilt.</div>
+    </div>
+    <div style="width:242px;border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:11px 13px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#6f6862">Per-lift overrides</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">V1.1</span></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:4px">Designed in <a href="nextset%20UX%20Storyboard.dc.html#15a">15</a>. Ships after the plan-level rule proves out.</div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 5 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 5</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Home &amp; hub</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">the steady state — every returning session starts here</span>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-top:18px">
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Home</span><a href="nextset%20UX%20Storyboard.dc.html#7a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">7a</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Today's workout, six exercises listed. Eyebrow shows meso position — Week 3 · Day 2 of 4.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Hub · Change it up</span><a href="nextset%20UX%20Storyboard.dc.html#7b" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">7b</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">The ⚙ destination. Two zones: this mesocycle, and something else.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">→ ANOTHER DAY, OUT OF ORDER</div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">→ FREESTYLE <a href="nextset%20UX%20Storyboard.dc.html#7d" style="font:700 10px Barlow,sans-serif;color:#e5372b">7d</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">→ EDIT MESO <a href="nextset%20UX%20Storyboard.dc.html#8a" style="font:700 10px Barlow,sans-serif;color:#e5372b">8a</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">→ SETTINGS · BEHIND JC AVATAR</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:2px">Holds every skipped preference: units, equipment, days. Assumed until changed.</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Freestyle</span><a href="nextset%20UX%20Storyboard.dc.html#7d" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">7d</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Same skeleton as Home, list grows downward as you lift. Do-now exercise detail <a href="nextset%20UX%20Storyboard.dc.html#9d">9d</a> → set screen <a href="nextset%20UX%20Storyboard.dc.html#9e">9e</a>.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="display:flex;flex-direction:column;gap:10px;width:252px">
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">History &amp; progress</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">Charts, PRs, volume over time. Attaches to Home as a second tab. Nothing designed yet.</div>
+      </div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Reminders</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">Push on scheduled days. Needs the schedule field from Stage 2's future slot.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 6 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 6</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">The session</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">a loop, not a line — rest is the only fork</span>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-top:18px">
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Set screen</span><a href="nextset%20UX%20Storyboard.dc.html#4a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">4a</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Single purpose. Tap the number to decrease, the button echoes the count — Log 5 Reps <a href="nextset%20UX%20Storyboard.dc.html#3a">3a</a>. Bar loadout drawn.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">✎ → EDIT SET <a href="nextset%20UX%20Storyboard.dc.html#5a" style="font:700 10px Barlow,sans-serif;color:#e5372b">5a</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">✎ → SWAP <a href="nextset%20UX%20Storyboard.dc.html#7c" style="font:700 10px Barlow,sans-serif;color:#e5372b">7c</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">☰ → SUMMARY, NO LOG</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#201d1a;border:1px solid #f2b63c;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#f2b63c">◆ Rest — the fork</span><a href="nextset%20UX%20Storyboard.dc.html#10a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">10a</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Ring length is time, ring colour is heart rate. The only moment "am I done with this lift?" is answerable.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">NEXT SET → BACK TO SET (DEFAULT, AUTO AT 0:00)</div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">DONE → RUNNING SUMMARY</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Running summary</span><a href="nextset%20UX%20Storyboard.dc.html#10c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">10c</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">The hub between exercises. Reps-per-set spelled out. Loops back to the next lift, or exits to Stage 7.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="display:flex;flex-direction:column;gap:10px;width:252px">
+      <div style="border-radius:8px;background:#1a1817;border:1px solid #241f1c;padding:11px 13px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#c9c2ba">Swap · no estimate</span><a href="nextset%20UX%20Storyboard.dc.html#8d" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">8d</a></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:4px">Three honesty tiers: real history, ~estimated, Find your weight.</div>
+      </div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:11px 13px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#6f6862">Offline logging &amp; sync</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:4px">Gym basements have no signal. Affects every write in this stage — worth deciding early even if built late.</div>
+      </div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:11px 13px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#6f6862">1RM &amp; estimate engine</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:4px">V1 fakes the ~ tier off related lifts. Real model comes later.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- STAGE 7 -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">STAGE 7</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">End of session</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Finish · confirm</span><a href="nextset%20UX%20Storyboard.dc.html#10d" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">10d</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Two-tap, no hold. Written to history on confirm.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:252px;border-radius:8px;background:#201d1a;border:1px solid #f2b63c;padding:12px 14px;box-sizing:border-box">
+      <div style="font:700 15px Barlow,sans-serif;color:#f2b63c">◆ Was this freestyle?</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">YES → OFFER TO PROMOTE</div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">NO → ADVANCE MESO POSITION</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Make it a mesocycle</span><a href="nextset%20UX%20Storyboard.dc.html#8e" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">8e</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">The second entrance to Stage 4 — the workout you just did becomes day 1. Catches people who skipped planning entirely.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px;box-sizing:border-box">
+      <div style="font:700 15px Barlow,sans-serif;color:#e8e4df">Home</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Loop closes. Week and day have moved on.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530">→</span>
+    <div style="width:252px;border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#6f6862">Share · streaks · social</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:5px">If it ever exists, it hangs off the finish summary. Explicitly not V1.</div>
+    </div>
+  </div>
+</div>
+
+<div style="height:34px;width:2px;background:#2c2925;position:relative;margin:8px 0"><span style="position:absolute;bottom:-9px;left:-5px;font:400 13px Barlow,sans-serif;color:#3a3530">▼</span></div>
+
+<!-- WATCH LANE -->
+<div style="width:1600px;border-top:1px solid #241f1c;padding-top:22px">
+  <div style="display:flex;align-items:baseline;gap:14px">
+    <span style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">PARALLEL LANE</span>
+    <span style="font:700 24px Barlow,sans-serif;color:#e8e4df">Wear OS companion</span>
+    <span style="font:400 14px Barlow,sans-serif;color:#8a827a">same session, same data, two gestures — left for actions, up for numbers</span>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-top:18px">
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Tile</span><a href="nextset%20UX%20Storyboard.dc.html#20a" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">20a</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Two enormous targets. Picks up whatever the phone says is today.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #e5372b;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Set · 3 of 5</span><a href="nextset%20UX%20Storyboard.dc.html#20c" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">20c</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Count is numeric, not graphic. Two page dots on the right rail make the swipe discoverable.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">SWIPE UP → ADJUST <a href="nextset%20UX%20Storyboard.dc.html#18c" style="font:700 10px Barlow,sans-serif;color:#e5372b">18c</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">SWIPE LEFT → ACTIONS</div>
+      </div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Actions</span><a href="nextset%20UX%20Storyboard.dc.html#20b" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">20b</a></div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">SKIP SET</div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">CHANGE EXERCISE <a href="nextset%20UX%20Storyboard.dc.html#20e" style="font:700 10px Barlow,sans-serif;color:#e5372b">20e</a></div>
+        <div style="font:600 10px Barlow,sans-serif;letter-spacing:.06em;color:#a49c94">END WORKOUT <a href="nextset%20UX%20Storyboard.dc.html#20f" style="font:700 10px Barlow,sans-serif;color:#e5372b">20f</a></div>
+      </div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:6px">End stays outlined so it never reads as a peer. Two-tap plus a consequence line, no hold.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="width:252px;border-radius:8px;background:#1f1c1a;border:1px solid #2c2925;padding:12px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 15px Barlow,sans-serif;color:#e8e4df">Rest</span><a href="nextset%20UX%20Storyboard.dc.html#20d" style="font:700 10px Barlow,sans-serif;color:#e5372b;background:#2a1a18;border-radius:4px;padding:2px 6px">20d</a></div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8a827a;margin-top:5px">Red → warning → green. Continue ignites when the ring reaches green. Loops back to Set.</div>
+    </div>
+    <span style="font:400 20px Barlow,sans-serif;color:#3a3530;margin-top:22px">→</span>
+    <div style="display:flex;flex-direction:column;gap:10px;width:252px">
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:11px 13px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#6f6862">Watch-first sessions</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">OPEN</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:4px">Can you start a freestyle workout with the phone in your locker? Undecided — it's the one thing that would make the watch standalone rather than a companion.</div>
+      </div>
+      <div style="border-radius:8px;background:transparent;border:1px dashed #3a3530;padding:11px 13px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 14px Barlow,sans-serif;color:#6f6862">iOS + Apple Watch</span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.1em;color:#6f6862;border:1px solid #3a3530;border-radius:4px;padding:2px 5px">FUTURE</span></div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#6f6862;margin-top:4px">Round-screen decisions in <a href="nextset%20UX%20Storyboard.dc.html#19a">19</a> don't port. Rectangular rework when it comes.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div style="width:1600px;margin:46px auto 0;border-top:1px solid #241f1c;padding-top:24px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.18em;color:#e5372b">BEFORE BUILD</div>
+  <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap">
+    <div style="width:380px">
+      <div style="font:700 16px Barlow,sans-serif;color:#e8e4df">1 · Step labelling in Stage 2</div>
+      <div style="font:400 13px/1.5 Barlow,sans-serif;color:#8a827a;margin-top:4px">Number all four, or none. Carried over from turn 23 and it blocks four headers.</div>
+    </div>
+    <div style="width:380px">
+      <div style="font:700 16px Barlow,sans-serif;color:#e8e4df">2 · Build my own — card or link</div>
+      <div style="font:400 13px/1.5 Barlow,sans-serif;color:#8a827a;margin-top:4px">Only matters once <a href="nextset%20UX%20Storyboard.dc.html#24a">24a</a> is populated, but the launch screen sets the precedent.</div>
+    </div>
+    <div style="width:380px">
+      <div style="font:700 16px Barlow,sans-serif;color:#e8e4df">3 · Offline behaviour</div>
+      <div style="font:400 13px/1.5 Barlow,sans-serif;color:#8a827a;margin-top:4px">Marked future, but it's an architecture call in Stage 6, not a screen. Cheapest to decide now.</div>
+    </div>
+    <div style="width:380px">
+      <div style="font:700 16px Barlow,sans-serif;color:#e8e4df">4 · Watch standalone or not</div>
+      <div style="font:400 13px/1.5 Barlow,sans-serif;color:#8a827a;margin-top:4px">Decides whether the watch needs its own exercise catalog.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</x-dc>
+</body>
+</html>

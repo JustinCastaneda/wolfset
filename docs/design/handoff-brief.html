@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #010101; }
+  a { color: #F04245; text-decoration: none; }
+  a:hover { color: #FF6E70; }
+</style>
+</helmet>
+
+<div style="background:#010101;padding:60px 60px 110px;font-family:Barlow,sans-serif;min-width:900px;box-sizing:border-box">
+
+<div style="max-width:1120px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.22em;color:#F04245">WOLFSET · HANDOFF BRIEF</div>
+  <div style="font:900 46px/1.02 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">What the Figma and the flowchart don't say</div>
+  <p style="font:400 16px/1.55 Barlow,sans-serif;color:#C3BEBB;margin:16px 0 0;text-wrap:pretty">The Figma carries the screens. The flowchart carries the edges between them. The build plan carries the order of work. This page carries the third thing a coding agent needs and none of those three hold: the rules that decide what a screen does when a condition is met, and the list of things that are deliberately not designed yet. Read it alongside the flowchart, not instead of it.</p>
+</div>
+
+<sc-if value="{{ showNamingFlag }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1120px;margin-top:38px;border-radius:12px;background:#241C1A;border:1px solid #F04245;padding:22px 24px">
+  <div style="font:700 10px Barlow,sans-serif;letter-spacing:.18em;color:#F04245">READ THIS FIRST</div>
+  <div style="font:800 22px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:8px">The product is WOLFSET. The design files say Gym Wolf.</div>
+  <p style="font:400 14.5px/1.55 Barlow,sans-serif;color:#C3BEBB;margin:10px 0 0;max-width:840px">Both names are in circulation across the material being handed over: the Figma file is <em style="font-style:normal;color:#FFFDFB">Gym Wolf Application.fig</em>, the flowchart is titled Gym Wolf, and the build plan locks <em style="font-style:normal;color:#FFFDFB">WOLFSET</em> while explicitly rejecting Gym Wolf for cause. WOLFSET wins. Treat every in-file occurrence of Gym Wolf as a stale label, not a second product, and do not carry it into identifiers, package names, string tables or the splash wordmark. The wordmark treatment is locked: WOLF in red, SET in white.</p>
+</div>
+</sc-if>
+
+<div style="max-width:1120px;margin-top:52px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">01 · THE SET LOOP</div>
+  <div style="font:800 30px/1.1 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">One state machine, five screens, six transitions</div>
+  <p style="font:400 15px/1.55 Barlow,sans-serif;color:#8C8781;margin:12px 0 0;max-width:840px">This is the centre of the app and the part most likely to be built wrong from the screens alone, because half of its transitions are conditions rather than taps. Every exit below is a real transition in the flowchart.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:26px;max-width:1120px">
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;background:#141110;border-left:2px solid #F04245;padding:16px 20px">
+    <div style="font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#FFFDFB">Log a Set → Post Set Timer</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">User logs the set. The timer starts on its own; it is not a screen the user chooses to visit.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;background:#141110;border-left:2px solid #3DF593;padding:16px 20px">
+    <div style="font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#FFFDFB">Post Set Timer → Log a Set</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB"><span style="color:#FFFDFB">Two triggers, one destination.</span> The countdown reaches 0:00, or the user taps Continue before it does. Either way the next set of the same exercise loads. Do not build these as different paths.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;background:#141110;border-left:2px solid #3DF593;padding:16px 20px">
+    <div style="font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#FFFDFB">sets exhausted → next lift</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Inside a mesocycle the loop above repeats until the exercise's prescribed sets are used up, then the next exercise in the day takes over and the loop restarts against it. Same screens, new exercise.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;background:#141110;border-left:2px solid #3DF593;padding:16px 20px">
+    <div style="font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#FFFDFB">last lift done → Workout Summary</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Workout Summary is the running list, reachable during the session. It is not the end of the session.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;background:#141110;border-left:2px solid #3DF593;padding:16px 20px">
+    <div style="font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#FFFDFB">Finish → Session Done → tiles</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Finish always lands on Session Done, and Session Done always returns to the opening tiles. True on the phone and on the watch. Session Done's secondary exits — Add to Plan, New MesoCycle — re-enter plan build instead.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;background:#141110;border-left:2px solid #38322F;padding:16px 20px">
+    <div style="font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#FFFDFB">Log a Set ↔ Edit Weights</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Tap the weight to open, save to return. A detour off the loop, not a step in it. Freestyle sets are open-ended, so <span style="color:#FFFDFB">“sets exhausted” has no meaning there</span> — the loop only ends when the user ends it.</div>
+  </div>
+</div>
+
+<div style="max-width:1120px;margin-top:56px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">02 · RULES BEHIND THE SCREENS</div>
+  <div style="font:800 30px/1.1 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">Numbers that exist in conversation only</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:24px;max-width:1120px">
+  <div style="border-radius:11px;background:#201A18;border:1px solid #38322F;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">PROGRESSION</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Hit every rep → +3 reps. Missed → drop 10%.</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">The default rule the app applies between sessions, shown as the Progression Override screen in plan build. It is per-exercise and set at the time the exercise is added, so the storage model needs a per-exercise override field, not one global setting.</p>
+  </div>
+  <div style="border-radius:11px;background:#201A18;border:1px solid #38322F;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">PACING</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Rest is per exercise, not per plan</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">A deadlift needs longer rest than a curl, and the user knows that while adding the exercise. Pacing is therefore settable in two places: at Add Exercise Details during plan build, and as a settings detour off Workout A (1:30 rest, auto-start timer). Same field, two entry points.</p>
+  </div>
+  <div style="border-radius:11px;background:#201A18;border:1px solid #38322F;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">WEIGHT ENTRY</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Custom keypad, not the OS keyboard</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">+5 and −5 cover most edits; the keypad is for the rest. Built rather than borrowed because the OS number pad's keys are too small for gym use, it eats the screen the set row needs, and it can't host the increment buttons. Numeric only, 44px minimum targets.</p>
+  </div>
+  <div style="border-radius:11px;background:#201A18;border:1px solid #F2CE40;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">HEART RATE GATE · NEEDS A NUMBER</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Red → yellow → green, thresholds undefined</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">The timer screens show 168 red, 145 yellow, recovered green on the phone; 168, 142, 122 on the watch. Those are illustrative values in a design file, not a rule. What counts as recovered — an absolute BPM, a percentage of the session peak, a return toward resting rate — is undecided and Phase 0 is where it gets decided.</p>
+  </div>
+</div>
+
+<div style="max-width:1120px;margin-top:56px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">03 · SHARED SCREENS</div>
+  <div style="font:800 30px/1.1 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">Drawn twice in Figma, built once</div>
+  <p style="font:400 15px/1.55 Barlow,sans-serif;color:#8C8781;margin:12px 0 0;max-width:840px">The Figma has around 50 frames because journeys were drawn end to end and the shared middle got redrawn each time. Building frame-for-frame would produce several copies of the same screen that then drift apart.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:24px;max-width:1120px">
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;background:#141110;padding:15px 20px">
+    <div style="font:700 14px/1.3 Barlow,sans-serif;color:#FFFDFB">Log a Set</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">One screen. Plan and freestyle both land on it.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;background:#141110;padding:15px 20px">
+    <div style="font:700 14px/1.3 Barlow,sans-serif;color:#FFFDFB">Edit Weights</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Three frames in the file. One screen with +5, −5 and keypad states.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;background:#141110;padding:15px 20px">
+    <div style="font:700 14px/1.3 Barlow,sans-serif;color:#FFFDFB">Post Set Timer</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Three heart-rate frames, two of them still named <span style="color:#8C8781">Android Compact – 2</span> and <span style="color:#8C8781">– 3</span>. One screen, three states.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;background:#141110;padding:15px 20px">
+    <div style="font:700 14px/1.3 Barlow,sans-serif;color:#FFFDFB">Workout Summary</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">One screen. Its title is Freestyle or Workout A depending on how the session started — the only difference.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;background:#141110;padding:15px 20px">
+    <div style="font:700 14px/1.3 Barlow,sans-serif;color:#FFFDFB">Getting Started</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Also serves as Create New MesoCycle. Same flow, second entry point: the Change It Up hub, reachable mid-cycle. The plan lists them as separate line items in Phase 5; they are one build.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;background:#141110;padding:15px 20px">
+    <div style="font:700 14px/1.3 Barlow,sans-serif;color:#FFFDFB">Confirm Email Timer</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Drawn four times across two journeys. One screen with a cooldown state.</div>
+  </div>
+</div>
+
+<div style="max-width:1120px;margin-top:56px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F2CE40">04 · NOT DESIGNED YET</div>
+  <div style="font:800 30px/1.1 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">Stop and ask rather than invent</div>
+  <p style="font:400 15px/1.55 Barlow,sans-serif;color:#8C8781;margin:12px 0 0;max-width:840px">Three known gaps. Each has an agreed behaviour and no frames. An agent that fills them in from pattern memory will produce screens that have to be thrown away.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px;max-width:1120px">
+  <div style="border-radius:11px;background:#141110;border:1px dashed #F2CE40;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">GAP</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Preset plan review</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">Picking a preset from Select a Plan drops the user at the end of plan build: the whole workout as a summary. Accept takes it as-is; clicking any row puts them in the same editors someone who built it by hand would use. Blocked on the plans themselves. The first preset will be a 5×5, usable as the reference case.</p>
+  </div>
+  <div style="border-radius:11px;background:#141110;border:1px dashed #F2CE40;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">GAP</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Watch weight adjust</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">The watch set screen has two swipe panels. Left is Actions — Skip Set, Change, End — and is drawn. Up adjusts the weight, does the same job as the phone's Edit Weights, and is missing from the file. Same rules, watch-sized UI.</p>
+  </div>
+  <div style="border-radius:11px;background:#141110;border:1px dashed #F2CE40;padding:20px 22px">
+    <div style="font:700 9.5px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">GAP</div>
+    <div style="font:700 18px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Editing a live plan</div>
+    <p style="font:400 13.5px/1.5 Barlow,sans-serif;color:#C3BEBB;margin:9px 0 0">Starting a new mesocycle mid-cycle is covered. Changing an exercise inside a plan that is already running, without starting over, is not drawn anywhere and the flowchart has no edge for it.</p>
+  </div>
+</div>
+
+<sc-if value="{{ showOpenItems }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1120px;margin-top:56px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">05 · WHAT THIS ADDS TO THE PLAN</div>
+  <div style="font:800 30px/1.1 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">Five things worth folding in</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:24px;max-width:1120px">
+  <div style="display:grid;grid-template-columns:180px 1fr;gap:20px;background:#141110;padding:17px 20px">
+    <div style="font:700 13px/1.3 Barlow,sans-serif;color:#F2CE40">Phase 1 · flowchart</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Mark it done. The flowchart resolves the five edges it originally flagged as inference; two of them now point at gaps in the Figma rather than gaps in the graph.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:180px 1fr;gap:20px;background:#141110;padding:17px 20px">
+    <div style="font:700 13px/1.3 Barlow,sans-serif;color:#F2CE40">Phase 1 · data model</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Progression and pacing are both per-exercise overrides with a plan-level default. That shape needs deciding before the schema, not after.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:180px 1fr;gap:20px;background:#141110;padding:17px 20px">
+    <div style="font:700 13px/1.3 Barlow,sans-serif;color:#F2CE40">Phase 0 · exit criteria</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Add one: come out of the spike with a definition of recovered. Live BPM on the phone proves the pipe works, but the gate can't ship without a threshold rule.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:180px 1fr;gap:20px;background:#141110;padding:17px 20px">
+    <div style="font:700 13px/1.3 Barlow,sans-serif;color:#F2CE40">Phase 3c · components</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">The keypad is a component, and it is on the workout path. It isn't in either component list.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:180px 1fr;gap:20px;background:#141110;padding:17px 20px">
+    <div style="font:700 13px/1.3 Barlow,sans-serif;color:#F2CE40">Phase 5 · ordering</div>
+    <div style="font:400 14px/1.5 Barlow,sans-serif;color:#C3BEBB">Create New MesoCycle folds into Getting Started. Freestyle needs the shared engine to handle open-ended sets, so build it after Set Workflow, which the current order already does.</div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showNamingFlag&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showOpenItems&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showNamingFlag: this.props.showNamingFlag ?? true,
+      showOpenItems: this.props.showOpenItems ?? true,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
