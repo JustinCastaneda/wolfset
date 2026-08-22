@@ -113,6 +113,7 @@ One row per exercise on a day. This is where **per-exercise overrides** live; `n
 | `endedAt` | timestamp \| null | null = the current meso |
 | `endReason` | `plateau` \| `user-ended` \| `replaced` \| null | Session Done → New Meso, or the plateau prompt (§5.2) |
 | `nextPlanDayId` | → PlanDay | what "Workout A" shows next; advances after each finished workout |
+| `plannedWeeks` | int | "Plan A • Week 3 of 5" on Workout A (Figma `34:778`). Current week is derived from `startedAt` |
 
 Only one mesocycle is open at a time. Starting a new one closes the current with `replaced`.
 
