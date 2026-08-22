@@ -242,17 +242,18 @@ measure it in parallel rather than after. Do not hold Phase 1 for it.
 
 ### Data model 🤝
 
-- [ ] Entities: exercises, sets, workouts, plans, mesocycles, HR samples
+- [x] Entities: exercises, sets, workouts, plans, mesocycles, HR samples → `docs/data-model.md` §2
 - [ ] ⚠️ **Progression is per-exercise, not global.** Needs a per-exercise override field with a
       plan-level default
 - [x] ✅ **Progression is a strategy enum** — `steady` (weight-based, default) · `reps-first` ·
       `by-feel`. Resolved 2026-08-22, see decisions.md #11. Schema needs: strategy on the exercise
       with a plan default, a per-exercise increment, and a mesocycle typed by strategy
-- [ ] 🤝 Pin the three numbers #11 left open: increment default, plateau rule, scope of the
-      "missed → −10%" deload. Defaults proposed in decisions.md; Justin confirms or changes
+- [x] ✅ Numbers pinned (decisions.md 11b): 5 lb increment per exercise; two consecutive
+      *failures* (not misses) → the app asks deload-or-new-meso; 10% deload default, per-exercise
+- [x] 🤖 Data model drafted — `docs/data-model.md`. 👤 Review; four questions in §6
 - [ ] ⚠️ **Pacing is per-exercise too.** Same field, two entry points: Add Exercise Details during
       plan build, and a settings detour off Workout A
-- [ ] HR sample strategy — ~5,400 rows/session at 1Hz. Store? Downsample? Sync or local-only?
+- [x] HR sample strategy → `docs/data-model.md` HrSample + RestRecovery: keep raw locally 30 days, never sync raw in v1, persist per-rest recovery curves *(proposed, #3)*
 
 ### Architecture 🤝
 
@@ -442,11 +443,15 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 
 ## ⚠️ Not designed yet — stop and ask
 
-**Three known gaps with agreed behaviour and no frames. An agent that fills these from pattern memory produces screens that get thrown away.**
+**Five known gaps with agreed behaviour and no frames. An agent that fills these from pattern memory produces screens that get thrown away.**
 
 - [ ] **Preset plan review** — picking a preset from Select a Plan drops the user at the *end* of plan build: the whole workout as a summary. Accept takes it as-is; clicking any row opens the same editors a hand-builder would use. Blocked on the plans themselves. First preset is a 5×5
 - [ ] **Watch weight adjust** — the watch set screen has two swipe panels. Left is Actions (Skip Set / Change / End) and is drawn. **Up adjusts weight** — Edit Weights' job, watch-sized — and is missing
 - [ ] **Editing a live plan** — changing an exercise inside a running mesocycle without starting over. Not drawn, no flowchart edge
+- [ ] **Plateau prompt** — after two consecutive failures on an exercise the app asks *deload or end
+      the meso?* (decisions 11b). No frame. Likely Session Done or the next Workout A
+- [ ] **Absence deload** — return after missing too much time → Workout A offers a deload. 👤 Justin is
+      designing it; not MVP-blocking. Settings surface comes later
 
 ---
 
