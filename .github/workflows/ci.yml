@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: mobile — typecheck, lint, format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      # ci, not install: the lockfile is the contract. It also fails loudly if
+      # package.json and the lockfile have drifted apart.
+      - run: npm ci
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+
+      # Nothing should ever add a real .env to the repo. Cheap insurance against
+      # the one mistake that is expensive to undo.
+      - name: no committed secrets
+        working-directory: .
+        run: |
+          if git ls-files --error-unmatch '**/.env' 2>/dev/null; then
+            echo "::error::a .env file is tracked by git"; exit 1
+          fi
+          echo "no tracked .env files"
