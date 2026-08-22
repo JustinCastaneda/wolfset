@@ -250,7 +250,7 @@ measure it in parallel rather than after. Do not hold Phase 1 for it.
       with a plan default, a per-exercise increment, and a mesocycle typed by strategy
 - [x] ✅ Numbers pinned (decisions.md 11b): 5 lb increment per exercise; two consecutive
       *failures* (not misses) → the app asks deload-or-new-meso; 10% deload default, per-exercise
-- [x] 🤖 Data model drafted — `docs/data-model.md`. 👤 Review; four questions in §6
+- [x] 🤝 Data model drafted and reviewed — `docs/data-model.md` (§6 answered, decisions 11c)
 - [ ] ⚠️ **Pacing is per-exercise too.** Same field, two entry points: Add Exercise Details during
       plan build, and a settings detour off Workout A
 - [x] HR sample strategy → `docs/data-model.md` HrSample + RestRecovery: keep raw locally 30 days, never sync raw in v1, persist per-rest recovery curves *(proposed, #3)*
