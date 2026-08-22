@@ -11,7 +11,8 @@ Structure and conventions for this app: `mobile/README.md`.
 Two that bite here specifically:
 
 - The product is **WOLFSET**. Never `Gym Wolf` or `nextset` in identifiers or copy.
-- ⚠️ Styling is **undecided** (open decision #4). Do not introduce NativeWind, styled-components,
-  or a token layer until it is resolved — that decision blocks Phase 3 and the skills.
+- Styling is **`StyleSheet` + typed tokens** (decision #4). Do not add NativeWind, Tailwind,
+  styled-components or any CSS-in-JS layer. Tokens come from Figma Variables, never invented.
+  Full conventions: `.claude/skills/wolfset-conventions/SKILL.md`.
 
 Run `npm run verify` before opening a PR; that is exactly what CI runs.

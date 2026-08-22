@@ -38,11 +38,17 @@ Rules of thumb:
 - Files and directories `kebab-case`; components `PascalCase`; hooks `useThing`.
 - Absolute imports via `@/*` → `src/*`. No `../../..`.
 
-## Styling — not decided yet
+## Styling — decided (open decision #4, 2026-08-22)
 
-⚠️ Open decision #4 (NativeWind vs StyleSheet + tokens) is unresolved and **blocks Phase 3
-and the implementation skills**. The placeholder screen uses inline `StyleSheet` so the app
-boots; that is not a decision. Do not introduce a styling system until #4 is settled.
+`StyleSheet.create` + a typed token module. **Not** NativeWind / Tailwind / styled-components.
+
+- Figma **Variables** are the design tokens. They map 1:1 to `src/theme/tokens.ts` (Phase 3a),
+  and every color, type style, spacing and radius in a component comes from there.
+- **No raw hex or magic numbers in components.** If a value isn't a token, the token is missing —
+  add it (from Figma) rather than inlining it. `tsc` then catches a wrong token name in CI.
+- One `const styles = StyleSheet.create({...})` per component file, below the component.
+- Until `tokens.ts` lands, the placeholder screen carries the Figma values inline — that is a
+  temporary exception, not a precedent.
 
 ## Environment
 

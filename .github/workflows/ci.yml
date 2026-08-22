@@ -1,8 +1,8 @@
 name: CI
 
 on:
+  # Every PR, whatever its base — stacked PRs (feature → feature) must get checks too.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 

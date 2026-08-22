@@ -1,6 +1,6 @@
 # WOLFSET — Build Plan
 
-**Last updated:** 2026-08-22
+**Last updated:** 2026-08-22 (styling + local-first decided)
 **Owner:** Justin (Design/Product) · Claude Fable (Engineering)
 **Stack:** Expo (Android-first) · Kotlin/Compose (Wear OS) · Supabase · Conductor + Claude Code
 
@@ -28,12 +28,18 @@ links rather than working from pasted excerpts.
 
 ### Claude Design — project `815dbad3-66dc-40b2-94d7-630a2ff8c1e1`
 
-| Document | Link |
-|---|---|
-| **Handoff Brief** — rules, shared screens, gaps | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Handoff+Brief.dc.html |
-| **Flowchart** — 55 screens, one connected graph | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flowchart.dc.html |
-| Flows v2 | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flows+v2.dc.html |
-| Flows v1 *(superseded — read only if v2 is unclear)* | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flows.dc.html |
+**Committed copies in `docs/design/` are the reliable source** (exported 2026-08-22). The links are
+the live originals.
+
+| Document | In repo | Link |
+|---|---|---|
+| **Handoff Brief** — rules, shared screens, gaps | `docs/design/handoff-brief.html` | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Handoff+Brief.dc.html |
+| **Flowchart** — 55 screens, one connected graph | `docs/design/flowchart.html` | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flowchart.dc.html |
+| Flows v2 | `docs/design/flows-v2.html` | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flows+v2.dc.html |
+| Flows v1 *(superseded — read only if v2 is unclear)* | `docs/design/flows-v1.html` | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flows.dc.html |
+
+These documents carry **flow and rules only**. Final screens, tokens and spacing are Figma — Figma
+is king for anything visual.
 
 > ⚠️ **`nextset UX Storyboard.dc.html` is not a source document.** It is early brainstorming under a
 > discarded product name. Do not read it, design from it, or build from it. If it appears in a
@@ -52,7 +58,7 @@ claude mcp add --scope user --transport http claude-design https://api.anthropic
 | **Phone frames** (`263-1903`) | https://www.figma.com/design/1RsF6PeYzGxdTso4FZDAbp/Gym-Wolf-Application?node-id=263-1903 |
 | **Watch frames** (`123-3945`) | https://www.figma.com/design/1RsF6PeYzGxdTso4FZDAbp/Gym-Wolf-Application?node-id=123-3945 |
 
-- [ ] 👤 Rename Figma file → `Wolfset` (URL slug changes; update links above)
+- [x] 👤 Figma file renamed *(links above still resolve — Figma routes by file key, not slug)*
 - [ ] 👤 Rename Claude Design docs → Wolfset
 
 ---
@@ -232,17 +238,18 @@ measure it in parallel rather than after. Do not hold Phase 1 for it.
 
 - [x] ✅ **Flowchart complete.** All five inferred edges resolved. Two now point at Figma gaps rather than graph gaps
 - [x] ✅ **Handoff brief complete**
-- [ ] 👤 Commit both exports to `/docs` in the repo
+- [x] 👤 Commit both exports to `/docs` in the repo *(`docs/design/`, 2026-08-22)*
 
 ### Data model 🤝
 
 - [ ] Entities: exercises, sets, workouts, plans, mesocycles, HR samples
 - [ ] ⚠️ **Progression is per-exercise, not global.** Needs a per-exercise override field with a
       plan-level default
-- [ ] ⚠️ **Progression is a strategy enum, not one rule.** Onboarding offers *Steady · Reps First ·
-      By Feel* (three cards), while the brief states the default as "hit every rep → +3 reps,
-      missed → drop 10%." The Set Workflow screens show weight jumps (135 → 205 → 195), which is a
-      different mechanic. **Resolve before schema** — see open decision #11
+- [x] ✅ **Progression is a strategy enum** — `steady` (weight-based, default) · `reps-first` ·
+      `by-feel`. Resolved 2026-08-22, see decisions.md #11. Schema needs: strategy on the exercise
+      with a plan default, a per-exercise increment, and a mesocycle typed by strategy
+- [ ] 🤝 Pin the three numbers #11 left open: increment default, plateau rule, scope of the
+      "missed → −10%" deload. Defaults proposed in decisions.md; Justin confirms or changes
 - [ ] ⚠️ **Pacing is per-exercise too.** Same field, two entry points: Add Exercise Details during
       plan build, and a settings detour off Workout A
 - [ ] HR sample strategy — ~5,400 rows/session at 1Hz. Store? Downsample? Sync or local-only?
@@ -286,9 +293,9 @@ measure it in parallel rather than after. Do not hold Phase 1 for it.
 
 ### Skills ⚠️ before any parallel agent work
 
-*Blocked on open decision #4 (styling approach).*
+*Unblocked 2026-08-22 — #4 resolved: `StyleSheet` + typed tokens.*
 
-- [ ] 🤝 `wolfset-conventions` — structure, naming, state, errors, testing
+- [x] 🤝 `wolfset-conventions` — structure, naming, state, errors, testing *(drafted; Justin reviews)*
 - [ ] 🤝 `design-system-authoring` — Phase 3 only. **Creating** components: token discipline, variant completeness, fidelity
 - [ ] 🤝 `screen-implementation` — Phase 5 only. **Consuming** components: never recreate, compose only, Code Connect
 - [x] ✅ `figma-atomic-composition` — genericized, ready
@@ -358,7 +365,11 @@ hr/below-threshold   → green/500
 
 Build order: Button → Input → Chip → Top Bar → large numeral → Timer ring → keypad → remainder.
 
-### 3d. UI Kit page
+### 3d. Design Kit page ⚠️ blocks Phase 4
+
+*Justin's rule (2026-08-22): the Design Kit exists in the app before any serious flow is built.
+Phase 4 does not start until 3d renders every component. Err on the side of making a component
+whenever a pattern repeats.*
 
 - [ ] 🤖 Route rendering every component and variant
 - [ ] 🤖 Behind a **compile-time flag** so it tree-shakes out of production
@@ -495,10 +506,10 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 
 | # | Question | Owner | Blocks |
 |---|---|---|---|
-| 1 | Local-first or cloud-first? | Fable | Phase 2 |
+| 1 | ~~Local-first or cloud-first?~~ | — | ✅ Local-first. Device DB is truth, Supabase syncs (Phase 6). Engine chosen with the schema |
 | 2 | Auth in v1? | Justin | Phase 5 |
 | 3 | HR sample storage + downsampling (~2,800 samples/90min at 1.92s cadence) | Fable | Phase 1 |
-| 4 | ⚠️ Styling — NativeWind vs StyleSheet + tokens | Fable | **Skills, Phase 3** |
+| 4 | ~~Styling — NativeWind vs StyleSheet + tokens~~ | — | ✅ `StyleSheet` + typed tokens (`src/theme/tokens.ts`, Phase 3a). See decisions.md |
 | 13 | ~~Expo/RN vs all-native Kotlin?~~ | — | ✅ Expo + one native module. Revisit only on spike evidence |
 | 5 | Supported HR devices at launch — Pixel Watch 4 verified; others need capability checks | Justin | Phase 7 |
 | 6 | Micro @ 8px | Justin | Phase 3a |
@@ -506,7 +517,7 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 | 8 | ~~Figma tokens real Variables?~~ | — | ✅ Yes, namespaced |
 | 9 | Separate watch design system? | Justin | Phase 7 |
 | 10 | Icon set — `lucide-react-native` sufficient? | Justin | Phase 3c |
-| 11 | ⚠️ **Progression: three strategies or one rule?** Onboarding offers *Steady · Reps First · By Feel*; the brief states "+3 reps / −10%"; the screens show weight jumps. Which is default, which are the others, what does *By Feel* compute? | Justin | **Phase 1 schema** |
+| 11 | ~~Progression: three strategies or one rule?~~ | — | ✅ Strategy enum, `steady` (progressive overload, weight-based) default; `reps-first`; `by-feel` last. Mesocycle typed by strategy. Increment size / plateau rule / −10% deload scope still to pin (decisions.md) |
 | 12 | First preset 5×5 — programmed by whom, when? | Justin | Preset gap |
 
 ---

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #010101; }
+  a { color: #F04245; text-decoration: none; }
+  a:hover { color: #FF6E70; }
+</style>
+</helmet>
+
+<div style="background:#010101;padding:52px 60px 80px;font-family:Barlow,sans-serif;min-width:2900px;box-sizing:border-box">
+
+<div style="max-width:1120px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.22em;color:#F04245">GYM WOLF · ONE CONNECTED FLOW</div>
+  <div style="font:900 44px/1.02 Barlow,sans-serif;color:#FFFDFB;margin-top:9px">Every screen, one graph</div>
+  <p style="font:400 15px/1.55 Barlow,sans-serif;color:#C3BEBB;margin:14px 0 0;text-wrap:pretty">The same 55 screens as the journey trace, wired into a single path from splash to steady state. Five phases, left to right. Where two journeys in the Figma draw the same screen, it appears here once and both paths run through it — which is the whole reason to look at it this way: <em style="color:#FFFDFB;font-style:normal">Log a Set</em>, <em style="color:#FFFDFB;font-style:normal">Edit Weights</em> and the <em style="color:#FFFDFB;font-style:normal">Post Set Timer</em> are one shared engine that both the plan and freestyle feed into.</p>
+</div>
+
+<sc-if value="{{ showLegend }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;gap:26px;margin-top:26px;align-items:center">
+  <div style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:14px;border-radius:4px;background:#201A18;border:1px solid #38322F"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Screen</span></div>
+  <div style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:14px;border-radius:4px;background:#201A18;border:1px solid #F04245"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Phase entry or exit</span></div>
+  <div style="display:flex;align-items:center;gap:8px"><svg width="30" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="#4A4441" stroke-width="1.5"></line></svg><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Drawn in the file</span></div>
+  <div style="display:flex;align-items:center;gap:8px"><svg width="30" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="#514B48" stroke-width="1.5" stroke-dasharray="5 5"></line></svg><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Return, loop or skip</span></div>
+  <div style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:14px;border-radius:4px;background:#141110;border:1px dashed #F2CE40"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Still to be drawn</span></div>
+  <div style="display:flex;align-items:center;gap:8px"><span style="font:600 9px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 6px">chip</span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">A state of that same screen, not a separate frame</span></div>
+</div>
+</sc-if>
+
+<div style="position:relative;width:2780px;height:2280px;margin-top:34px">
+
+<svg style="position:absolute;left:0;top:0" width="2780" height="2280" viewBox="0 0 2780 2280">
+  <defs>
+    <marker id="arw" viewBox="0 0 9 9" refX="8" refY="4.5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L9,4.5 L0,9 z" fill="#6B6461"></path></marker>
+    <marker id="arwd" viewBox="0 0 9 9" refX="8" refY="4.5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L9,4.5 L0,9 z" fill="#57514E"></path></marker>
+  </defs>
+
+  <g>
+    <rect x="24" y="250" width="2716" height="352" rx="14" fill="#080706"></rect>
+    <rect x="24" y="690" width="2716" height="200" rx="14" fill="#080706"></rect>
+    <rect x="24" y="920" width="2716" height="320" rx="14" fill="#080706"></rect>
+    <rect x="24" y="1270" width="2716" height="440" rx="14" fill="#080706"></rect>
+    <rect x="24" y="1750" width="2716" height="400" rx="14" fill="#080706"></rect>
+  </g>
+
+  <g fill="none" stroke="#4A4441" stroke-width="1.5" marker-end="url(#arw)">
+    <path d="M364,433 H406 V348 H448"></path>
+    <path d="M364,433 H406 V518 H448"></path>
+    <path d="M644,348 H728"></path>
+    <path d="M924,348 H1008"></path>
+    <path d="M1204,348 H1288"></path>
+    <path d="M1484,348 H1806 V433 H1848"></path>
+    <path d="M644,518 H728"></path>
+    <path d="M924,518 H1008"></path>
+    <path d="M1204,518 H1780 V433 H1848"></path>
+    <path d="M2044,433 H2100 V700 H266 V740"></path>
+    <path d="M364,788 H448"></path>
+    <path d="M644,788 H728"></path>
+    <path d="M924,788 H1008"></path>
+    <path d="M364,1018 H448"></path>
+    <path d="M644,1018 H728"></path>
+    <path d="M924,1018 H1008"></path>
+    <path d="M1204,1018 H1288"></path>
+    <path d="M1484,1018 H1848"></path>
+    <path d="M2044,1018 H2128"></path>
+    <path d="M1204,788 H1240 V942 H266 V970"></path>
+    <path d="M1106,836 V900 H2226 V970"></path>
+    <path d="M1106,836 V886 H112 V1448 H168"></path>
+    <path d="M364,1448 H1246 V1478 H1288"></path>
+    <path d="M266,1496 V1560"></path>
+    <path d="M364,1608 H448"></path>
+    <path d="M644,1608 H728"></path>
+    <path d="M924,1608 H1230 V1478 H1288"></path>
+    <path d="M1484,1478 H1568"></path>
+    <path d="M1386,1526 V1566 H1946 V1526"></path>
+    <path d="M2044,1478 H2128"></path>
+    <path d="M2324,1478 H2408"></path>
+    <path d="M2226,1066 V1250 H200 V1400"></path>
+    <path d="M364,1878 H448"></path>
+    <path d="M644,1878 H728"></path>
+    <path d="M924,1878 H1008"></path>
+    <path d="M644,2038 H728"></path>
+    <path d="M924,2038 H1008"></path>
+    <path d="M1204,2038 H1240 V1764 H420 V1878 H448"></path>
+    <path d="M546,2086 V2140 H1386 V2086"></path>
+    <path d="M1484,2038 H1568"></path>
+  </g>
+
+  <g fill="none" stroke="#4A4441" stroke-width="1.5" marker-end="url(#arw)" marker-start="url(#arw)">
+    <path d="M1484,1018 H1526 V1168 H1568"></path>
+    <path d="M1526,1168 V1298 H1568"></path>
+    <path d="M2226,1526 V1628 H2408"></path>
+    <path d="M546,1926 V1990"></path>
+  </g>
+
+  <g fill="none" stroke="#514B48" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arwd)">
+    <path d="M266,836 V866 H1106 V836"></path>
+    <path d="M1946,970 V926 H1106 V970"></path>
+    <path d="M1666,1430 V1396 H1386 V1430"></path>
+    <path d="M1946,1430 V1372 H1386 V1430"></path>
+    <path d="M1946,1526 V1600 H1386 V1526"></path>
+    <path d="M2506,1526 V1700 H76 V1018 H168"></path>
+    <path d="M2604,1478 H2660 V2180 H100 V1630 H168"></path>
+    <path d="M168,1608 H136 V1042 H168"></path>
+    <path d="M1106,1830 V1796 H546 V1830"></path>
+    <path d="M1666,1990 V1740 H266 V1830"></path>
+    <path d="M168,1448 H40 V1878 H168"></path>
+  </g>
+
+  <g fill="none" stroke="#514B48" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arwd)" marker-start="url(#arwd)">
+    <path d="M266,1400 V1348 H448"></path>
+    <path d="M266,1990 V1956 H506 V1926"></path>
+  </g>
+
+  <g font-family="Barlow, sans-serif" font-size="10" font-weight="600" fill="#7A736F">
+    <text x="652" y="338">Forgot Password</text>
+    <text x="1512" y="338">verified</text>
+    <text x="1212" y="508">Let’s Get to Work</text>
+    <text x="1180" y="692" text-anchor="middle">into onboarding</text>
+    <text x="600" y="858" text-anchor="middle">Skip — on every step</text>
+    <text x="620" y="934" text-anchor="middle">Build My Own Plan</text>
+    <text x="1240" y="894" text-anchor="middle">preset plan → review the whole workout at Plan Summary</text>
+    <text x="44" y="1152">New MesoCycle</text>
+    <text x="1540" y="1108">Progression Override</text>
+    <text x="1540" y="1238">Pacing Override</text>
+    <text x="1620" y="1010" text-anchor="middle">Add to Day</text>
+    <text x="1600" y="928" text-anchor="middle" fill="#5F5854">Add Workout</text>
+    <text x="600" y="1242" text-anchor="middle">Save Plan</text>
+    <text x="800" y="1440" text-anchor="middle">Start Workout</text>
+    <text x="280" y="1534">Change It Up</text>
+    <text x="332" y="1340">Pacing</text>
+    <text x="1526" y="1468" text-anchor="middle">tap weight</text>
+    <text x="1666" y="1558" text-anchor="middle">log the set</text>
+    <text x="1666" y="1364" text-anchor="middle">0:00 or Continue → next set</text>
+    <text x="1666" y="1620" text-anchor="middle">sets exhausted → next lift</text>
+    <text x="1432" y="1388" text-anchor="middle" fill="#5F5854">save</text>
+    <text x="2086" y="1468" text-anchor="middle">last lift done</text>
+    <text x="2366" y="1468" text-anchor="middle">finish</text>
+    <text x="1200" y="1692" text-anchor="middle" fill="#5F5854">Add to Plan / New Meso — back into plan build</text>
+    <text x="1040" y="1600" text-anchor="middle">start</text>
+    <text x="786" y="1868" text-anchor="middle">log set</text>
+    <text x="966" y="1868" text-anchor="middle">continue</text>
+    <text x="826" y="1788" text-anchor="middle" fill="#5F5854">next set</text>
+    <text x="820" y="1756" text-anchor="middle">Start Workout</text>
+    <text x="600" y="2132">End Workout</text>
+    <text x="960" y="1732" text-anchor="middle">Finish → back to the tiles</text>
+    <text x="1400" y="2172" text-anchor="middle">Session Done → back to the tiles</text>
+    <text x="386" y="1948" text-anchor="middle">swipe up</text>
+    <text x="558" y="1962">swipe left</text>
+    <text x="52" y="1666" fill="#5F5854">same plan</text>
+  </g>
+</svg>
+
+<div style="position:absolute;left:24px;top:214px;font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245;z-index:3">PHASE 1 · ACCOUNT<span style="color:#514B48;letter-spacing:0;font-weight:400;font-size:12px"> — Login · Forgot Password · Create Account</span></div>
+<div style="position:absolute;left:24px;top:654px;font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245;z-index:3">PHASE 2 · ONBOARDING<span style="color:#514B48;letter-spacing:0;font-weight:400;font-size:12px"> — four screens, all skippable</span></div>
+<div style="position:absolute;left:24px;top:884px;font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245;z-index:3">PHASE 3 · PLAN BUILD<span style="color:#514B48;letter-spacing:0;font-weight:400;font-size:12px"> — Getting Started</span></div>
+<div style="position:absolute;left:24px;top:1226px;font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245;z-index:3">PHASE 4 · TRAIN<span style="color:#514B48;letter-spacing:0;font-weight:400;font-size:12px"> — Next Workout · FreeStyle · Set Workflow · Post Set Timer</span></div>
+<div style="position:absolute;left:24px;top:1714px;font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245;z-index:3">PHASE 5 · WATCH<span style="color:#514B48;letter-spacing:0;font-weight:400;font-size:12px"> — Start · Exercise · Change Exercise · End Workout</span></div>
+
+<div style="position:absolute;left:168px;top:385px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">LOGIN</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Login Flow</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Splash. Claw mark over the WOLFSET wordmark.</div>
+</div>
+
+<div style="position:absolute;left:448px;top:300px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">LOGIN</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Login</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#F04245;background:#2C2522;border:1px solid #4A2A2B;border-radius:3px;padding:2px 5px">↺ Failed Login</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">Continue with Google</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:728px;top:300px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">FORGOT PASSWORD</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Reset Password</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Email only. Send Reset Link.</div>
+</div>
+
+<div style="position:absolute;left:1008px;top:300px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">FORGOT PASSWORD</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Check Your Email</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">expires in 1 hour</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">↺ resend after cooldown</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:1288px;top:300px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">FORGOT PASSWORD</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">New Password</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">One field, strength meter. Lands authenticated.</div>
+</div>
+
+<div style="position:absolute;left:448px;top:470px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">CREATE ACCOUNT</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Create Account</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">credentials only</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">Sign up with Google</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:728px;top:470px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">CREATE ACCOUNT</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Confirm Your Email</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#F2CE40;background:#2C2522;border:1px solid #4A4127;border-radius:3px;padding:2px 5px">hard gate</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">↺ resend</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:1008px;top:470px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">CREATE ACCOUNT</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">You’re in</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Claw mark returns. “Welcome to Gym Wolf.”</div>
+</div>
+
+<div style="position:absolute;left:1848px;top:385px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#141110;border:1px dashed #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GATE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Authenticated</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Both auth paths converge here. Not a screen.</div>
+</div>
+
+<div style="position:absolute;left:168px;top:740px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">ONBOARDING</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Setup</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Lbs/Kgs toggle, then Beginner / Intermediate / Advanced.</div>
+</div>
+
+<div style="position:absolute;left:448px;top:740px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">ONBOARDING</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Equipment</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Full gym · Some Weights · Body Weight.</div>
+</div>
+
+<div style="position:absolute;left:728px;top:740px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">ONBOARDING</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Goals</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Build Muscle · Strength · Endurance · Not sure yet.</div>
+</div>
+
+<div style="position:absolute;left:1008px;top:740px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">ONBOARDING</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Select a Plan</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">8 cards, scrolls</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#F04245;background:#2C2522;border:1px solid #4A2A2B;border-radius:3px;padding:2px 5px">forks the graph</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:168px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Get Started</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">“Build a Plan or dive right in.”</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px;white-space:nowrap">= New MesoCycle</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:448px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Name this Plan</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">One field, day chips beneath.</div>
+</div>
+
+<div style="position:absolute;left:728px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">How You Get Stronger</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Steady · Reps First · By Feel. Three cards, not a table.</div>
+</div>
+
+<div style="position:absolute;left:1008px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">What’s the first lift?</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">“This starts Day 1. Add more after.”</div>
+</div>
+
+<div style="position:absolute;left:1288px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Add Exercise Details</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">sets · reps · rest · pacing</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#3DF593;background:#2C2522;border:1px solid #274A38;border-radius:3px;padding:2px 5px">override applied</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:1568px;top:1120px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Progression Override</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Hit every rep → +3 reps. Missed → drop 10%.</div>
+</div>
+
+<div style="position:absolute;left:1568px;top:1250px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Pacing Override</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Set rest per exercise — deadlifts need longer than curls.</div>
+</div>
+
+<div style="position:absolute;left:1848px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Day Summary</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">“Day 1” — Add Workout to loop back, or Save Day.</div>
+</div>
+
+<div style="position:absolute;left:2128px;top:970px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">GETTING STARTED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Plan Summary</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">“Winter Bulk” — days, week grid.</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#F2CE40;background:#2C2522;border:1px solid #4A4127;border-radius:3px;padding:2px 5px;white-space:nowrap">presets land here</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:448px;top:1300px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#1B1614;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">NEXT WORKOUT</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#C3BEBB;margin-top:3px">Pacing Override</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">1:30 rest, auto-start timer. A settings detour.</div>
+</div>
+
+<div style="position:absolute;left:168px;top:1400px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">NEXT WORKOUT</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Workout A</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">The screen you land on when you log in. Five lifts queued.</div>
+</div>
+
+<div style="position:absolute;left:168px;top:1560px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">FREESTYLE · HUB</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Change It Up</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Workout A / B, then four hub tiles. The home icon returns here.</div>
+</div>
+
+<div style="position:absolute;left:448px;top:1560px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">FREESTYLE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Search Exercise</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Catalog list, a Go button on every row.</div>
+</div>
+
+<div style="position:absolute;left:728px;top:1560px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">FREESTYLE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Add Exercise</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Demo, description, weight, Start Workout. Sets stay open-ended.</div>
+</div>
+
+<div style="position:absolute;left:1288px;top:1430px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#241C1A;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#F04245">SHARED ENGINE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Log a Set</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Both paths land here. “Tap the number to decrease reps.”</div>
+</div>
+
+<div style="position:absolute;left:1568px;top:1430px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#241C1A;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#F04245">SHARED ENGINE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Edit Weights</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#F2CE40;background:#2C2522;border:1px solid #4A4127;border-radius:3px;padding:2px 5px;white-space:nowrap">+5 add</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#3DF593;background:#2C2522;border:1px solid #274A38;border-radius:3px;padding:2px 5px;white-space:nowrap">−5 reduce</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px;white-space:nowrap">keypad</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:1848px;top:1430px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#241C1A;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#F04245">SHARED ENGINE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Post Set Timer</div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;align-items:center">
+    <span style="width:9px;height:9px;border-radius:50%;background:#F04245"></span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#8C8781">168</span>
+    <span style="width:9px;height:9px;border-radius:50%;background:#F2CE40;margin-left:3px"></span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#8C8781">145</span>
+    <span style="width:9px;height:9px;border-radius:50%;background:#3DF593;margin-left:3px"></span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#8C8781">recovered</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">0:00 auto</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">Continue</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:2128px;top:1430px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">SHARED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Workout Summary</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">The running list. Titled Freestyle or Workout A depending on entry.</div>
+</div>
+
+<div style="position:absolute;left:2408px;top:1580px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">SHARED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Edit Set</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Reached from a logged row, not from the timer.</div>
+</div>
+
+<div style="position:absolute;left:2408px;top:1430px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">SHARED</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Session Done</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Time, weight, reps. Exits as Add to Plan or New Meso.</div>
+</div>
+
+<sc-if value="{{ showWatch }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="position:absolute;left:168px;top:1830px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · START</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Watch Tile</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Cardio above, Next Workout below. Reads today off the phone.</div>
+</div>
+
+<div style="position:absolute;left:448px;top:1830px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · EXERCISE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Set / 1</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">5 pips on the rail</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">Set / 2 on loop</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:728px;top:1830px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · EXERCISE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Timer Red</div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;align-items:center">
+    <span style="width:9px;height:9px;border-radius:50%;background:#F04245"></span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#8C8781">168</span>
+    <span style="width:9px;height:9px;border-radius:50%;background:#F2CE40;margin-left:3px"></span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#8C8781">142</span>
+    <span style="width:9px;height:9px;border-radius:50%;background:#3DF593;margin-left:3px"></span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#8C8781">122</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:1008px;top:1830px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · EXERCISE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Set / 2</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Loop closes. Second pip filled.</div>
+</div>
+
+<div style="position:absolute;left:168px;top:1990px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#141110;border:1px dashed #F2CE40;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · EXERCISE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Adjust Weight</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Top swipe. Edit Weights’ job, watch-sized UI. Not drawn yet.</div>
+</div>
+
+<div style="position:absolute;left:448px;top:1990px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · EXERCISE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Actions</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">Skip Set</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#C3BEBB;background:#2C2522;border:1px solid #3E3835;border-radius:3px;padding:2px 5px">Change</span>
+    <span style="font:600 8.5px Barlow,sans-serif;color:#F04245;background:#2C2522;border:1px solid #4A2A2B;border-radius:3px;padding:2px 5px">End</span>
+  </div>
+</div>
+
+<div style="position:absolute;left:728px;top:1990px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · CHANGE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Change Workout</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Workout A marked Current, Workout B with a Do B button.</div>
+</div>
+
+<div style="position:absolute;left:1008px;top:1990px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · CHANGE</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Workout B</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">Six numbered lifts, weight and set count.</div>
+</div>
+
+<div style="position:absolute;left:1288px;top:1990px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #38322F;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · END</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">End Workout?</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">“Only 3 of 5 sets done. May trigger a deload.”</div>
+</div>
+
+<div style="position:absolute;left:1568px;top:1990px;width:196px;height:96px;box-sizing:border-box;border-radius:9px;background:#201A18;border:1px solid #F04245;padding:10px 11px;z-index:2">
+  <div style="font:700 8.5px Barlow,sans-serif;letter-spacing:.18em;color:#514B48">WATCH · END</div>
+  <div style="font:700 14px/1.14 Barlow,sans-serif;color:#FFFDFB;margin-top:3px">Session Done</div>
+  <div style="font:400 10.5px/1.32 Barlow,sans-serif;color:#8C8781;margin-top:3px">38:42 · 4,180 lbs · 124 bpm · 3 exercises.</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+<sc-if value="{{ showOpenQuestions }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:44px;border-top:1px solid #1B1614;padding-top:26px;max-width:2400px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F2CE40">THE FIVE FLAGS, ANSWERED</div>
+  <p style="font:400 14px/1.5 Barlow,sans-serif;color:#8C8781;margin:9px 0 0;max-width:820px">The Figma has no connector arrows, so every edge above was read off left-to-right adjacency. Five were flagged as inference. All five now have an answer and are drawn. Two of them need frames before the graph is complete.</p>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:20px">
+    <div style="border-radius:10px;background:#201A18;border:1px solid #F2CE40;padding:14px 15px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">ANSWERED</div>
+      <div style="font:700 15px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Create New MesoCycle</div>
+      <div style="font:400 11.5px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">Not a separate journey — it is Getting Started, Phase 3, reached a second way. The difference is entry: you can start one mid-cycle by returning to the Change It Up hub, so the graph now carries a return edge from the hub up into Phase 3.</div>
+    </div>
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:14px 15px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">ANSWERED</div>
+      <div style="font:700 15px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Timer → next set</div>
+      <div style="font:400 11.5px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">Two ways out, same destination: the countdown reaches 0:00, or the user taps Continue. Either returns to Log a Set. In a mesocycle that loop runs until the sets are exhausted, then the next exercise takes over — the second loop beneath the engine.</div>
+    </div>
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:14px 15px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">ANSWERED · NOT DRAWN</div>
+      <div style="font:700 15px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Select a Plan → preset</div>
+      <div style="font:400 11.5px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">A preset drops you at the very end of Create Plan: the whole workout as a summary. Accept takes it as-is; click any row and you are editing like anyone who built it by hand. Waiting on the plans themselves — first one is a 5×5.</div>
+    </div>
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:14px 15px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">ANSWERED</div>
+      <div style="font:700 15px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Watch ↔ phone</div>
+      <div style="font:400 11.5px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">Finish lands on Summary / Session Done, and Session Done returns to the opening tiles. Both surfaces close the same way, so the graph now runs the watch summary and the phone summary back to their hubs.</div>
+    </div>
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:14px 15px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">ANSWERED · NOT DRAWN</div>
+      <div style="font:700 15px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Watch swipe panels</div>
+      <div style="font:400 11.5px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">Actions do sit to the left of the set screen, as a swipe. The top swipe is missing from the file: swipe up to adjust the weight — Edit Weights’ job, done in a watch-sized UI. Drawn here as a pending node.</div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:34px;border-top:1px solid #1B1614;padding-top:22px;max-width:1120px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#514B48">READING NOTES</div>
+  <div style="display:flex;flex-direction:column;gap:11px;margin-top:13px">
+    <div style="font:400 13px/1.55 Barlow,sans-serif;color:#8C8781">Chips collapse variants of one frame. <span style="color:#C3BEBB">Confirm Email Timer</span> is drawn four times in the file across two journeys; it is one screen with a cooldown state, so it appears twice here — once per journey — with the resend state as a chip. <span style="color:#C3BEBB">Add Exercise Details</span> and its override-applied twin are one node. The three Edit Weights frames and the three timer heart-rate frames are one node each.</div>
+    <div style="font:400 13px/1.55 Barlow,sans-serif;color:#8C8781">Two frames still carry default Figma names — <span style="color:#C3BEBB">Android Compact – 2</span> and <span style="color:#C3BEBB">Android Compact – 3</span>, both recovered-timer states. They are folded into Post Set Timer as the green chip.</div>
+    <div style="font:400 13px/1.55 Barlow,sans-serif;color:#8C8781">Type is Barlow because Geom is not available on the web. Colours are the file’s.</div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showLegend&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showWatch&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showOpenQuestions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showLegend: this.props.showLegend ?? true,
+      showWatch: this.props.showWatch ?? true,
+      showOpenQuestions: this.props.showOpenQuestions ?? true,
+      showNotes: this.props.showNotes ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>
