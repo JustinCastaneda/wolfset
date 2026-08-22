@@ -19,7 +19,9 @@ watch.
 
 ## Status
 
-Phase 0 — the HR spike is written and awaiting a hardware run (Pixel Watch + Android phone).
-The spike is a kill gate: live BPM rendered in React under ~2s end-to-end, plus a working
-definition of "recovered", before product code begins. Protocol and exit criteria:
-`spike-hr/README.md` and `docs/spike-findings.md`.
+**Phase 0 gate: PASSED (2026-08-22)** — three hardware sessions (Pixel Watch 4 + Pixel 10
+Pro) proved the pipe: live BPM watch→React with zero drops, ambient-mode delivery on a
+bounded ~5 s rhythm (p95 8.4 s) via ExerciseClient + batching override, bridge cost ~2–10 ms.
+Full evidence and the deferred items (90-min endurance run, battery, "recovered" rule
+anchor): `docs/spike-findings.md`. Next: Phase 1/2 — the real app in `mobile/`.
+`spike-hr/` stays until the endurance run has happened.
