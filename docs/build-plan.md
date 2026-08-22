@@ -1,6 +1,6 @@
 # WOLFSET — Build Plan
 
-**Last updated:** 2026-08-22
+**Last updated:** 2026-08-22 (styling + local-first decided)
 **Owner:** Justin (Design/Product) · Claude Fable (Engineering)
 **Stack:** Expo (Android-first) · Kotlin/Compose (Wear OS) · Supabase · Conductor + Claude Code
 
@@ -286,9 +286,9 @@ measure it in parallel rather than after. Do not hold Phase 1 for it.
 
 ### Skills ⚠️ before any parallel agent work
 
-*Blocked on open decision #4 (styling approach).*
+*Unblocked 2026-08-22 — #4 resolved: `StyleSheet` + typed tokens.*
 
-- [ ] 🤝 `wolfset-conventions` — structure, naming, state, errors, testing
+- [x] 🤝 `wolfset-conventions` — structure, naming, state, errors, testing *(drafted; Justin reviews)*
 - [ ] 🤝 `design-system-authoring` — Phase 3 only. **Creating** components: token discipline, variant completeness, fidelity
 - [ ] 🤝 `screen-implementation` — Phase 5 only. **Consuming** components: never recreate, compose only, Code Connect
 - [x] ✅ `figma-atomic-composition` — genericized, ready
@@ -495,10 +495,10 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 
 | # | Question | Owner | Blocks |
 |---|---|---|---|
-| 1 | Local-first or cloud-first? | Fable | Phase 2 |
+| 1 | ~~Local-first or cloud-first?~~ | — | ✅ Local-first. Device DB is truth, Supabase syncs (Phase 6). Engine chosen with the schema |
 | 2 | Auth in v1? | Justin | Phase 5 |
 | 3 | HR sample storage + downsampling (~2,800 samples/90min at 1.92s cadence) | Fable | Phase 1 |
-| 4 | ⚠️ Styling — NativeWind vs StyleSheet + tokens | Fable | **Skills, Phase 3** |
+| 4 | ~~Styling — NativeWind vs StyleSheet + tokens~~ | — | ✅ `StyleSheet` + typed tokens (`src/theme/tokens.ts`, Phase 3a). See decisions.md |
 | 13 | ~~Expo/RN vs all-native Kotlin?~~ | — | ✅ Expo + one native module. Revisit only on spike evidence |
 | 5 | Supported HR devices at launch — Pixel Watch 4 verified; others need capability checks | Justin | Phase 7 |
 | 6 | Micro @ 8px | Justin | Phase 3a |

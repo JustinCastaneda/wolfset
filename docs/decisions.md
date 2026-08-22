@@ -11,13 +11,13 @@ source for what's still undecided; entries here resolve or supersede rows there.
 | 2026-08-21 | — | **Day 1 scope: Day Zero scaffold + full Phase 0 spike code** | Spike written end-to-end (watch → Data Layer → foreground service → RN bridge → React render); Justin runs it on hardware. |
 | 2026-08-22 | — | **Phase 0 gate: PASS — proceed to Phase 1/2** | Called by Justin after session 3 validated the ambient fix (p50 6.0 s / p95 8.4 s in ambient, 0 drops across 3 sessions). "Recovered" rule not yet written but demonstrably definable (clean 113→70/75 s curve); felt-ready anchor to be collected casually during Phase 1+ workouts. Deferred, tracked in spike-findings: 90-min endurance run, battery cost of batching override, timer-drift measurement. `spike-hr/` stays installed until the endurance run. |
 | 2026-08-22 | — | **Watch HR streams via ExerciseClient session + `HEART_RATE_5_SECONDS` batching override** | Spike evidence (session 2): in ambient "blur" mode, sampling continues but Health Services batches *delivery* until the user looks at the watch (141 s + 38 s stalls; drains on tap). This is documented platform behavior for both MeasureClient and ExerciseClient — the fix is the BatchingMode override (needs an active exercise), giving ~5 s delivery in non-interactive states. Latency spec is therefore two numbers: interactive ≈ 3.5 s, ambient ≈ 6–8 s (platform floor, not engineerable away). Support is per-device: service tries the override, falls back without, and logs which. Carries to the real `wear/` app in Phase 7. |
+| 2026-08-22 | 4 | **Styling: `StyleSheet` + a typed token module** (not NativeWind) | Figma Variables are the contract; they map 1:1 to `src/theme/tokens.ts` (Phase 3a), and TypeScript strict turns a wrong token into a compile error CI can show. NativeWind would add Tailwind + a Babel/Metro CSS pipeline (a recurring break point on Expo SDK upgrades, and untested with `reactCompiler`), put tokens in a second source of truth (`tailwind.config`), and hide typos in `className` strings that `tsc` never sees. Its strengths — light/dark modes, responsive variants — buy nothing in a dark-only, phone-only app. Cost: more verbose than utility classes; accepted. Unblocks the skills and Phase 3. |
+| 2026-08-22 | 1 | **Local-first.** Device database is the source of truth; Supabase is sync, not storage | Gyms have no signal, and the set loop + HR gate must work with the phone in airplane mode. Every write lands locally first and syncs later (Phase 6). Storage engine (`expo-sqlite` is the default candidate) is chosen with the schema, after #11 is resolved. Consequence for Phase 1: every write path needs an offline story, and auth (#2) is not allowed to gate logging a set. |
 
 ## Still open (see build-plan.md for full table)
 
-- #1 Local-first vs cloud-first (recommendation on record: local-first)
 - #2 Auth in v1?
 - #3 HR sample storage + downsampling (~5,400 rows/session at 1Hz)
-- #4 ⚠️ Styling — NativeWind vs StyleSheet + tokens (blocks skills + Phase 3)
 - #6 Micro type style @ 8px (below the ~11px mobile floor)
 - #9 Separate watch design system?
 - #10 Icon set — is `lucide-react-native` sufficient?
