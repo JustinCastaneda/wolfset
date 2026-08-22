@@ -39,7 +39,10 @@ jobs:
       - name: no committed secrets
         working-directory: .
         run: |
-          if git ls-files --error-unmatch '**/.env' 2>/dev/null; then
+          # Catches .env and .env.* at any depth, including the repo root
+          # (a bare '**/.env' pathspec misses root-level files). .env.example
+          # is the documented template and is allowed.
+          if git ls-files | grep -E '(^|/)\.env(\..+)?$' | grep -vE '(^|/)\.env\.example$'; then
             echo "::error::a .env file is tracked by git"; exit 1
           fi
           echo "no tracked .env files"
