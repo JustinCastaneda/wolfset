@@ -39,7 +39,9 @@ the live originals.
 | Flows v1 *(superseded — read only if v2 is unclear)* | `docs/design/flows-v1.html` | https://claude.ai/design/p/815dbad3-66dc-40b2-94d7-630a2ff8c1e1?file=Gym+Wolf+Flows.dc.html |
 
 These documents carry **flow and rules only**. Final screens, tokens and spacing are Figma — Figma
-is king for anything visual.
+is king for anything visual. **`docs/figma-inventory.md`** is the crawled lookup table: every
+frame and component with its node ID, mapped to the flowchart. Build from those IDs, never from
+memory.
 
 > ⚠️ **`nextset UX Storyboard.dc.html` is not a source document.** It is early brainstorming under a
 > discarded product name. Do not read it, design from it, or build from it. If it appears in a
@@ -339,7 +341,7 @@ hr/below-threshold   → green/500
 > `Brand` and `Red` are both `#f04245`. Renaming `Red` → `Error` as-is makes error states pixel-identical
 > to primary buttons. Error needs its own value.
 
-- [ ] 🤖 Type scale — 15 styles, Display XL through Micro
+- [ ] 🤖 Type scale — 14 styles in the frame, Display XL through Micro. 👤 Only 5 are Variables today; make all 14 Variables first so tokens are exported, not transcribed
 - [ ] 🤖 Spacing, radii, elevation
 - [ ] 👤 ⚠️ Decide **Micro @ 8px** — below the ~11px mobile floor, fails under font scaling
 
@@ -352,7 +354,7 @@ hr/below-threshold   → green/500
 
 ### 3c. Components — workout path first
 
-**Exists in Figma** (11): Button (24-variant matrix), Weight (plate stack 2.5–55), Top Bar, Icon Card, Avatar, Chip, Input, Select, Textarea, Switch, Watermark.
+**Exists in Figma** (11 + 2 in progress): Button (24-variant matrix), Weight (plate stack 2.5–55), Top Bar, Icon Card, Avatar, Chip, Input, Select, Textarea, Switch, Watermark. 🚧 **Card** and **Radio Card** — Justin componentising (2026-08-22). List Item exists but lives outside the library. Node IDs: `docs/figma-inventory.md`.
 
 **Must be designed and built** — used across screens, not in the library:
 
@@ -362,7 +364,8 @@ hr/below-threshold   → green/500
 - [ ] 🤝 **Card**
 - [ ] 🤝 **Stepper (±5)**
 - [ ] 🤝 **Segmented progress bar**
-- [ ] 🤝 **List item**
+- [ ] 🤝 **List item** *(exists as `114:2626`; move into the library)*
+- [ ] 🤝 **Button Group** — the 1/3/5/10/✎ rows on Add Exercise Details; repeated pattern, not in the library
 
 Build order: Button → Input → Chip → Top Bar → large numeral → Timer ring → keypad → remainder.
 
