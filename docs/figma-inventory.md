@@ -170,6 +170,27 @@ screens.
 Watch **Adjust Weight** (swipe up) is still not drawn — brief §04 gap. `Edit Set` `293:1520` may
 be it; 👤 confirm.
 
+### ⚠️ Watch frames: "Figma is king" applies loosely here (Justin, 2026-08-22)
+
+The watch was designed last and is the fuzziest part of the file. Read these frames as
+**layout intent, not pixel truth**:
+
+1. **Buttons are wrong in the file; use the platform's bottom-edge button instead.** Justin's
+   frames draw the bottom buttons (End Workout → *Cancel / End*, Summary → *Finish*) as rounded
+   rectangles with an approximated curve at the bottom. The intended look is the one Google
+   uses: a pill-shaped button that, when anchored to the bottom of the round face, becomes a
+   shape whose bottom edge follows the bezel curve. On Wear OS this is a stock component —
+   **`EdgeButton`** in Compose for Wear OS Material 3 (`androidx.wear.compose.material3`),
+   which computes that curve from the screen shape. **Build those bottom-anchored buttons with
+   `EdgeButton`, not a custom shape, and do not match the Figma geometry.** Applies only to the
+   bottom-edge buttons; everything else on the watch follows the frame.
+2. **The watch strays from the phone design system** and will probably get its own (open
+   decision #9). Until then there is no watch design system: take colours and type from the
+   phone tokens, spacing and shape from the Wear OS Material 3 defaults, and layout from the
+   frames. Don't invent a watch token set.
+3. Copy: End Workout Confirmation says *"count as a miss"* — should be *failure*
+   (`data-model.md` §1).
+
 ---
 
 ## 4. Things the crawl surfaced (for the plan)
