@@ -1,8 +1,9 @@
 # WOLFSET — Data model
 
-**Status:** draft for Justin's review · 2026-08-22 · owner: Fable
+**Status:** reviewed with Justin 2026-08-22 (§6 answered) · owner: Fable
 **Sources:** `docs/design/handoff-brief.html` §01–§04, `docs/design/flowchart.html`,
-`docs/design/flows-v2.html`, decisions #1, #3, #11 in `decisions.md`.
+`docs/design/flows-v2.html`, decisions #1, #3, #11 in `decisions.md`, and Figma **Add Exercise
+Details** (`Wolfset` file `1RsF6PeYzGxdTso4FZDAbp`, node `123:1092`) for the prescription fields.
 
 This is the shape of what the app stores, written to be read before any code exists. Every
 entity below answers to a screen in the flowchart; nothing is invented. Where something is a
@@ -20,6 +21,10 @@ proposal rather than a settled rule it is marked **[proposed]**.
 - **Units:** weights are stored *as entered* with their unit (`lb` | `kg`). Plate math and
   increments are unit-native (5 lb ≠ 2.27 kg), so converting on the way in would round badly.
   Converting for display only happens if the user flips the toggle later. **[proposed]**
+- **Rounding is always to the nearest loadable weight** (Justin, 2026-08-22) — never to a
+  tidy number. What is loadable depends on the equipment: a barbell with 2.5 lb plates moves in
+  5 lb steps (a plate each side); a dumbbell rack moves in 2.5 or 5 lb steps depending on the
+  gym. So the smallest step is a setting, per load type, eventually asked in onboarding.
 
 ## 1. The words, fixed
 
@@ -50,6 +55,8 @@ From Onboarding (all four screens skippable → every field nullable).
 | `experience` | `beginner` \| `intermediate` \| `advanced` \| null | Setup |
 | `equipment` | `full-gym` \| `some-weights` \| `body-weight` \| null | Equipment |
 | `goal` | `muscle` \| `strength` \| `endurance` \| null | Goals ("Not sure yet" = null) |
+| `smallestStepBarbell` + unit | number, default **5 lb** | the gym's smallest barbell jump (2.5 lb plates each side). Future onboarding question |
+| `smallestStepDumbbell` + unit | number, default **5 lb** | dumbbell racks differ by gym: 2.5 or 5 lb |
 | `absenceDeloadDays` | int, default **14 [proposed]** | Not designed yet — see §5.4 |
 | `absenceDeloadPercent` | int, default **10 [proposed]** | same |
 
@@ -63,6 +70,9 @@ Auth identity (email, Google) is Supabase's concern in Phase 6 and is not modell
 | `description` | text | Add Exercise screen |
 | `demoMediaRef` | text \| null | the demo frame on Add Exercise |
 | `equipment` | enum as Profile | lets the catalog filter by what the user has |
+| `loadType` | `barbell` \| `dumbbell` \| `machine` \| `bodyweight` | the first chip on Add Exercise Details ("Dumbell"); decides which smallest-step applies when rounding (§5.2) and whether weight is **per hand** |
+| `muscleGroups` | text[] | second chip: "Quads • Glutes" |
+| `isUnilateral` | bool | third chip: "Unilateral" |
 | `isCustom` | bool | seeded catalog rows are `false`; user-added are `true` |
 
 Seeded once on first launch; users can add to it. Search Exercise reads this table.
@@ -75,7 +85,7 @@ Seeded once on first launch; users can add to it. Search Exercise reads this tab
 | `progressionDefault` | `ProgressionRule` (§3) | "How You Get Stronger" — the three cards |
 | `pacingDefault` | `PacingRule` (§3) | rest seconds, auto-start timer |
 | `deloadDefault` | `DeloadRule` (§3) | drop 10% after 2 failures |
-| `source` | `built` \| `preset` \| `from-freestyle` | Build My Own / Select a Plan / Session Done → Add to Plan |
+| `source` | `built` \| `preset` \| `from-freestyle` | Build My Own / Select a Plan / Session Done → New Meso from a freestyle |
 
 ### PlanDay — "Day 1", "Workout A"
 
@@ -95,10 +105,11 @@ One row per exercise on a day. This is where **per-exercise overrides** live; `n
 | `planDayId` | → PlanDay | |
 | `exerciseId` | → Exercise | |
 | `order` | int | |
-| `sets` | int | Add Exercise Details |
-| `reps` | int | target reps per set |
-| `startWeight` + `unit` | number, `lb`\|`kg` | the 85 on Add Exercise Details |
-| `increment` | number \| null | **5 lb default**, override per exercise ("less for specific lifts") |
+| `sets` | int | Add Exercise Details: 1 · 3 · 5 · 10 · custom |
+| `reps` | int | "Starting Reps": 5 · 8 · 10 · 12 · custom |
+| `repCeiling` | int \| null | "Max Reps before Weight Increase": 12 · 16 · 18 · 20 · custom. `null` = plan default (**20**). Only used by `reps-first` |
+| `startWeight` + `unit` | number, `lb`\|`kg` | the 85. **Per hand** when the exercise is a dumbbell lift ("Weight • Per Hand") — stored as the per-hand number, never doubled |
+| `increment` | number \| null | **5 lb default**, override per exercise ("less for specific lifts"). Also drives the screen's "We suggest 85" = last workout's 80 + 5 |
 | `progression` | `ProgressionRule` \| null | Progression Override screen; the "override applied" badge = not null |
 | `pacing` | `PacingRule` \| null | Pacing Override |
 | `deload` | `DeloadRule` \| null | per-exercise deload ("some lifts need more or less") |
@@ -196,8 +207,10 @@ This is the row that will eventually answer "what does recovered mean for *this*
 ```ts
 type ProgressionRule =
   | { strategy: 'steady' }                            // weight climbs by `increment` on a hit
-  | { strategy: 'reps-first'; repStep: number;       // reps climb by repStep on a hit…
-      repCeiling: number }                            // …until repCeiling, then weight climbs and reps reset
+  | { strategy: 'reps-first'; repStep: number }      // reps climb by repStep (3 on the Progression Override
+                                                      // screen) on a hit, until PlanExercise.repCeiling
+                                                      // ("Max Reps before Weight Increase"), then weight
+                                                      // climbs by `increment` and reps reset to the start
   | { strategy: 'by-feel' };                          // nothing automatic; app shows last + suggestion
 
 type PacingRule = { restSeconds: number; autoStartTimer: boolean };   // 90, true
@@ -221,7 +234,8 @@ shared deload — not the `steady` default. ⚠️ **Screen copy should reflect 
 | Workout Summary | WorkoutExercises + Sets for the open Workout | — |
 | Edit Set | WorkoutSet | WorkoutSet |
 | Session Done | Workout cached numbers | Workout.status/endedAt; outcomes (§5.1); ExerciseProgress (§5.2) |
-| Session Done → Add to Plan | Workout (freestyle) | Plan.source = `from-freestyle`, PlanDay, PlanExercises |
+| Session Done → Add to Plan *(freestyle)* | Workout | a **new PlanDay** on the current plan, with the session's exercises as PlanExercises |
+| Session Done → New Meso *(freestyle)* | Workout | **double confirmation**, then: close the current Mesocycle (`replaced`), new Plan (`from-freestyle`) with this session as Day 1, new Mesocycle |
 | Getting Started | — | Plan, PlanDays, PlanExercises, Mesocycle |
 | Change It Up | Plans, Mesocycle | Mesocycle.nextPlanDayId |
 
@@ -231,20 +245,22 @@ shared deload — not the `steady` default. ⚠️ **Screen copy should reflect 
 
 For each WorkoutExercise with a prescription: **hit** if every prescribed set was logged with
 `reps ≥ target`; otherwise **failed**; **skipped** if no sets were logged. Freestyle exercises
-are never scored.
+are never scored. A workout **ended early** is scored the same way — every exercise not fully
+done is a failure that counts toward the plateau streak (Justin, confirmed 2026-08-22).
 
 ### 5.2 Then — progress each exercise (strategy from the Mesocycle)
 
 | Strategy | On **hit** | On **failed** |
 |---|---|---|
 | `steady` | `currentWeight += increment`; failures = 0 | failures += 1 |
-| `reps-first` | `currentReps += repStep`; if `> repCeiling` → weight += increment, reps = prescription.reps; failures = 0 | failures += 1 |
+| `reps-first` | `currentReps += repStep`; if `> repCeiling` (user-chosen: 12/16/18/20/custom, default 20) → weight += increment, reps = prescription.reps; failures = 0 | failures += 1 |
 | `by-feel` | nothing automatic | nothing automatic |
 
 When `consecutiveFailures` reaches `deload.afterFailures` (default 2) the app **asks, never
 decides** (Justin, 2026-08-22): *"Two sessions in a row below target on Squat. Deload 10%, or end
-this mesocycle and start fresh?"* — Deload applies `currentWeight *= (1 − percent/100)` rounded to
-the plate increment and resets failures; End closes the Mesocycle with `plateau`. ⚠️ **This prompt
+this mesocycle and start fresh?"* — Deload applies `currentWeight *= (1 − percent/100)` **rounded to the nearest loadable weight**
+for the exercise's `loadType` (135 × 0.9 = 121.5 → 120 on a 5 lb-step barbell, 122.5 with
+2.5 lb steps) and resets failures; End closes the Mesocycle with `plateau`. ⚠️ **This prompt
 is not designed** — it belongs on the Session Done screen or the next Workout A. Stop and ask.
 
 ### 5.3 Misses — nothing automatic in v1
@@ -265,17 +281,19 @@ the settings surface for it comes later.
 document because it is not decided. The model does not need it to be — it only needs to record
 what happened.
 
-## 6. Open questions for Justin
+## 6. Questions asked and answered (2026-08-22)
 
-1. **Reps-first numbers:** `repStep` 3 (from the screen) and `repCeiling` — what's the ceiling
-   before weight steps up? (e.g. 5 → 8, then +5 lb and back to 5)
-2. **Deload rounding:** 10% of 135 is 121.5. Round to the nearest 5 lb (120) or nearest plate
-   (2.5 → 122.5)?
-3. **Freestyle → Add to Plan:** does the freestyle session become a *new day* on an existing
-   plan, or merge into an existing day? The brief says "add this workout to an existing
-   mesocycle" — modelled as a new PlanDay for now.
-4. **`ended-early` workouts:** scored as failures for any exercise not fully done (matches your
-   "failure, not miss"). Confirm.
+1. **Reps-first ceiling** — the *"Max Reps before Weight Increase"* button group on Add
+   Exercise Details (Figma node `123:1092`): 12 · 16 · 18 · 20 · custom. Per exercise, picked at
+   setup; **default 20**. Lives on `PlanExercise.repCeiling`, not inside the rule, because the
+   screen sets it next to sets and reps.
+2. **Deload rounding** — **nearest loadable weight**, always. Depends on load type and the gym's
+   plates/dumbbell increments → `Profile.smallestStep*` + `Exercise.loadType`. A future
+   onboarding question.
+3. **Freestyle → plan** — two secondary buttons on Session Done: **Add to current plan as a new
+   day**, or **start a new mesocycle with this as Day 1**. The second ends the current plan, so
+   it gets a **double confirmation**. Either can be edited to add more later.
+4. **Ended early** — confirmed: unfinished exercises are failures and count toward a deload.
 
 ## 7. What this does **not** decide
 
