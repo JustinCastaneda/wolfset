@@ -5,9 +5,15 @@
 | `build-plan.md` | ✅ committed 2026-08-21 |
 | `decisions.md` | ✅ running log |
 | `spike-findings.md` | template — filled during Phase 0 hardware sessions |
-| `handoff-brief.html` | ⚠️ **pending** — 👤 export from Claude Design and commit here |
-| `flowchart.html` | ⚠️ **pending** — 👤 export from Claude Design and commit here |
+| `design/handoff-brief.html` | ✅ exported 2026-08-22 — rules, shared screens, known gaps |
+| `design/flowchart.html` | ✅ exported 2026-08-22 — 55 screens, one connected graph |
+| `design/flows-v2.html` | ✅ exported 2026-08-22 |
+| `design/flows-v1.html` | ✅ exported 2026-08-22 — superseded by v2; its links into the storyboard are intentionally dead |
+| `design/support.js` | runtime the four `.html` files load; not a document |
 
-The Claude Design project (`815dbad3-66dc-40b2-94d7-630a2ff8c1e1`) isn't reachable from every
-agent session; committed exports are the reliable source. Until they land, treat the links in
-`build-plan.md` as the source documents.
+`docs/design/` is the committed copy of the Claude Design project
+(`815dbad3-66dc-40b2-94d7-630a2ff8c1e1`); open the `.html` files in a browser. They describe
+**flow and rules**, not final visuals — Figma is king for screens, tokens and spacing.
+
+Deliberately **not** committed from that export: `nextset UX Storyboard.dc.html` (discarded
+brainstorming under a dead product name — never build from it) and its `uploads/` images.

@@ -64,6 +64,10 @@ mobile/src/
 - Typeface is Geom (variable weight). Type styles are tokens too (`type.h1`, `type.body`…).
 - Touch targets in the workout path are **44px minimum**. Gym hands are sweaty and shaking.
 - One `const styles = StyleSheet.create({...})` at the bottom of each component file.
+- **Err on the side of making a component.** If a pattern appears twice, it is a component in
+  `components/`, with variants matching Figma's. Screens compose; they don't redraw.
+- **The Design Kit comes first.** Every component renders in the Design Kit route (Phase 3d)
+  before any flow uses it. No serious flow is built against components that aren't in the kit.
 
 ## 4. State
 

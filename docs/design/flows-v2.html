@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #010101; }
+  a { color: #F04245; text-decoration: none; }
+  a:hover { color: #FF6E70; }
+</style>
+</helmet>
+
+<div style="background:#010101;padding:60px 68px 100px;font-family:Barlow,sans-serif;min-width:2560px;box-sizing:border-box">
+
+<div style="max-width:1180px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.22em;color:#F04245">GYM WOLF · FLOW OF RECORD · V2</div>
+  <div style="font:900 46px/1.02 Barlow,sans-serif;color:#FFFDFB;margin-top:10px">Traced from the Figma</div>
+  <p style="font:400 15px/1.55 Barlow,sans-serif;color:#C3BEBB;margin:16px 0 0;text-wrap:pretty">Every row below is a User Journey as it is laid out in <em style="color:#FFFDFB;font-style:normal">Gym Wolf Application</em> — the Web App section and the Watch section, in the file's own order, left to right. Screen names are the Figma layer names, verbatim. Nothing here is invented: where the file is silent, the row is short and says so.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px">
+    <div style="display:flex;align-items:center;gap:9px"><span style="width:22px;height:14px;border-radius:4px;background:#201A18;border:1px solid #38322F"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Screen in the file</span></div>
+    <div style="display:flex;align-items:center;gap:9px"><span style="width:22px;height:14px;border-radius:4px;background:#201A18;border:1px solid #F04245"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Journey entry point</span></div>
+    <div style="display:flex;align-items:center;gap:9px"><span style="width:22px;height:14px;border-radius:4px;background:#1B1614;border:1px dashed #514B48"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Named but not drawn</span></div>
+    <div style="display:flex;align-items:center;gap:9px"><span style="width:3px;height:14px;background:#38322F"></span><span style="font:500 12px Barlow,sans-serif;color:#8C8781">Annotation written in the Figma</span></div>
+  </div>
+</div>
+
+<sc-if value="{{ showAlignment }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:52px;border-top:1px solid #1B1614;padding-top:28px;max-width:2400px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">WHERE V1 AND THE FIGMA DISAGREE</div>
+  <p style="font:400 14px/1.5 Barlow,sans-serif;color:#8C8781;margin:10px 0 0;max-width:820px">Eight things. The first five I have already resolved in favour of the file. The last three need you.</p>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:22px">
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">RESOLVED · FILE WINS</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Journeys, not stages</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">V1 ran a single funnel, Stage 0 through Stage 7. The file has ten named parallel journeys with no through-line between them. V2 uses the file's rows.</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">RESOLVED · FILE WINS</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Plan choice is an onboarding screen</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">V1 gave "Choose a plan" its own stage with a populated-versus-empty fork. In the file, Select a Plan is simply the fourth Onboarding screen, with eight cards drawn including Build My Own Plan.</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">RESOLVED · FILE WINS</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">No Units screen</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">V1 had Units as a required, unskippable first preference. The file has no such screen — Lbs/Kgs is a toggle inside Setup, alongside experience level.</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">RESOLVED · FILE WINS</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Progression override is drawn</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">V1 parked per-lift overrides at V1.1. The file has three override screens: Progression Override and its applied state inside Getting Started, plus Pacing Override in Next Workout.</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#3DF593">RESOLVED · FILE WINS</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Freestyle is a first-class journey</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">V1 treated freestyle as an escape hatch mentioned in three places. The file gives it nine screens, ending in Session Done with the option to fold the session into a plan.</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #F2CE40;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">NEEDS YOUR CALL</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Create New MesoCycle is one screen</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">The journey is labelled and started, then stops at Change It Up. Getting Started downstream appears to be the real build flow. Is Create New MesoCycle a duplicate to delete, or an editing path still to be drawn?</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #F2CE40;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">NEEDS YOUR CALL</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Google sign-in</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">The file draws Continue with Google on Login and Sign up with Google on Create Account. V1 said the button was drawn but the wiring off. Does it work at launch?</div>
+    </div>
+
+    <div style="border-radius:10px;background:#201A18;border:1px solid #F2CE40;padding:15px 16px">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">NEEDS YOUR CALL</div>
+      <div style="font:700 16px/1.2 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Two names for the product</div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#C3BEBB;margin-top:6px">The splash wordmark reads WOLFSET. The welcome copy four screens later reads "Welcome to Gym Wolf". One of them is stale.</div>
+    </div>
+
+  </div>
+</div>
+</sc-if>
+
+<div style="margin-top:64px;display:flex;align-items:baseline;gap:16px;border-top:2px solid #F04245;padding-top:16px">
+  <span style="font:900 30px Barlow,sans-serif;color:#FFFDFB">Web App</span>
+  <span style="font:400 14px Barlow,sans-serif;color:#514B48">10 journeys · 44 screens · section 6216 × 12281</span>
+</div>
+
+<!-- 01 LOGIN -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0;margin-top:14px">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">01</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Login</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">3 screens</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Login Flow</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Splash. Claw mark over the WOLFSET wordmark.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Login</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Welcome Back" — email, password, Forgot Password, Continue with Google.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Failed Login</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Same screen, error under the password field. You stay put.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 FORGOT PASSWORD -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">02</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Forgot Password</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">5 screens</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Login</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Entry is the Forgot Password link, not a separate door.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Reset Password</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Email only. Send Reset Link. Remembered it? Sign In.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Confirm Email Timer</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Check Your Email" — reset link sent, expires in 1 hour. Open Mail App.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Confirm Email Timer</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Cooldown spent. The line becomes "Nothing yet? Tap resend" and Resend goes live.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">05</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">New Password</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">One field with a strength meter. The tap lands you here already authenticated.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 CREATE ACCOUNT -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">03</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Create Account</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">4 screens</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Create Account</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Credentials only, Sign up with Google, terms line at the foot. No preferences here.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Confirm Email Timer</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Confirm Your Email" — "Tap it and you're in." Hard gate.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Confirm Email Timer</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Resend state. Same component as the password-reset pair — one build, four uses.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Confirm Email / Resend</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"You're in" — the claw mark returns. Let's Get to Work is the only door into Onboarding.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"Welcome to Gym Wolf, the app built for simplicity and progress. Build your first Mesocycle Plan, or dive right into a workout."</div>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+
+<!-- 04 ONBOARDING -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">04</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Onboarding</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">4 screens · every one has Skip</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Onboarding Preferences</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Setup" — Lbs/Kgs toggle, then Beginner, Intermediate, Advanced.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Onboarding Equipment</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Equipment" — Full gym, Some Weights, Body Weight. Skip and Next.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Onboarding Equipment 2</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Goals" — Build Muscle, Build Strength, Endurance, Not sure yet.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Onboarding Equipment 3</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Select a Plan" — eight cards ending in Build My Own Plan. 412 × 1467, so it scrolls.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 05 CREATE NEW MESOCYCLE -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">05</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Create New MesoCycle</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#F2CE40;margin-top:7px">1 screen · unfinished in the file</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Home Hub – Change it up</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Change It Up" — Workout A and B, then four hub tiles.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:404px;flex-shrink:0;border-radius:10px;background:#1B1614;border:1px dashed #514B48;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span style="font:700 15px Barlow,sans-serif;color:#8C8781">Row stops here</span>
+        <span style="font:700 9px Barlow,sans-serif;letter-spacing:.12em;color:#F2CE40;border:1px solid #514B48;border-radius:4px;padding:2px 6px">OPEN</span>
+      </div>
+      <div style="font:400 12px/1.45 Barlow,sans-serif;color:#8C8781;margin-top:6px">The journey is named and the first screen drawn, then nothing. Getting Started, two rows down, covers what looks like the same ground: name the plan, set progression, pick the first lift. Either this row is a duplicate to delete, or it is the <em style="color:#C3BEBB;font-style:normal">edit an existing meso</em> path and Getting Started is the <em style="color:#C3BEBB;font-style:normal">create</em> path — in which case the editing screens still need drawing.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 06 FREESTYLE -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">06</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">FreeStyle Workout</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">9 screens · the longest row</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Home Hub – Change it up</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Change It Up" — the hub tile grid is the entrance.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"If the user hits the home icon, they go back to the hub. From here they can edit their current mesocycle, do a freestyle or one-off exercise, browse all exercises, or view their workout history."</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Search Exercise</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Catalog list, a Go button on every row.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"User can search and start any workout on the fly"</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Add Exercise</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Bulgarian Split Squat" — demo frame, description, weight and Start Workout.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"Clicking Go shows the workout with details<br>User can select a different weight or just start."</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Edit Weights / Add More</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">70 lbs on the plate stack.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"Adjust weight screen. Sets are open-ended for freestyle workouts so they don't need tobe set"</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">05</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Log a Set</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">70, Lbs × 5 reps. Progress pips across the top.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">06</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Android Compact – 3</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Rest, ring already green. Unnamed frame — worth renaming.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">07</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Workout Summary</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Freestyle" — the running list, growing downward as you lift.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"Once the user completes a workout, they go back to an overview page that's similar to the Workout A page. This page logs what they've done and invites them to do more."</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">08</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Edit Set</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">70. Reached from a logged row, not from the timer.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"A user can edit a set, and change the reps, or modify the weight per the normal workflow."</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">09</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Workout Summary 2</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Session Done" — time, weight, reps. Exits as Add to Plan or New Meso.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"After completing a freestyle the user can decide to add this workout to an existing mesocycle or start a new mesocycle from this freestyle workout."</div>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+
+<!-- 07 GETTING STARTED -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">07</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Getting Started</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">9 screens · builds the plan</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Home Hub – Change it up</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Get Started" — Freestyle Workout, Progressive Overload, Cardio Blast. "Build a Plan or dive right in, the choice is yours."</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"The user clicks on the first card to edit or create their Mesocycle"</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">New Plan 2</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Name this Plan" — one field, day chips beneath.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">New Plan</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"How You Get Stronger" — Steady, Reps First, By Feel. Progression as three cards, not a settings table.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Search Exercise</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"What's the first lift?" — "This starts Day 1. Add more after." No empty container is ever handed over.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">05</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Add Exercise Details</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Bulgarian Split Squat" at 85 — sets, reps, rest, progression, pacing rows. 412 × 1080.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">06</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Progression Override</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"When I hit every rep, add +3 Reps to the next session." Second rule for missed sessions: drop 10%.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">07</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Add Exercise Details / Override Applied</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Same screen, the Progression row now carries a badge. Add to Day commits.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">08</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Day Summary</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Day 1" — the lift is in, Add Workout beneath it, Save Day.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">09</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Plan Summary</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Winter Bulk" — days list, week grid, Save Plan. The plan now exists.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 08 NEXT WORKOUT -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">08</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Next Workout</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">3 screens · the steady state</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Workout Summary</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Workout A" — five lifts with weights, Start Workout. Eyebrow carries week and day.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #38322F;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">IN THE FILE</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"This is the main screen when the user first logs in. We automatically set them up for success by queueing up their next workout."</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Home Hub – Change it up</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Change It Up" — swap to another day, or leave the plan entirely.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Progression Override 2</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Pacing Override" — 1:30 rest, Start Timer Automatically, Rest Between Sets. Sits off to the right of the row, not in line.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 09 SET WORKFLOW -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">09</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Set Workflow</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">4 screens</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Log a Set</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">135, Lbs × 5 reps. "Tap the number to decrease reps" is written on the frame.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Edit Weights / Add More</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">205, was 200 +5. Yellow. "Applies to future sets and workouts."</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Edit Weights / Reduce</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">195, was 205 −5. Green. Direction is carried by colour alone.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Edit Weights Custom</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">245, was 200 +45. Numeric keypad, Save Changes.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #F2CE40;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">IN THE FILE · OPEN</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">"Should probably be an OS Keyboard"</div>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+
+<!-- 10 POST SET TIMER -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">10</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Post Set Timer</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">3 states · one screen</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#F04245"></span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</span></div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Timer – High heart Rate</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">1:45 · 168 bpm. Ring length is time, ring colour is heart rate.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#F2CE40"></span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</span></div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Timer – Medium Heart</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">1:04 · 145 bpm. "Go with what feels right."</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#3DF593"></span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</span></div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Android Compact – 2</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Recovered. Continue ignites. Another unnamed frame.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">↺</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#1B1614;border:1px dashed #514B48;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">LOOP</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#8C8781;margin-top:6px">Back to Log a Set</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:5px">Not drawn as an arrow in the file — inferred from Set Workflow sitting directly above.</div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:68px;display:flex;align-items:baseline;gap:16px;border-top:2px solid #F04245;padding-top:16px">
+  <span style="font:900 30px Barlow,sans-serif;color:#FFFDFB">Watch</span>
+  <span style="font:400 14px Barlow,sans-serif;color:#514B48">4 journeys · 11 screens · section 4542 × 3751 · 456px round frames</span>
+</div>
+
+<sc-if value="{{ showWatch }}" hint-placeholder-val="{{ true }}">
+<div>
+
+<!-- W01 START -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0;margin-top:14px">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">W01</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Start</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">1 screen</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Watch Tile</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Two targets filling the face: Cardio above, Next Workout below in red. Picks up whatever the phone says is today.</div>
+    </div>
+  </div>
+</div>
+
+<!-- W02 EXERCISE -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">W02</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Exercise</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">6 screens · the session loop</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:9px;width:190px;flex-shrink:0">
+      <div style="border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+        <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+        <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Actions (Left)</div>
+        <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Skip Set, Change Exercise, End Workout. End stays outlined in red so it never reads as a peer.</div>
+      </div>
+      <sc-if value="{{ showFigmaNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="border-left:3px solid #F2CE40;padding-left:9px">
+        <div style="font:700 8px Barlow,sans-serif;letter-spacing:.16em;color:#F2CE40">ORDER · OPEN</div>
+        <div style="font:400 11px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:3px">Actions sits leftmost in the file, ahead of Set / 1. If it is a swipe-left panel off the Set screen, the row order is misleading.</div>
+      </div>
+      </sc-if>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Set / 1</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Five set pips on the rail. Log the set from the face.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#F04245"></span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">03</span></div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Timer Red</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Whole face is the ring. Continue is muted while red.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#F2CE40"></span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">04</span></div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Timer Red · variant</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">1:05 · 142 bpm. Same component, warning state.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#3DF593"></span><span style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">05</span></div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Timer Red · variant</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">0:22 · 122 bpm. Continue goes red and live.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">06</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Set / 2</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">Loop closes. Second pip filled. Placed far right in the file with a visible gap before it.</div>
+    </div>
+  </div>
+</div>
+
+<!-- W03 CHANGE EXERCISE -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">W03</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">Change Exercise</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">2 screens</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Change Workout</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Change It Up" — Workout A marked Current, Workout B with a Do B button.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">Change Workout</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Workout B" — six numbered lifts with weight and set count, fading under a Start Workout button.</div>
+    </div>
+  </div>
+</div>
+
+<!-- W04 END WORKOUT -->
+<div style="display:flex;align-items:flex-start;border-top:1px solid #1B1614;padding:28px 0">
+  <div style="width:212px;flex-shrink:0;padding-right:26px;box-sizing:border-box">
+    <div style="font:700 10px Barlow,sans-serif;letter-spacing:.2em;color:#F04245">W04</div>
+    <div style="font:900 25px/1.03 Barlow,sans-serif;color:#FFFDFB;margin-top:7px">End Workout</div>
+    <div style="font:400 12px Barlow,sans-serif;color:#514B48;margin-top:7px">2 screens</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #F04245;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">01</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">End Workout Confirmation</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"End Workout?" — "Only 3 of 5 sets done." then "This will count as a miss and may trigger a deload." Cancel and End.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#201A18;border:1px solid #38322F;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">02</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#FFFDFB;margin-top:6px">End Workout Confirmation</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#C3BEBB;margin-top:5px">"Session Done" — Time 38:42, Total Weight 4,180, Avg. Heart rate 124, Exercises 3. Finish.</div>
+    </div>
+    <span style="font:400 17px Barlow,sans-serif;color:#514B48;flex-shrink:0;margin-top:32px">→</span>
+    <div style="width:190px;flex-shrink:0;border-radius:10px;background:#1B1614;border:1px dashed #514B48;padding:13px 14px;box-sizing:border-box">
+      <div style="font:700 9px Barlow,sans-serif;letter-spacing:.16em;color:#514B48">NOT DRAWN</div>
+      <div style="font:700 15px/1.15 Barlow,sans-serif;color:#8C8781;margin-top:6px">Where the watch lands after Finish</div>
+      <div style="font:400 12px/1.4 Barlow,sans-serif;color:#8C8781;margin-top:5px">Back to Watch Tile is the obvious answer, but the file does not say. Nor does it say whether a watch session can begin without the phone.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+</sc-if>
+
+<div style="margin-top:60px;border-top:1px solid #1B1614;padding-top:26px;max-width:1180px">
+  <div style="font:700 11px Barlow,sans-serif;letter-spacing:.2em;color:#514B48">NOTES ON THIS TRACE</div>
+  <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+    <div style="font:400 13px/1.55 Barlow,sans-serif;color:#8C8781">Rows are ordered by their vertical position in the file and screens by their horizontal position, so the sequence you see is the sequence you drew. No connector arrows exist in the file — the arrows here are read off left-to-right adjacency, which is why the two loops and the Pacing Override placement are called out rather than assumed.</div>
+    <div style="font:400 13px/1.55 Barlow,sans-serif;color:#8C8781">Two frames still carry default Figma names, <span style="color:#C3BEBB">Android Compact – 2</span> and <span style="color:#C3BEBB">Android Compact – 3</span>. Both are rest-timer states. Renaming them would make this trace stable across future exports.</div>
+    <div style="font:400 13px/1.55 Barlow,sans-serif;color:#8C8781">Quoted text is verbatim from the file, including the annotations you wrote on the canvas. Type is set in Barlow here because Geom is not available on the web — the sizes and colours are the file's.</div>
+  </div>
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showAlignment&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showFigmaNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showWatch&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showAlignment: this.props.showAlignment ?? true,
+      showFigmaNotes: this.props.showFigmaNotes ?? true,
+      showWatch: this.props.showWatch ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>
