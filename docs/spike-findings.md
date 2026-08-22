@@ -10,6 +10,20 @@
 |---|---|---|---|---|
 | 2026-08-20 | Pixel Watch 4 | Pixel 10 Pro | 150 s | Shakedown, screen mostly on, ADB attached. Log: `wolfset-spike-1787286145549.json`. Ran with the pre-fix metrics collector — its drop/latency stats are wrong; per-sample logs are trustworthy. |
 | 2026-08-22 | Pixel Watch 4 | Pixel 10 Pro | 256 s | Curls/squats/pushups, real HR spike (peak 117). Log: `wolfset-spike-1787374237862.json`. Fixed collector: 134/134 samples, 0 drops. **Identified the stall mechanism: watch ambient ("blur") mode.** |
+| 2026-08-22 | Pixel Watch 4 | Pixel 10 Pro | 119 s | Validation of the batching-override fix. Log: `wolfset-spike-1787376068949.json`. **Ambient stall eliminated** — see Session 3. |
+
+### Session 3 (2026-08-22, 119 s validation) — the ambient fix works on spec
+
+- **Override accepted:** `bm=1` on all 63 samples — Pixel Watch 4 supports
+  `HEART_RATE_5_SECONDS`.
+- **60 of 63 samples sent in ambient mode** — the session ran almost entirely in the exact
+  condition that stalled 141 s in session 2. Longest silence: **5.8 s**. No taps needed.
+- Delivery is metronomic: batches every ~5.3 s (the override cadence), each carrying the
+  2–3 samples taken in the interval. Sample completeness: 63 in 119 s ≈ the full 1.92 s
+  sensor cadence, nothing lost to batching.
+- **Ambient e2e: p50 6.0 s · p95 8.4 s · max 8.9 s** — inside the predicted 6–8 s spec
+  (5 s batch floor + ~2 s transport). Interactive n=3, too few to score this session.
+- Bridge drops: **0/63**, JS saw 63/63.
 
 ### Session 2 (2026-08-22, 256 s workout) — the stall has a name
 
@@ -97,14 +111,14 @@ warns it raises power draw in non-interactive states; ADB off for the battery re
 
 | Criterion | Result | Evidence |
 |---|---|---|
-| Continuous samples, screen off, doze, 90 min | ☐ pass ☐ fail | |
-| Beat-to-React-render latency — interactive ≤ ~3.5 s · ambient ≤ ~8 s *(original ~2 s target predates the documented ambient batching floor; see Session 2)* | ☐ pass ☐ fail | interactive: p50 __ / p95 __ ms · ambient: p50 __ / p95 __ ms *(s1 steady-state p50 ~3.3 s)* |
-| No dropped events across the bridge under doze | ☐ pass ☐ fail | dropped: __ / __ samples *(s1: 0/145, but 150 s screen-on — not the doze test)* |
-| Timer accurate, app backgrounded + screen off | ☐ pass ☐ fail | drift at 3:00: __ ms |
-| Battery cost per session | — | watch: __%/hr · phone: __%/hr |
-| Which API delivers live HR? | ☐ Data Layer ☐ Health Connect | *(spike implements Data Layer; record if it sufficed)* |
-| Mid-set disconnect behaviour + fallback | | |
-| Optical HR accuracy under grip tension | | *(watch for dropouts / UNAVAILABLE availability during heavy grip sets)* |
+| Continuous samples, screen off, doze, 90 min | ☐ pass ☐ fail | *Not run at full length. Mechanism verified in 3 short sessions; endurance/doze deferred to a casual long session during Phase 1+ (keep `spike-hr/` installed until then).* |
+| Beat-to-React-render latency — interactive ≤ ~3.5 s · ambient ≤ ~8 s *(original ~2 s target predates the documented ambient batching floor; see Session 2)* | ☑ **pass** | ambient: p50 6.0 s / p95 8.4 s (s3, override on) · interactive p50 ~3.3 s (s1/s2 steady state) |
+| No dropped events across the bridge under doze | ☑ **pass** *(short-session evidence)* | 0 drops across all 3 sessions: 145/145 + 134/134 + 63/63. Native→JS p50 2–10 ms. |
+| Timer accurate, app backgrounded + screen off | ☐ pass ☐ fail | drift at 3:00: __ ms *(subjectively fine in s1; never formally measured — check during any future session)* |
+| Battery cost per session | — | watch: __%/hr · phone: __%/hr *(sessions too short; top open question is the batching override's cost — measure with ADB off)* |
+| Which API delivers live HR? | ☑ **Data Layer** | Sufficed in all 3 sessions. Watch side must be **ExerciseClient + `HEART_RATE_5_SECONDS` batching override** — MeasureClient (and ExerciseClient without the override) stalls delivery in ambient. |
+| Mid-set disconnect behaviour + fallback | | *Not observed — no disconnects in 3 sessions. Staleness indicator covers detection; fallback UX is a product decision.* |
+| Optical HR accuracy under grip tension | ☑ no issues seen | ACCURACY_HIGH on 100% of samples in all 3 sessions, incl. curls/squats/pushups (s2). |
 
 ## B. What is the rule?
 
@@ -112,17 +126,41 @@ warns it raises power draw in non-interactive states; ADB off for the battery re
 The spike ships a placeholder (below 65% of session peak, floor 110 bpm) purely to exercise the
 gate mechanism — it is NOT a proposal.
 
-- Observed resting/pre-set BPM: __
-- Observed peak during working sets: __
+- Observed resting/pre-set BPM: ~65–70 (session 1 trough after full recovery)
+- Observed peak during working sets: 113 (s1) · 117 (s2, curls/squats/pushups)
 - BPM at the moment you subjectively felt ready to lift again: __ (do this for several sets!)
-- Proposed rule: __
+- Proposed rule: **still open — but demonstrably definable.** Session 1 captured a clean
+  113→70 recovery over ~75 s; the curve shape is textbook. What's missing is the felt-ready
+  anchor point, which Justin can collect casually during any Phase 1+ workout (glance at BPM
+  when you'd naturally start the next set, note it several times). Not worth blocking on.
 
 ## Gate verdict
 
-- ☐ **PASS** — pipe works, rule defined → proceed to Phase 1/2
-- ☐ **Pipe failed** → reconsider all-native (see build-plan architecture section)
-- ☐ **Rule undefinable** → reconsider the product
+- ☑ **PASS** — pipe works; rule not yet written but clearly definable → proceed to Phase 1/2
+
+Called 2026-08-22 by Justin. The kill-gate question was "is this product possible?" — yes on
+every mechanism-level measurement:
+
+- **Pipe:** live BPM watch→React with 0 drops across 3 sessions; ambient (wrist-down,
+  mid-workout — the state that matters) delivers on a bounded ~5 s rhythm, p95 8.4 s. For a
+  90 s rest timer, unlocking within ~6–9 s of true recovery is acceptable.
+- **Architecture:** bridge cost 2–10 ms — the Expo/RN + one-native-module split is validated.
+- **Rule:** one clean recovery curve says a threshold rule exists; anchoring it is data
+  collection, not research.
+
+Deliberately deferred (not kill risks, tracked above): 90-min endurance/doze run, battery
+cost of the batching override, formal timer-drift measurement, felt-ready anchor for the
+rule. **`spike-hr/` stays installed and undeleted until the endurance run happens.**
 
 ## Misc findings / surprises
 
--
+- The two costliest problems were both *measurement* problems: the RN-side collector
+  fabricated 93 drops (React 18 batching), and the ambient stall was nearly misread as
+  "Bluetooth flakiness" when it was documented platform batching. In both cases the raw
+  per-sample logs, not the summary stats, held the truth.
+- The Wearable Data Layer's cert requirement bit before any hardware ran: Expo's template
+  keystore ≠ the machine debug keystore, and the failure mode is silent message drops.
+  Fixed with a config plugin; the apksigner check in `spike-hr/README.md` is the guard.
+- Fitbit's "screen never blurs mid-workout" behavior is the visible half of what
+  ExerciseClient + batching override does under the hood. The ongoing-activity chip +
+  in-app ambient support in the spike is the same posture and should carry to `wear/`.
