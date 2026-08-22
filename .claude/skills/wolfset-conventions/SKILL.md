@@ -102,15 +102,15 @@ mobile/src/
 - Name tests as sentences about behaviour: `it('unlocks the next set when HR drops below the
   threshold for two consecutive samples')`.
 - No mocking the clock with sleeps — inject it (see §4).
-- The runner (`jest-expo`) is added with the first piece of logic worth testing (Phase 4). When it
-  lands, `npm test` joins `npm run verify` and CI.
+- Runner is `jest-expo` (`npm test`); it is part of `npm run verify` and CI. Tests match
+  `src/**/*.test.ts`. The progression rules (`features/progression/`) are the reference example.
 
 ## 7. The checks — what "done" means
 
 Before opening a PR, run in `mobile/`:
 
 ```bash
-npm run verify        # tsc --noEmit + eslint + prettier --check — exactly what CI runs
+npm run verify        # tsc --noEmit + eslint + prettier --check + jest — exactly what CI runs
 npx expo-doctor       # project health; must be all checks passed
 ```
 

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   mobile:
-    name: mobile — typecheck, lint, format
+    name: mobile — typecheck, lint, format, test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,6 +33,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm test
 
       # Nothing should ever add a real .env to the repo. Cheap insurance against
       # the one mistake that is expensive to undo.
