@@ -18,19 +18,39 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.ambient.AmbientLifecycleObserver
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 
 class MainActivity : ComponentActivity() {
 
+    // Ambient support: instead of yielding to the blurred watchface after screen timeout,
+    // the activity stays visible in a dimmed state — the Wear pattern for workout apps.
+    // The callback also stamps SpikeState so every HR sample records ambient-or-not.
+    private val ambientCallback = object : AmbientLifecycleObserver.AmbientLifecycleCallback {
+        override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
+            SpikeState.update { it.copy(isAmbient = true) }
+        }
+
+        override fun onExitAmbient() {
+            SpikeState.update { it.copy(isAmbient = false) }
+        }
+
+        override fun onUpdateAmbient() {}
+    }
+    private val ambientObserver = AmbientLifecycleObserver(this, ambientCallback)
+
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-            if (grants[Manifest.permission.BODY_SENSORS] == true) HrService.start(this)
+            val ok = grants[Manifest.permission.BODY_SENSORS] == true &&
+                grants[Manifest.permission.ACTIVITY_RECOGNITION] == true
+            if (ok) HrService.start(this)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycle.addObserver(ambientObserver)
         setContent { MaterialTheme { SpikeScreen(onToggle = ::toggleService) } }
     }
 
@@ -40,6 +60,7 @@ class MainActivity : ComponentActivity() {
         } else {
             val wanted = buildList {
                 add(Manifest.permission.BODY_SENSORS)
+                add(Manifest.permission.ACTIVITY_RECOGNITION)
                 if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
             }
             permissionLauncher.launch(wanted.toTypedArray())
@@ -59,20 +80,27 @@ private fun SpikeScreen(onToggle: (Boolean) -> Unit) {
         Text(
             text = if (state.bpm > 0) "${state.bpm.toInt()}" else "--",
             fontSize = 40.sp,
-            color = Color(0xFFF04245), // brand red; illustrative only, spike UI is unstyled
+            // Dim in ambient (and skip the brand red — ambient wants low-emission pixels).
+            color = if (state.isAmbient) Color(0xFF9A9DA3) else Color(0xFFF04245),
         )
-        Text("bpm · ${state.availability}", fontSize = 10.sp)
+        Text(
+            "bpm · ${state.availability}${if (state.isAmbient) " · ambient" else ""}" +
+                (if (state.serviceRunning) (if (state.batching5s) " · 5s-batch" else " · NO-OVERRIDE") else ""),
+            fontSize = 10.sp,
+        )
         Text(
             "sent ${state.messagesSent}/${state.samplesSeen}" +
                 (if (state.sendFailures > 0) " · ${state.sendFailures} failed" else "") +
                 " · ${state.connectedNodes} node(s)",
             fontSize = 10.sp,
         )
-        Button(
-            onClick = { onToggle(state.serviceRunning) },
-            modifier = Modifier.padding(top = 8.dp),
-        ) {
-            Text(if (state.serviceRunning) "Stop" else "Start", fontSize = 12.sp)
+        if (!state.isAmbient) {
+            Button(
+                onClick = { onToggle(state.serviceRunning) },
+                modifier = Modifier.padding(top = 8.dp),
+            ) {
+                Text(if (state.serviceRunning) "Stop" else "Start", fontSize = 12.sp)
+            }
         }
     }
 }

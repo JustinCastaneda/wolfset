@@ -52,7 +52,7 @@ object SpikeBus {
         recovered = true
     }
 
-    fun onHrSample(seq: Long, bpm: Double, acc: String, watchWallMs: Long, watchBattery: Int, phoneRecvMs: Long) {
+    fun onHrSample(seq: Long, bpm: Double, acc: String, watchWallMs: Long, watchBattery: Int, phoneRecvMs: Long, ambient: Int, batching: Int) {
         lastBpm = bpm
         if (bpm > peakBpm) peakBpm = bpm
 
@@ -64,6 +64,8 @@ object SpikeBus {
             putInt("watchBattery", watchBattery)
             putLong("phoneRecvMs", phoneRecvMs)
             putLong("clockOffsetMs", clockOffsetMs)
+            putInt("amb", ambient)
+            putInt("bm", batching)
         }
         synchronized(sessionLog) {
             if (sessionLog.size < 100_000) sessionLog.add(Bundle(sample))

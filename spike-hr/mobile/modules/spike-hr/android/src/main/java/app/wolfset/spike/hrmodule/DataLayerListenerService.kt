@@ -23,6 +23,10 @@ class DataLayerListenerService : WearableListenerService() {
                     watchWallMs = json.optLong("watchWallMs"),
                     watchBattery = json.optInt("watchBattery", -1),
                     phoneRecvMs = phoneRecvMs,
+                    // -1 = watch build predates the flag; 1 = sampled while ambient.
+                    ambient = json.optInt("amb", -1),
+                    // 1 = HEART_RATE_5_SECONDS batching override active on the watch.
+                    batching = json.optInt("bm", -1),
                 )
             }
             PATH_PONG -> {

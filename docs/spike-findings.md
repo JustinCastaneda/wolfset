@@ -9,6 +9,51 @@
 | Date | Watch | Phone | Duration | Notes |
 |---|---|---|---|---|
 | 2026-08-20 | Pixel Watch 4 | Pixel 10 Pro | 150 s | Shakedown, screen mostly on, ADB attached. Log: `wolfset-spike-1787286145549.json`. Ran with the pre-fix metrics collector — its drop/latency stats are wrong; per-sample logs are trustworthy. |
+| 2026-08-22 | Pixel Watch 4 | Pixel 10 Pro | 256 s | Curls/squats/pushups, real HR spike (peak 117). Log: `wolfset-spike-1787374237862.json`. Fixed collector: 134/134 samples, 0 drops. **Identified the stall mechanism: watch ambient ("blur") mode.** |
+
+### Session 2 (2026-08-22, 256 s workout) — the stall has a name
+
+Justin's field observation: when the watch blurs, sync stops; tapping the watch triggers a
+flush. The log confirms it exactly:
+
+- Two stalls: **141.4 s** (t+3.8→145.2, the entire workout) and **38.4 s** (t+203→241.6,
+  after the 30 s screen timeout cycled the watch back to ambient). Each ended in a single
+  drain burst at the moment of a tap — 75 samples in 2.8 s, then 20 samples in 0.1 s.
+- Watch settings during the run: always-on display enabled, screen timeout 30 s (max).
+- The watch sampled on **1920 ± 1 ms cadence through both stalls** and delivered everything
+  eventually (134/134, zero loss). Ambient throttles *delivery*, not sampling — the radio
+  queues messages until an interaction returns the watch to interactive mode.
+- When interactive, the pipe is healthy: samples in pairs every ~4 s, oldest ~3.5 s stale —
+  matches session 1's steady state.
+- **This retroactively explains session 1's 72 s stall at peak HR**: peak HR is when you're
+  mid-set and haven't touched the watch in 30+ s. One mechanism covers all three observed
+  stalls. Bluetooth attenuation is off the hook.
+- Instrument validation: the reworked collector reported 0 fabricated drops (previous
+  session: 93), and the stale-signal indicator is what made Justin notice the stall live.
+
+**Consequence — the fix is the `BatchingMode` override, not the client swap alone.** Health
+Services documents this exact behavior for *both* clients: in non-interactive power states
+(ambient / screen off) data is batched to save power and flushed "when the user looks at the
+screen" — verbatim our tap-to-flush measurement. (Credit: Opus review caught that an
+ExerciseClient swap by itself would reproduce the stall.) The spike's watch app now:
+
+- holds an active **ExerciseClient** session (the workout-app posture; also required to set
+  batching overrides at all), with the ongoing-activity chip and in-app ambient mode;
+- requests **`BatchingMode.HEART_RATE_5_SECONDS`** — sampling stays 1 Hz; delivery every
+  ~5 s even in non-interactive states. Support is per-device and version 1.0.0-rc02 exposes
+  no capability query, so the service tries with the override and falls back without;
+- stamps every sample with `amb` (1 = ambient) and `bm` (1 = override active), so the next
+  log reports **two latency distributions** (interactive vs ambient) and can distinguish
+  "stall with the fix on" from "fix unsupported on this watch". The watch UI shows
+  `5s-batch` or `NO-OVERRIDE` next to the exercise state.
+
+**Criterion A latency should be read as two numbers, not one.** The ~2 s target predates
+knowing the platform's ambient batching floor. Realistic spec: interactive ≈ 3.5 s;
+ambient ≈ 5 s batch + ~2 s transport ≈ 6–8 s. For a 90 s rest timer, unlocking within ~8 s
+of true recovery is acceptable; the gate cannot ship on a pipe that needs a wrist tap.
+**Next session's headline questions: does the override start (watch shows `5s-batch`), and
+do samples flow while blurred without tapping? Also: battery cost of the override — Google
+warns it raises power draw in non-interactive states; ADB off for the battery read.**
 
 ### Session 1 (2026-08-20, 150 s shakedown) — what the raw logs actually said
 
@@ -53,7 +98,7 @@
 | Criterion | Result | Evidence |
 |---|---|---|
 | Continuous samples, screen off, doze, 90 min | ☐ pass ☐ fail | |
-| Beat-to-React-render latency < ~2s (end to end) | ☐ pass ☐ fail | avg: __ ms · p95: __ ms · max: __ ms *(s1 steady-state p50 ~3.3 s — see Session 1)* |
+| Beat-to-React-render latency — interactive ≤ ~3.5 s · ambient ≤ ~8 s *(original ~2 s target predates the documented ambient batching floor; see Session 2)* | ☐ pass ☐ fail | interactive: p50 __ / p95 __ ms · ambient: p50 __ / p95 __ ms *(s1 steady-state p50 ~3.3 s)* |
 | No dropped events across the bridge under doze | ☐ pass ☐ fail | dropped: __ / __ samples *(s1: 0/145, but 150 s screen-on — not the doze test)* |
 | Timer accurate, app backgrounded + screen off | ☐ pass ☐ fail | drift at 3:00: __ ms |
 | Battery cost per session | — | watch: __%/hr · phone: __%/hr |
