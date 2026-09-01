@@ -1,4 +1,5 @@
 import { ListTree, Settings2, X } from 'lucide-react-native';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
@@ -39,19 +40,15 @@ export default function DesignKit() {
           <Chip label={variant} variant={variant} size="large" selected />
         </View>
       ))}
+      <Text style={styles.caption}>Toggleable — tap to select, hold to see the press shade</Text>
+      <ToggleChipsDemo />
 
       <Text style={styles.section}>Input — default · filled · error · required + count</Text>
       <View style={styles.group}>
         <Input label="Label" placeholder="Placeholder Text" />
         <Input label="Email" value="justin@brethrenstudios.com" onChangeText={() => {}} />
         <Input label="Weight" required error helperText="Enter a weight" placeholder="0" />
-        <Input
-          label="Plan name"
-          placeholder="Winter Bulk"
-          maxLength={100}
-          showCount
-          helperText=" "
-        />
+        <CountedInputDemo />
       </View>
 
       <Text style={styles.section}>Top Bar — centered · left-aligned (lucide chrome)</Text>
@@ -104,11 +101,47 @@ export default function DesignKit() {
   );
 }
 
+// The counter needs a controlled input — value + onChangeText — which screens will
+// always have. The kit fakes the screen's state here.
+function CountedInputDemo() {
+  const [name, setName] = useState('');
+  return (
+    <Input
+      helperText=" "
+      label="Plan name"
+      maxLength={100}
+      onChangeText={setName}
+      placeholder="Winter Bulk"
+      showCount
+      value={name}
+    />
+  );
+}
+
+function ToggleChipsDemo() {
+  const [on, setOn] = useState<Record<string, boolean>>({});
+  return (
+    <View style={styles.chipRow}>
+      {(['brand', 'muted', 'outline'] as const).map((variant) => (
+        <Chip
+          key={variant}
+          label={variant}
+          onPress={() => setOn((prev) => ({ ...prev, [variant]: !prev[variant] }))}
+          selected={!!on[variant]}
+          size="large"
+          variant={variant}
+        />
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg.base },
   content: { padding: 16, paddingTop: 64, gap: 12, paddingBottom: 64 },
   h1: { ...type.h1, color: color.text.primary },
   section: { ...type.label, color: color.text.secondary, marginTop: 16 },
+  caption: { ...type.caption, color: color.text.muted },
   group: { gap: 8 },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sample: { color: color.text.primary },

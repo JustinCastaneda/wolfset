@@ -90,8 +90,9 @@ export const color = {
   border: palette.neutral[700], // Figma `Border` / `Accent`
   // Pressed-state fills (Justin, 2026-09-01 — the file lacked press states for these):
   press: {
-    brand: palette.red[200], // Solid button pressed
-    raised: palette.neutral[700], // Secondary button pressed
+    brand: palette.red[200], // Solid button pressed; red things go darker
+    raised: palette.neutral[700], // Secondary button pressed; gray things go lighter
+    raisedSelected: palette.neutral[600], // pressing something already at neutral/700
   },
   progression: {
     increase: palette.green[600],

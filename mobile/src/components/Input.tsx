@@ -95,7 +95,19 @@ const styles = StyleSheet.create({
   // Focus isn't drawn in the file; brightening the border is the minimal affordance.
   wrapperFocused: { borderColor: color.text.secondary },
   wrapperError: { borderColor: color.error },
-  field: { ...type.body, flex: 1, color: color.text.primary, paddingVertical: 0 },
+  // Vertical centering: Android adds font padding below Geom's tall ascent, which made
+  // the text sit high in the 64px field (Justin, 2026-09-01). Kill the font padding,
+  // center explicitly, and let the field's height do the aligning — no hard lineHeight.
+  field: {
+    fontFamily: type.body.fontFamily,
+    fontSize: type.body.fontSize,
+    fontWeight: type.body.fontWeight,
+    flex: 1,
+    color: color.text.primary,
+    paddingVertical: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
   helperRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
