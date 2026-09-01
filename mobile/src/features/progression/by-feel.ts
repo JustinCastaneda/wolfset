@@ -1,4 +1,4 @@
-import { deloadWeight, roundToLoadable } from './rounding';
+import { roundToLoadable } from './rounding';
 import type {
   ByFeelHistory,
   ByFeelSession,
@@ -22,8 +22,8 @@ import type {
  *
  * From past sessions (only ever the previous one):
  *   form broke while grinding (reserve ≤ 2), or missed reps two sessions running
- *     → deload 10% — the engine's own rule, applied here, not prompted (unlike the
- *       plateau prompt in steady/reps-first, the spec states this as the action)
+ *     → ask to deload 10% (`prompt: 'deload'`; Accept runs `applyDeload`) — like every
+ *       rule here, the app asks before changing the user's numbers
  *   form broke at plenty left → just hold (the weight isn't the problem)
  *   held at the top of the range two sessions running → add weight anyway
  *   grid unrated two sessions running → hold and ask about switching to Steady
@@ -46,30 +46,15 @@ export function applyByFeel(
 
   const plentyLeft = session.rating?.reserve === '3' || session.rating?.reserve === '4plus';
 
-  // Form broke: at plenty left the weight isn't the problem — hold. While grinding, it is — deload.
+  // Form broke: at plenty left the weight isn't the problem — hold. While grinding, it is —
+  // ask to deload.
   if (session.rating?.form === 'bad') {
-    if (plentyLeft) return hold();
-    return {
-      progress: {
-        ...base,
-        currentWeight: deloadWeight(progress.currentWeight, rx.deload.percent, rx.smallestStep),
-      },
-      prompt: null,
-    };
+    return plentyLeft ? hold() : hold('deload');
   }
 
-  // Missed reps two sessions running → deload.
+  // Missed reps two sessions running → ask to deload.
   if (session.outcome === 'failed') {
-    if (previous?.outcome === 'failed') {
-      return {
-        progress: {
-          ...base,
-          currentWeight: deloadWeight(progress.currentWeight, rx.deload.percent, rx.smallestStep),
-        },
-        prompt: null,
-      };
-    }
-    return hold();
+    return previous?.outcome === 'failed' ? hold('deload') : hold();
   }
 
   // All reps hit and form clean (or unrated) from here on.

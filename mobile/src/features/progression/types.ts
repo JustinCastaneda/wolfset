@@ -65,10 +65,12 @@ export type ExerciseProgress = {
   lastOutcome: Outcome | null;
 };
 
-/** What the app should ask after applying an outcome. The app asks; the rules never decide.
+/** What the app should ask after applying an outcome. The app asks; the rules never decide
+ *  (Justin, 2026-08-31: "We always want to ask before we do things for the user").
  *  `plateau`: deload or end the meso? (steady / reps-first, decision 11b)
+ *  `deload`: By Feel thinks the weight is too heavy — deload 10%? Accept runs `applyDeload`
  *  `offer-steady`: the By Feel grid went unrated two sessions running — suggest switching
  *  this exercise to Steady (the engine's "From Past Sessions" panel). */
-export type ProgressPrompt = 'plateau' | 'offer-steady' | null;
+export type ProgressPrompt = 'plateau' | 'deload' | 'offer-steady' | null;
 
 export type ProgressResult = { progress: ExerciseProgress; prompt: ProgressPrompt };

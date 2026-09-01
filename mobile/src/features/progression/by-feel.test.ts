@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { applyByFeel } from './by-feel';
+import { applyDeload } from './progress';
 import type { ByFeelHistory, ExerciseProgress, Prescription } from './types';
 
 // A By Feel squat: range 5–8 (the engine's default), +5 lb, 5 lb steps, deload 10%.
@@ -76,16 +77,22 @@ describe('step 1 + 2 — poke picks steps, range picks the lever', () => {
 });
 
 describe('form broke', () => {
-  it('while grinding (reserve ≤ 2) → deload 10% to a loadable weight', () => {
-    const { progress } = applyByFeel(fresh, rated('0', 'bad'), null, squat);
-    expect(progress.currentWeight).toBe(200); // 225 × 0.9 = 202.5, tie rounds down to 200
+  it('while grinding (reserve ≤ 2) → asks to deload, changes nothing yet', () => {
+    const { progress, prompt } = applyByFeel(fresh, rated('0', 'bad'), null, squat);
+    expect(prompt).toBe('deload');
+    expect(progress.currentWeight).toBe(225);
     expect(progress.currentReps).toBe(5);
   });
 
-  it('at plenty left → hold, the weight is not the problem', () => {
-    const { progress } = applyByFeel(fresh, rated('4plus', 'bad'), null, squat);
+  it('accepting the prompt deloads 10% to a loadable weight', () => {
+    const stuck = applyByFeel(fresh, rated('0', 'bad'), null, squat).progress;
+    expect(applyDeload(stuck, squat).currentWeight).toBe(200); // 225 × 0.9 = 202.5 → tie rounds down
+  });
+
+  it('at plenty left → hold, no prompt — the weight is not the problem', () => {
+    const { progress, prompt } = applyByFeel(fresh, rated('4plus', 'bad'), null, squat);
+    expect(prompt).toBeNull();
     expect(progress.currentWeight).toBe(225);
-    expect(progress.currentReps).toBe(5);
   });
 });
 
@@ -96,16 +103,18 @@ describe('missed reps', () => {
     expect(progress.lastOutcome).toBe('failed');
   });
 
-  it('missed two sessions running → deload 10%', () => {
+  it('missed two sessions running → asks to deload, changes nothing yet', () => {
     const previous: ByFeelHistory = { outcome: 'failed', rating: null, heldAtTop: false };
-    const { progress } = applyByFeel(fresh, { outcome: 'failed', rating: null }, previous, squat);
-    expect(progress.currentWeight).toBe(200);
+    const result = applyByFeel(fresh, { outcome: 'failed', rating: null }, previous, squat);
+    expect(result.prompt).toBe('deload');
+    expect(result.progress.currentWeight).toBe(225);
   });
 
-  it('a hit between misses breaks the streak', () => {
+  it('a hit between misses breaks the streak — no prompt', () => {
     const previous: ByFeelHistory = { outcome: 'hit', rating: null, heldAtTop: false };
-    const { progress } = applyByFeel(fresh, { outcome: 'failed', rating: null }, previous, squat);
-    expect(progress.currentWeight).toBe(225);
+    const result = applyByFeel(fresh, { outcome: 'failed', rating: null }, previous, squat);
+    expect(result.prompt).toBeNull();
+    expect(result.progress.currentWeight).toBe(225);
   });
 });
 

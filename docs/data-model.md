@@ -306,9 +306,9 @@ session's `FeelRating` (the poke), and the previous session's rating.
    unrated two sessions → **offer** switching the exercise to Steady (ask, don't switch).
 
 Implemented in `mobile/src/features/progression/by-feel.ts` (tested; the engine table above is
-the test list). One judgment call, flagged for Justin: the engine's deload (bad form while
-grinding, or two missed sessions) is **applied automatically** per the spec's wording, unlike
-the *asked* plateau deload in steady/reps-first.
+the test list). The engine's deload (bad form while grinding, or two missed sessions) is a
+**prompt**, not an automatic action — Justin, 2026-08-31: *"We always want to ask before we do
+things for the user."* Accept runs `applyDeload`.
 
 ### 5.5 The gate (Phase 0 criterion B) — still undefined
 
