@@ -127,6 +127,12 @@ Before any `prebuild`: `npx expo-doctor && npx expo install --check`.
   code). Screenshot or screen-record the thing working — emulator `adb exec-out screencap` —
   commit the images under `docs/pr-shots/<branch>/`, embed them in the PR body via the branch's
   `raw.githubusercontent.com` URL. Logic-only PRs stay text.
+- **Every PR body ends with a "Next Steps" section for Justin** (2026-09-02): the exact commands
+  or actions he needs after merging, chosen from: *nothing* · *JS reload* (shake / press `r` in
+  Metro) · *restart Metro* · *rebuild* (`npm run android`) · *clean rebuild*
+  (`npx expo prebuild --platform android --clean && npm run android` — required whenever
+  `app.json` plugins, fonts, or native deps changed) · plus any Figma-side tasks flowing back to
+  him. Never assume he knows which; say it every time.
 - Any Kotlin (native module, watch app) gets a plain-language explanation of what it does and
   why — Justin reviews TypeScript, not Kotlin.
 - Design-derived work cites the exact Figma node or handoff-brief section it was built from.
