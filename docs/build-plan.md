@@ -399,6 +399,9 @@ whenever a pattern repeats.*
 
 ## Phase 4 — First Vertical Slice 🎯
 
+- [x] 🤖 **The loop screens, live** — Log a Set, Post Set Timer (ring + countdown, time-only
+      until HR), Edit Weights, Session Done, composed from the kit and driven by the machine;
+      `Start Workout` on the home screen runs the Workout A demo day (2026-09-02). Storage next
 - [x] 🤖 **Set-loop state machine, tested** — `mobile/src/features/set-loop/` (2026-09-01).
       The brief's §01 transitions as a pure reducer: log → rest (auto), 0:00/Continue → next
       set/lift, Edit Weights detour, freestyle open-ended, ended-early flag, injectable clock.
