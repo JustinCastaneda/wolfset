@@ -1,9 +1,14 @@
+import { ListTree, Settings2, X } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { Input } from '@/components/Input';
+import { Keypad } from '@/components/Keypad';
+import { SegmentedProgress } from '@/components/SegmentedProgress';
+import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
+import { WeightReadout } from '@/components/WeightReadout';
 import { color, palette, type } from '@/theme/tokens';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
@@ -49,9 +54,35 @@ export default function DesignKit() {
         />
       </View>
 
-      <Text style={styles.section}>Top Bar — centered · left-aligned</Text>
-      <TopBar title="Plan A • Squat • 4/5" />
-      <TopBar title="Plan A • Squat • 4/5" align="left" />
+      <Text style={styles.section}>Top Bar — centered · left-aligned (lucide chrome)</Text>
+      <TopBar
+        left={<ListTree color={color.text.primary} size={24} />}
+        right={<X color={color.text.primary} size={24} />}
+        title="Plan A • Squat • 4/5"
+      />
+      <TopBar
+        align="left"
+        right={<Settings2 color={color.text.primary} size={24} />}
+        title="Plan A • Squat • 4/5"
+      />
+
+      <Text style={styles.section}>Timer ring — resting · approaching · ready</Text>
+      <View style={styles.chipRow}>
+        <TimerRing progress={0.85} size={100} zone="resting" />
+        <TimerRing progress={0.45} size={100} zone="approaching" />
+        <TimerRing progress={0.12} size={100} zone="ready" />
+      </View>
+
+      <Text style={styles.section}>Sets bar — 5 done, 1 current, 2 up</Text>
+      <SegmentedProgress done={5} total={8} />
+
+      <Text style={styles.section}>Weight readout — up · down · unchanged</Text>
+      <WeightReadout unit="Lbs" value={245} was={200} />
+      <WeightReadout unit="Lbs" value={195} was={205} />
+      <WeightReadout unit="Lbs" value={135} />
+
+      <Text style={styles.section}>Keypad</Text>
+      <Keypad onKey={() => {}} />
 
       <Text style={styles.section}>Type scale — Geom</Text>
       {Object.entries(type).map(([name, style]) => (

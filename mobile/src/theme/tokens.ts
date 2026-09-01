@@ -88,6 +88,11 @@ export const color = {
     disabled: palette.neutral[700], // Figma uses `Accent` for disabled button text (node 111:1965)
   },
   border: palette.neutral[700], // Figma `Border` / `Accent`
+  // Pressed-state fills (Justin, 2026-09-01 — the file lacked press states for these):
+  press: {
+    brand: palette.red[200], // Solid button pressed
+    raised: palette.neutral[700], // Secondary button pressed
+  },
   progression: {
     increase: palette.green[600],
     decrease: palette.red[300],
@@ -101,6 +106,12 @@ export const color = {
   hr: {
     aboveThreshold: palette.red[500],
     belowThreshold: palette.green[500],
+  },
+  // The Sets segment bar on the timer screen (node 93:479): done · current · upcoming.
+  setsBar: {
+    done: palette.red[500],
+    current: palette.red[200],
+    upcoming: palette.neutral[700],
   },
 } as const;
 
