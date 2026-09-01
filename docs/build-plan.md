@@ -311,11 +311,11 @@ measure it in parallel rather than after. Do not hold Phase 1 for it.
 
 ### 3a. Tokens
 
-- [ ] 🤖 ⚠️ **Fix blue's numbering.** Red/yellow/green/neutral run `50…900` with 600. Blue still runs
-      `…500, 700, 800, 900, 950`. Rename blue 700→600, 800→700, 900→800, 950→900 so all five align
-- [ ] 🤖 Export primitives from Figma Variables (~45 colors, already namespaced `red/500` style)
-- [ ] 👤 Verify semantic aliases genuinely **alias** primitives rather than holding copied hexes
-- [ ] 🤖 **Restructure the semantic layer** (currently flat: `Brand`, `Red`, `Accent`, `MutedBackground`, `TextButton`)
+- [x] 🤖 **Blue's numbering fixed in `tokens.ts`** (renamed 700→600 … 950→900 so all five scales
+      align). 👤 The rename inside Figma Variables is still pending — do it before Code Connect
+- [x] 🤖 Primitives exported → `mobile/src/theme/tokens.ts` `palette` (45 colors, via MCP)
+- [x] 🤖 Semantic aliases provably alias primitives — enforced by `tokens.test.ts` in CI
+- [x] 🤖 **Semantic layer restructured** in `tokens.ts` `color` per the block below. 👤 Mirror it as Figma Variable aliases when convenient
 
 ```
 color/brand          → red/500      #f04245
@@ -342,8 +342,8 @@ hr/below-threshold   → green/500
 > to primary buttons. Error needs its own value.
 
 - [x] 👤 All 14 type styles are Variables (done 2026-08-31, verified via `get_variable_defs`)
-- [ ] 🤖 Type scale — export the 14 styles into `tokens.ts`
-- [ ] 🤖 Spacing, radii, elevation
+- [x] 🤖 Type scale — 14 styles exported into `tokens.ts` `type` (Geom, weights, px line heights)
+- [ ] 🤖 Spacing, radii, elevation — deferred to 3c: measured off the real component frames via `get_design_context`, not invented
 - [ ] 👤 ⚠️ Decide **Micro @ 8px** — below the ~11px mobile floor, fails under font scaling
 
 ### 3b. Code Connect

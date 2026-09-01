@@ -43,13 +43,12 @@ Rules of thumb:
 
 `StyleSheet.create` + a typed token module. **Not** NativeWind / Tailwind / styled-components.
 
-- Figma **Variables** are the design tokens. They map 1:1 to `src/theme/tokens.ts` (Phase 3a),
-  and every color, type style, spacing and radius in a component comes from there.
+- Figma **Variables** are the design tokens; `src/theme/tokens.ts` mirrors them (exported via
+  the Figma MCP, not typed by hand). Components import `color` and `type` from there —
+  never `palette`, never a hex.
 - **No raw hex or magic numbers in components.** If a value isn't a token, the token is missing —
   add it (from Figma) rather than inlining it. `tsc` then catches a wrong token name in CI.
 - One `const styles = StyleSheet.create({...})` per component file, below the component.
-- Until `tokens.ts` lands, the placeholder screen carries the Figma values inline — that is a
-  temporary exception, not a precedent.
 
 ## Environment
 
