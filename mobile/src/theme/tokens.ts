@@ -85,6 +85,7 @@ export const color = {
     secondary: palette.neutral[200], // Figma `TextSecondary`
     muted: palette.neutral[300],
     onButton: palette.neutral[50], // Figma `TextButton`
+    disabled: palette.neutral[700], // Figma uses `Accent` for disabled button text (node 111:1965)
   },
   border: palette.neutral[700], // Figma `Border` / `Accent`
   progression: {

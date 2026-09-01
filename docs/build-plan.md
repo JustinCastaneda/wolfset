@@ -371,14 +371,22 @@ hr/below-threshold   → green/500
 
 Build order: Button → Input → Chip → Top Bar → large numeral → Timer ring → keypad → remainder.
 
+- [x] 🤖 **Button** (`components/Button.tsx`, from node `20:91`: sizes, 4 styles, pressed/disabled)
+- [x] 🤖 **Chip** (`components/Chip.tsx`, from node `48:579`: 3 styles × 2 sizes × selected)
+- [x] 🤖 **Geom loaded** — variable TTF committed as source, 7 statics instanced (Android can't
+      select weights from one variable file; see CLAUDE.md typeface rule), embedded via the
+      expo-font config plugin
+
 ### 3d. Design Kit page ⚠️ blocks Phase 4
 
 *Justin's rule (2026-08-22): the Design Kit exists in the app before any serious flow is built.
 Phase 4 does not start until 3d renders every component. Err on the side of making a component
 whenever a pattern repeats.*
 
+- [x] 🤖 Route scaffolded (`src/app/design-kit.tsx`): Button + Chip matrices, the 14-style type
+      scale in real Geom, palette swatches. Grows with every new component
 - [ ] 🤖 Route rendering every component and variant
-- [ ] 🤖 Behind a **compile-time flag** so it tree-shakes out of production
+- [x] 🤖 Behind `__DEV__` — Metro strips the branch from production bundles
 - [ ] 👤 This is the fidelity verification surface — resolves open decision #7
 
 ---

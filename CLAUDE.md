@@ -50,7 +50,11 @@ reuse it in `mobile/` or `wear/`, and do not apply production conventions to it.
 - Run `npx expo-doctor && npx expo install --check` before every prebuild.
 - **Secrets:** never commit `.env`, Supabase keys, or keystores. `.gitignore` covers them —
   keep it that way.
-- **Typeface:** Geom (Google Fonts, OFL) — ship the variable-weight file, not seven statics.
+- **Typeface:** Geom (Google Fonts, OFL). The committed **variable-weight file is the source of
+  truth** (`mobile/assets/fonts/Geom-Variable.ttf`); the per-weight statics beside it are
+  *instanced from it* with fontTools because React Native on Android cannot select weights from
+  a single variable font (Expo's own docs say to instance statics). Regenerate, never hand-edit:
+  `fonttools varLib.instancer --update-name-table Geom-Variable.ttf wght=<W>`.
 - Progression and pacing are **per-exercise** settings with a plan-level default, and
   progression is a strategy enum, not one rule (open decision #11 in the build plan).
 
