@@ -399,6 +399,10 @@ whenever a pattern repeats.*
 
 ## Phase 4 — First Vertical Slice 🎯
 
+- [x] 🤖 **Set-loop state machine, tested** — `mobile/src/features/set-loop/` (2026-09-01).
+      The brief's §01 transitions as a pure reducer: log → rest (auto), 0:00/Continue → next
+      set/lift, Edit Weights detour, freestyle open-ended, ended-early flag, injectable clock.
+      The HR gate is an input (`recoveredChanged`) that arms Continue, never a transition
 - [x] 🤖 **Progression rules as plain TypeScript, tested** — `mobile/src/features/progression/`
       (scoring, the three strategies, plateau prompt, deload, nearest-loadable rounding).
       33 tests; `npm test` is now part of `verify` and CI. Built ahead of the UI because it
