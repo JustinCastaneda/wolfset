@@ -373,6 +373,10 @@ Build order: Button → Input → Chip → Top Bar → large numeral → Timer r
 
 - [x] 🤖 **Button** (`components/Button.tsx`, from node `20:91`: sizes, 4 styles, pressed/disabled)
 - [x] 🤖 **Chip** (`components/Chip.tsx`, from node `48:579`: 3 styles × 2 sizes × selected)
+- [x] 🤖 **Input** (`components/Input.tsx`, from node `74:519`; error border deliberately uses
+      `color.error`, not the file's Brand — plan 3a rule. 👤 update the Figma variant)
+- [x] 🤖 **Top Bar** (`components/TopBar.tsx`, from node `34:1392`; icon slots await decision #10 —
+      note: the file's own chrome icons are lucide names (ListTree, X, Settings2))
 - [x] 🤖 **Geom loaded** — variable TTF committed as source, 7 statics instanced (Android can't
       select weights from one variable file; see CLAUDE.md typeface rule), embedded via the
       expo-font config plugin
