@@ -18,12 +18,12 @@ export function LogASetScreen({
   state,
   dayName,
   onEvent,
-  onLeave,
+  onOverview,
 }: {
   state: SessionState;
   dayName: string;
   onEvent: Dispatch;
-  onLeave: () => void;
+  onOverview: () => void;
 }) {
   const exercise = currentExercise(state);
   // The parent remounts this screen per set (key), so the initial value is the reset.
@@ -36,7 +36,7 @@ export function LogASetScreen({
     <View style={styles.root}>
       <TopBar
         left={<ListTree color={color.text.primary} size={24} />}
-        onPressLeft={onLeave}
+        onPressLeft={onOverview}
         onPressRight={() => onEvent({ type: 'weightEditOpened' })}
         right={<Pencil color={color.text.primary} size={24} />}
         title={loopTitle(dayName, state)}
@@ -53,7 +53,9 @@ export function LogASetScreen({
       </View>
 
       <Text style={styles.hint}>
-        {allDone ? 'All sets done — log a bonus set or finish' : 'Tap the number to decrease reps'}
+        {allDone
+          ? 'All sets done — bonus set here, or finish from the workout view'
+          : 'Tap the number to decrease reps'}
       </Text>
       <View style={styles.bottomBar}>
         <Pressable
@@ -71,15 +73,6 @@ export function LogASetScreen({
           />
         </View>
       </View>
-      {allDone && (
-        <View style={styles.finishBar}>
-          <Button
-            onPress={() => onEvent({ type: 'workoutEnded', at: Date.now() })}
-            title="Finish Workout"
-            variant="secondary"
-          />
-        </View>
-      )}
     </View>
   );
 }
@@ -98,7 +91,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingTop: 12,
   },
-  finishBar: { paddingHorizontal: 24, paddingBottom: 24 },
   // The reps square is the Secondary button recipe at fixed width (node 384:11468).
   repsKey: {
     width: 64,

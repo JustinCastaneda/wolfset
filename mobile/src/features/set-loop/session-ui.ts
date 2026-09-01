@@ -28,6 +28,14 @@ export function formatClock(seconds: number): string {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
+/** The day's planned volume — the overview subtitle's forecast (frame 384:11487). */
+export function plannedVolume(state: SessionState): number {
+  return state.exercises.reduce(
+    (sum, ex) => sum + (ex.prescribedSets ?? 0) * ex.targetReps * ex.weight,
+    0,
+  );
+}
+
 /** Session totals for the done screen: Σ weight×reps and set count. */
 export function sessionTotals(state: SessionState): { volume: number; sets: number } {
   return {

@@ -8,6 +8,9 @@ import { DEMO_DAY, DEMO_DAY_NAME } from './demo-day';
 import { EditWeightsScreen } from './EditWeightsScreen';
 import { LogASetScreen } from './LogASetScreen';
 import { PostSetTimerScreen } from './PostSetTimerScreen';
+import { WorkoutOverviewScreen } from './WorkoutOverviewScreen';
+import { ConfirmEndSheet } from './ConfirmEndSheet';
+import { dayProgress } from './session-ui';
 import { SessionDoneScreen } from './SessionDoneScreen';
 import { color } from '@/theme/tokens';
 
@@ -23,6 +26,10 @@ function initSession() {
 
 export function SessionScreen() {
   const [state, dispatch] = useReducer(reduce, undefined, initSession);
+  // The overview is navigation, not a machine phase (brief §01: "Workout Summary is
+  // the running list, reachable during the session"). The tree icon leads up here.
+  const [showOverview, setShowOverview] = useState(false);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
   // Clocks are set inside effects, never during render (React Compiler rule); the
   // machine itself only ever sees timestamps we hand it.
   const [clock, setClock] = useState({ startedAt: 0, now: 0 });
@@ -58,14 +65,39 @@ export function SessionScreen() {
     }
   }, [resting, remaining]);
 
+  const { done, total } = dayProgress(state);
+  const sessionOver = state.phase.name === 'done';
+
   return (
     <View style={styles.root}>
-      <SessionBody
-        now={clock.now}
-        onEvent={send}
-        onLeave={() => router.back()}
-        startedAt={clock.startedAt}
-        state={state}
+      {showOverview && !sessionOver ? (
+        <WorkoutOverviewScreen
+          dayName={DEMO_DAY_NAME}
+          onContinue={() => setShowOverview(false)}
+          onEndRequest={() => setConfirmingEnd(true)}
+          onLeave={() => router.back()}
+          state={state}
+        />
+      ) : (
+        <SessionBody
+          now={clock.now}
+          onEvent={send}
+          onOverview={() => setShowOverview(true)}
+          startedAt={clock.startedAt}
+          state={state}
+          onLeave={() => router.back()}
+        />
+      )}
+      <ConfirmEndSheet
+        onCancel={() => setConfirmingEnd(false)}
+        onEnd={() => {
+          setConfirmingEnd(false);
+          setShowOverview(false);
+          send({ type: 'workoutEnded', at: Date.now() });
+        }}
+        setsDone={done}
+        setsTotal={total}
+        visible={confirmingEnd}
       />
     </View>
   );
@@ -76,12 +108,14 @@ function SessionBody({
   now,
   startedAt,
   onEvent,
+  onOverview,
   onLeave,
 }: {
   state: SessionState;
   now: number;
   startedAt: number;
   onEvent: React.Dispatch<Parameters<typeof reduce>[1]>;
+  onOverview: () => void;
   onLeave: () => void;
 }) {
   switch (state.phase.name) {
@@ -93,13 +127,19 @@ function SessionBody({
           // Remounting per set resets the rep counter to the target without an effect.
           key={`${state.exerciseIndex}:${state.setIndex}`}
           onEvent={onEvent}
-          onLeave={onLeave}
+          onOverview={onOverview}
           state={state}
         />
       );
     case 'resting':
       return (
-        <PostSetTimerScreen dayName={DEMO_DAY_NAME} now={now} onEvent={onEvent} state={state} />
+        <PostSetTimerScreen
+          dayName={DEMO_DAY_NAME}
+          now={now}
+          onEvent={onEvent}
+          onOverview={onOverview}
+          state={state}
+        />
       );
     case 'editing-weight':
       return <EditWeightsScreen dayName={DEMO_DAY_NAME} onEvent={onEvent} state={state} />;

@@ -20,11 +20,13 @@ export function PostSetTimerScreen({
   dayName,
   now,
   onEvent,
+  onOverview,
 }: {
   state: SessionState;
   dayName: string;
   now: number;
   onEvent: Dispatch;
+  onOverview: () => void;
 }) {
   if (state.phase.name !== 'resting') return null;
   const remaining = restRemaining(state, now) ?? 0;
@@ -36,6 +38,7 @@ export function PostSetTimerScreen({
     <View style={styles.root}>
       <TopBar
         left={<ListTree color={color.text.primary} size={24} />}
+        onPressLeft={onOverview}
         title={loopTitle(dayName, state)}
       />
       <View style={styles.sets}>
