@@ -5,8 +5,9 @@ import { color, type } from '@/theme/tokens';
 import { formatClock, sessionTotals } from './session-ui';
 import type { SessionState } from './types';
 
-// Session Done (watch Summary 164:4712's stat list, phone-sized): time, total weight,
-// sets, then Finish back to the tiles. Avg heart rate joins when HR lands.
+// Session Done — no phone frame exists yet; stat list from the watch Summary
+// (164:4712), laid out left-aligned like every phone screen (Justin, 2026-09-02).
+// Avg heart rate joins when HR lands.
 
 export function SessionDoneScreen({
   state,
@@ -51,10 +52,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', paddingHorizontal: 24, gap: 16 },
-  title: { ...type.h1, color: color.text.primary, textAlign: 'center', marginBottom: 24 },
+  title: { ...type.h1, color: color.text.primary, marginBottom: 24 },
   statRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   statLabel: { ...type.h3, color: color.text.secondary },
   statValue: { ...type.h3Bold, color: color.text.primary },
-  early: { ...type.bodyLight, color: color.warning, textAlign: 'center', marginTop: 16 },
+  early: { ...type.bodyLight, color: color.warning, marginTop: 16 },
   bottomBar: { paddingHorizontal: 24, paddingBottom: 40, paddingTop: 12 },
 });
