@@ -385,6 +385,11 @@ whenever a pattern repeats.*
 
 ## Phase 4 — First Vertical Slice 🎯
 
+- [x] 🤖 **Progression rules as plain TypeScript, tested** — `mobile/src/features/progression/`
+      (scoring, the three strategies, plateau prompt, deload, nearest-loadable rounding).
+      33 tests; `npm test` is now part of `verify` and CI. Built ahead of the UI because it
+      depends on nothing visual (2026-08-22)
+
 **The Set Loop** — one state machine, five screens, six transitions. Build it as a state machine, not as screens.
 
 ```

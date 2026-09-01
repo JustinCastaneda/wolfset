@@ -9,7 +9,8 @@ Expo / React Native, TypeScript strict, Android-first. This is the real app (Pha
 npm install
 npm start                 # Metro
 npm run android           # dev build on a connected device
-npm run verify            # typecheck + lint + format:check — what CI runs
+npm run test              # jest — the rules, not the rendering
+npm run verify            # typecheck + lint + format:check + test — what CI runs
 npm run format            # write formatting
 ```
 
