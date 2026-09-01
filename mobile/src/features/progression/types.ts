@@ -7,7 +7,31 @@ export type Strategy = 'steady' | 'reps-first' | 'by-feel';
 
 /** How an exercise gets harder between sessions (data-model §3). */
 export type ProgressionRule =
-  { strategy: 'steady' } | { strategy: 'reps-first'; repStep: number } | { strategy: 'by-feel' };
+  | { strategy: 'steady' }
+  | { strategy: 'reps-first'; repStep: number }
+  // By Feel works inside a rep range (default 5–8) — the Calculation Engine, Figma 384:11049.
+  | { strategy: 'by-feel'; repRangeMin: number; repRangeMax: number };
+
+/** The post-exercise poke on the By Feel grid (Figma 384:10881). y axis: reps left in the
+ *  tank ("Nothing Left" 0 … "Plenty Left" 4+). x axis: how the reps looked. */
+export type FeelRating = {
+  reserve: '0' | '1' | '2' | '3' | '4plus';
+  form: 'clean' | 'bad';
+};
+
+/** One finished By Feel session as the engine sees it. `rating: null` = the grid was
+ *  skipped (it auto-skips after 8 s). */
+export type ByFeelSession = {
+  outcome: 'hit' | 'failed';
+  rating: FeelRating | null;
+};
+
+/** What the engine knows about the previous session — and only the previous one
+ *  (the engine's "Sources" panel: "History. Only ever the previous one."). */
+export type ByFeelHistory = ByFeelSession & {
+  /** True when that session sat at the top of the rep range and did not move. */
+  heldAtTop: boolean;
+};
 
 /** Drop `percent` after `afterFailures` consecutive failures (decision 11b). */
 export type DeloadRule = { percent: number; afterFailures: number };
@@ -41,7 +65,10 @@ export type ExerciseProgress = {
   lastOutcome: Outcome | null;
 };
 
-/** What the app should do after applying an outcome. The app asks; the rules never decide. */
-export type ProgressPrompt = 'plateau' | null;
+/** What the app should ask after applying an outcome. The app asks; the rules never decide.
+ *  `plateau`: deload or end the meso? (steady / reps-first, decision 11b)
+ *  `offer-steady`: the By Feel grid went unrated two sessions running — suggest switching
+ *  this exercise to Steady (the engine's "From Past Sessions" panel). */
+export type ProgressPrompt = 'plateau' | 'offer-steady' | null;
 
 export type ProgressResult = { progress: ExerciseProgress; prompt: ProgressPrompt };

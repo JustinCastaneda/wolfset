@@ -120,7 +120,10 @@ describe('reps-first', () => {
 });
 
 describe('by-feel', () => {
-  const byFeel: Prescription = { ...squat, progression: { strategy: 'by-feel' } };
+  const byFeel: Prescription = {
+    ...squat,
+    progression: { strategy: 'by-feel', repRangeMin: 5, repRangeMax: 8 },
+  };
 
   it('changes no numbers on a hit', () => {
     const { progress, prompt } = applyOutcome(fresh, 'hit', byFeel);
@@ -130,7 +133,7 @@ describe('by-feel', () => {
     expect(prompt).toBeNull();
   });
 
-  it('does not count failures or prompt — nothing is automatic', () => {
+  it('does not count failures or prompt — by-feel outcomes go through applyByFeel instead', () => {
     const a = applyOutcome(fresh, 'failed', byFeel).progress;
     const { progress, prompt } = applyOutcome(a, 'failed', byFeel);
     expect(progress.consecutiveFailures).toBe(0);
