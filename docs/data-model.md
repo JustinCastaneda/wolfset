@@ -1,6 +1,6 @@
 # WOLFSET — Data model
 
-**Status:** reviewed with Justin 2026-08-22 (§6 answered) · owner: Fable
+**Status:** reviewed with Justin 2026-08-22 (§6 answered); updated from the 2026-08-31 Figma review (§6b open) · owner: Fable
 **Sources:** `docs/design/handoff-brief.html` §01–§04, `docs/design/flowchart.html`,
 `docs/design/flows-v2.html`, decisions #1, #3, #11 in `decisions.md`, and Figma **Add Exercise
 Details** (`Wolfset` file `1RsF6PeYzGxdTso4FZDAbp`, node `123:1092`) for the prescription fields.
@@ -54,11 +54,12 @@ From Onboarding (all four screens skippable → every field nullable).
 | `unit` | `lb` \| `kg` | Setup toggle (default `lb`) |
 | `experience` | `beginner` \| `intermediate` \| `advanced` \| null | Setup |
 | `equipment` | `full-gym` \| `some-weights` \| `body-weight` \| null | Equipment |
-| `goal` | `muscle` \| `strength` \| `endurance` \| null | Goals ("Not sure yet" = null) |
+| `goal` | `muscle` \| `strength` \| `endurance` \| `vibing` \| null | Goals; Settings → Goal adds **Vibing** ("no specific goal"). "Not sure yet" = null |
 | `smallestStepBarbell` + unit | number, default **5 lb** | the gym's smallest barbell jump (2.5 lb plates each side). Future onboarding question |
 | `smallestStepDumbbell` + unit | number, default **5 lb** | dumbbell racks differ by gym: 2.5 or 5 lb |
-| `absenceDeloadDays` | int, default **14 [proposed]** | Not designed yet — see §5.4 |
-| `absenceDeloadPercent` | int, default **10 [proposed]** | same |
+| `bodyweight` + unit, `height` | number \| null | Settings → Personal Settings (2026-08-31); bodyweight trend feeds Exercise Data |
+| `absenceDeloadWorkouts` | int, default **2** | designed (`359:1470`): "You have missed 2 workouts" — counted in missed workouts, not days. See §5.4 |
+| `absenceDeloadPercent` | int, default **10** | same screen: "Deload all exercises by 10%" |
 
 Auth identity (email, Google) is Supabase's concern in Phase 6 and is not modelled here (#2).
 
@@ -70,7 +71,7 @@ Auth identity (email, Google) is Supabase's concern in Phase 6 and is not modell
 | `description` | text | Add Exercise screen |
 | `demoMediaRef` | text \| null | the demo frame on Add Exercise |
 | `equipment` | enum as Profile | lets the catalog filter by what the user has |
-| `loadType` | `barbell` \| `dumbbell` \| `machine` \| `bodyweight` | the first chip on Add Exercise Details ("Dumbell"); decides which smallest-step applies when rounding (§5.2) and whether weight is **per hand** |
+| `loadType` | `barbell` \| `dumbbell` \| `machine` \| `bodyweight` \| `kettlebell` \| `cable` *(six — the filter drawer `403:13713`)* | the first chip on Add Exercise Details ("Dumbell"); decides which smallest-step applies when rounding (§5.2) and whether weight is **per hand** |
 | `muscleGroups` | text[] | second chip: "Quads • Glutes" |
 | `isUnilateral` | bool | third chip: "Unilateral" |
 | `isCustom` | bool | seeded catalog rows are `false`; user-added are `true` |
@@ -203,6 +204,18 @@ then delete; never sync raw samples in v1. What the product actually needs long-
 This is the row that will eventually answer "what does recovered mean for *this* user"
 (Phase 0 criterion B) and it survives the 30-day raw purge.
 
+### FeelRating — the By Feel poke, one row per rated exercise ✨ (2026-08-31)
+
+| Field | Type | Notes |
+|---|---|---|
+| `workoutExerciseId` | → WorkoutExercise | |
+| `reserve` | `0` \| `1` \| `2` \| `3` \| `4plus` | the y axis: reps left in the tank |
+| `form` | `clean` \| `bad` | the x axis |
+| `loggedAt` | timestamp | |
+
+No row = not rated (the grid auto-skips after 8 s). The engine only ever reads the **previous
+session's** rating (its "Sources" panel), so no aggregate table is needed.
+
 ## 3. Rule types (stored as JSON columns)
 
 ```ts
@@ -255,7 +268,7 @@ done is a failure that counts toward the plateau streak (Justin, confirmed 2026-
 |---|---|---|
 | `steady` | `currentWeight += increment`; failures = 0 | failures += 1 |
 | `reps-first` | `currentReps += repStep`; if `> repCeiling` (user-chosen: 12/16/18/20/custom, default 20) → weight += increment, reps = prescription.reps; failures = 0 | failures += 1 |
-| `by-feel` | nothing automatic | nothing automatic |
+| `by-feel` | the Calculation Engine (§5.6) | the Calculation Engine (§5.6) |
 
 When `consecutiveFailures` reaches `deload.afterFailures` (default 2) the app **asks, never
 decides** (Justin, 2026-08-22): *"Two sessions in a row below target on Squat. Deload 10%, or end
@@ -269,12 +282,31 @@ is not designed** — it belongs on the Session Done screen or the next Workout 
 A miss (scheduled day not done) is not stored as a row; it is derived from the gap between
 `ExerciseProgress.lastWorkoutAt` and now. v1 does not penalise misses.
 
-### 5.4 Absence deload — not designed yet, not blocking MVP
+### 5.4 Absence deload — designed (`359:1470`, 2026-08-31)
 
-Justin's rule: if the user returns after too long away, Workout A offers a deload. Data needed is
-already in the model — `Profile.absenceDeloadDays/Percent` and `ExerciseProgress.lastWorkoutAt`.
-Trigger **[proposed]**: `now − max(lastWorkoutAt) > absenceDeloadDays`. Justin designs the screen;
-the settings surface for it comes later.
+Workout A shows a card: *"You have missed 2 workouts — Deload all exercises by 10%"*, Decline /
+Accept. Accept applies the deload to **every** exercise in the plan (each rounded to its own
+loadable step) and clears failure streaks; Decline dismisses. The trigger counts **missed
+workouts**, which means the plan knows its weekly schedule — the day chips on "Name this Plan"
+→ `Plan.scheduledDays` (weekday set) **[proposed]**; a workout is missed when a scheduled day
+passes with no session.
+
+### 5.6 By Feel — the Calculation Engine (Figma `384:11049`, 2026-08-31) ✨
+
+Runs when a By Feel exercise finishes, from three sources: the set log (never asked), this
+session's `FeelRating` (the poke), and the previous session's rating.
+
+1. **Poke → steps:** all reps hit · plenty left · clean → **2** · all reps · 1–2 left · clean →
+   **1** · anything else (nothing left, form broke, missed reps, not rated) → **0** (hold).
+2. **Range picks the lever:** below `repRangeMax` → `currentReps += steps` (capped at the top);
+   at the top → `currentWeight += increment`, reps reset to `repRangeMin`. Engine note
+   *"+5 upper, +10 lower"* — ⚠️ 👤 confirm: increment default by body region?
+3. **Past-session rules:** bad form or two consecutive missed-rep sessions → **deload 10%** ·
+   bad form while plenty left → hold · held at the top of the range two sessions → add weight ·
+   unrated two sessions → **offer** switching the exercise to Steady (ask, don't switch).
+
+⚠️ The shipped `features/progression/` code predates this spec (its by-feel branch does nothing
+automatic) — **follow-up implementation required**.
 
 ### 5.5 The gate (Phase 0 criterion B) — still undefined
 
@@ -295,6 +327,16 @@ what happened.
    day**, or **start a new mesocycle with this as Day 1**. The second ends the current plan, so
    it gets a **double confirmation**. Either can be edited to add more later.
 4. **Ended early** — confirmed: unfinished exercises are failures and count toward a deload.
+
+## 6b. New questions from the 2026-08-31 review
+
+1. **"+5 upper, +10 lower"** in the By Feel engine — upper-body vs lower-body default
+   increments? If so the Exercise needs a body-region flag (derivable from `muscleGroups`?).
+2. **Exercise Data export** — what format (CSV? share sheet?)?
+3. **By Feel Add Exercise Details** (`380:10087`) shows single-value Reps buttons and a
+   "Reps first" progression label — how does the user set the 5–8 *range*?
+4. **Absence deload** counts missed workouts → needs `Plan.scheduledDays` (or equivalent).
+   Modelled as the day chips; confirm.
 
 ## 7. What this does **not** decide
 

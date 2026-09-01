@@ -1,7 +1,7 @@
 # Figma inventory — `Wolfset` (file `1RsF6PeYzGxdTso4FZDAbp`)
 
-**Crawled 2026-08-22** from the page at node `6:10` via the Figma MCP (`get_metadata`), not by
-hand. Every node ID below is real and can be opened as
+**Crawled 2026-08-22, re-crawled 2026-08-31** from the page at node `6:10` via the Figma MCP
+(`get_metadata`), not by hand. Every node ID below is real and can be opened as
 `https://www.figma.com/design/1RsF6PeYzGxdTso4FZDAbp/Wolfset?node-id=<id with - instead of :>`.
 
 **Why this file exists:** Figma is the source of truth for everything visual — screens, tokens,
@@ -14,7 +14,7 @@ Re-crawl when Justin says the file changed; the crawl date above is the freshnes
 
 ---
 
-## 1. Design System — section `293:1647`
+## 1. Mobile Design System — section `293:1647` *(renamed from "Design System")*
 
 ### Colors — section `20:30`
 
@@ -49,10 +49,8 @@ Documentation swatches only. **Do not read values from here** — the Variables 
 | Caption | `51:318` | Geom Medium 12 / 100% |
 | Micro | `68:251` | Geom Bold 8 / 8px — ⚠️ open decision #6 |
 
-14 styles in the frame (the plan says 15; recount when tokens are exported). Only five are also
-Variables today (`Display XL`, `H1`, `Button`, `Body`, `Micro`) — the rest need Variables before
-`tokens.ts` can be generated rather than transcribed. **👤 Justin: make all 14 type styles
-Variables.**
+✅ **All 14 type styles are Variables as of 2026-08-31** (plus `font-size/*` and `line-height/*`
+primitives). Tokens can now be exported, not transcribed — Phase 3a is unblocked.
 
 ### Components — section `25:250`
 
@@ -69,14 +67,17 @@ Variables.**
 | **Textarea** | `78:611` | Text × Default / Filled / Error | 3 | 516×124–128 |
 | **Switch** | `123:2433` | True / False × Default / Disabled | 4 | 48×24 |
 | **Watermark / Slashes** | `235:1818` | — | 1 | 500×500 |
-| **Card** 🚧 | `359:1597` | Default `359:1570` / Outline `359:1596` | 2 | **in progress — Justin componentising (2026-08-22)** |
-| **Radio Card** 🚧 | `359:1726` | Default `359:1725` / Selected `359:1724` | 2 | **in progress** — the onboarding / "How You Get Stronger" cards |
-| **List Item** | `114:2626` (lives in Web App, not here) | — | 1 | 412×80 — the Search Exercise row. 👤 move into Components |
+| **Card** | `359:1597` | Default `359:1570` / Outline `359:1596` | 2 | |
+| **Radio Card** | `359:1726` | Default `359:1725` / Selected `359:1724` | 2 | the onboarding / "How You Get Stronger" cards |
+| **Button Group** ✨ | `373:7703` | State=True `373:7654` / False `373:7655` | 2 | the 1 · 3 · 5 · 10 · ✎ rows — componentised 2026-08-31 |
+| **Checkbox** ✨ | — | Default `433:23133` / Filled `433:23132` / Indeterminate `433:23198` | 3 | 32×32 — Dumbbell Scale, filters |
+| **Icon** ✨ | `436:4844` "WolfSet Icons" | Category (Exercise / Filter / Muscle) × Type | 22 | custom red icon set: 10 exercises, 6 equipment filters, 6 muscle groups. Bears on open decision #10 |
+| **Bottom Drawer** ✨ | `403:13713` | — | 1 | "Filters" drawer with `Handle` `403:13714`; a new pattern — drag-handle sheet |
+| **Select/List Item** | `114:2626` (lives in Web App, not here) | — | 1 | 412×80 — the Search Exercise row (renamed from "List Item"). 👤 move into Components |
 
 Not yet in the library but used on screens (plan §3c): Timer ring, Numeric keypad, Set/Exercise
-row, Stepper (±5), Segmented progress bar. The **Button Group** (`123:3015`, `123:2979` on the
-New Plan frames; the 1/3/5/10/✎ rows on Add Exercise Details) is a repeated pattern too — a
-candidate for componentising alongside Card and Radio Card.
+row, Stepper (±5), Segmented progress bar (now visible on the mid-set Workout A: "7 of 26 sets
+logged"), the 2D **By Feel poke grid**, and the stat tiles / line charts on Exercise Data.
 
 ### Brand — section `188:5218`
 
@@ -126,12 +127,76 @@ journey — build once (brief §03).
 | Day Summary | Day Summary | `123:1944` | |
 | Plan Summary | Plan Summary | `123:2530` | |
 
+### Plan build — strategy-specific rows ✨ (added by 2026-08-31)
+
+Plan build is now drawn **once per strategy**; the shared screens differ only where the strategy
+does. "How You Get Stronger" now leads into the matching row.
+
+| Screen | Steady | Reps First | By Feel |
+|---|---|---|---|
+| New Plan (strategy card selected) | `380:8548` | `101:994` | `380:9747` |
+| Search Exercise | `380:8631` | *(shared)* | `380:9821` |
+| Add Exercise Details | `380:8897`, `380:9471` | `123:1092` | `380:10087` |
+| Progression Override | `380:9118` | `123:2105`, `114:3989` | `380:10278` |
+| Pacing Override | `380:9352` | `384:11190` | *(shared)* |
+
+⚠️ Copy bugs spotted on `380:10087` (By Feel AED): the Sets button group reads **1 · 3 · 3 · 10**
+(duplicate 3, presumably 5), and the Progression row reads *"Reps first • Plan Default"* inside
+the By Feel flow. 👤 confirm/fix.
+
+### By Feel Calculation Engine ✨ — section `384:11049`
+
+The rules for what *By Feel* computes, drawn as a spec (Step 1 `384:10858`, Step 2 `384:10983`,
+Sources `384:10936`, Rules `384:11037`). Summary — the source of truth is the section itself:
+
+- After an exercise finishes, the user pokes a 2D grid (screens `380:10489`, `384:10881`
+  "How was it?"): **x = form** (Clean ↔ Bad Form), **y = reps left in reserve** (Nothing Left
+  0 · 1 · 2 · 3 · 4+ Plenty Left). Skips after 8 s; a skip repeats the progression.
+- **Step 1 — poke → steps:** All reps · Plenty left · Clean → **2 steps** · All reps · 1–2 left ·
+  Clean → **1 step** · everything else (nothing left / form broke / missed reps / not rated) →
+  **Hold**.
+- **Step 2 — the rep range picks the lever** (default range **5–8**, per-exercise): below the
+  top of the range → **+1 rep per step**; at the top → **+weight, reps reset**. Increment note:
+  *"+5 upper, +10 lower"* — 👤 confirm this means upper-body vs lower-body lifts.
+- **From past sessions** (only ever the previous one): bad form or missed two sessions →
+  **deload 10%** · bad form at plenty left → hold · held at top of range two sessions → **add
+  weight** · no rating two sessions → **offer switch to "Steady"**. *(typo in the frame: "Helt")*
+
+### The session, mid-set ✨
+
+Workout A is also the live in-session hub — three progress states of the same screen:
+
+| State | ID |
+|---|---|
+| Set 2 not started | `384:11481` |
+| Set 2 started (current-set pips, "7 of 26 sets logged" bar) | `433:22215` |
+| More than 4 sets | `433:22351` |
+| Log a Set (updated) | `380:10713`, `384:11460` |
+| Search Exercise (updated) + filter drawer | `384:11596`, `403:13713` |
+
+### Settings ✨ — change onboarding answers later
+
+| Screen | ID | Notes |
+|---|---|---|
+| Settings home | `433:22471` | Equipment · Unit & Scale · Exercise Data · Personal Settings · Workout Goal |
+| Equipment | `433:22674` | |
+| Dumbbell Scale | `433:22844` | unit toggle + increment choice **5 lb** (10/15/20/25/30) or **2.5 lb** (10/12.5/…), "Impacts progression increases" — this is `Profile.smallestStepDumbbell` |
+| Exercise Data | `433:23207` | stat tiles (workouts, mesocycles, total gain, joined), bodyweight trend, per-exercise progress charts, **export** (top-right). ⚠️ header copy is stale: "Settings • Dumbbell scale" |
+| Goal | `433:27536` | Build Muscle · Build Strength · Endurance · **Vibing** ("no specific goal") — a 4th goal option |
+| Home Hub (updated) | `433:23386` | |
+
+### Onboarding addition ✨
+
+| Screen | ID | Notes |
+|---|---|---|
+| Unit & Scale | `443:5086` | same content as Settings → Dumbbell Scale, with Skip/Next — the smallest-step onboarding question, now designed |
+
 ### Train — the shared engine
 
 | Flowchart screen | Frame | ID | Notes |
 |---|---|---|---|
 | **Workout A** (home) | Workout Summary | `34:778` | "Plan A • Week 3 of 5" — a meso has a planned week count |
-| Workout A — deload suggestion 🚧 | Workout Summary - Deload Suggestion | `359:1470` | **in progress** — the absence/plateau deload prompt |
+| Workout A — absence deload ✅ | Workout Summary - Deload Suggestion | `359:1470` | "You have missed 2 workouts — **Deload all exercises by 10%**", Decline / Accept. The absence deload, designed: trigger is **2 missed workouts**, scope is **all exercises** |
 | Log a Set | Log a Set | `25:388`, `90:1256` | duplicate |
 | Edit Weights +5 | Edit Weights / Add More | `34:695`, `90:1169` | |
 | Edit Weights −5 | Edit Weights / Reduce | `34:1236` | |
@@ -152,6 +217,9 @@ screens.
 ---
 
 ## 3. Watch — section `123:3945` · 456×456 round frames
+
+✨ A **Watch Design System — WIP** section now exists (`364:2816`) — open decision #9 is in
+motion. Until it lands, the watch notes below still apply.
 
 | Flowchart screen | Frame | ID |
 |---|---|---|
@@ -193,15 +261,28 @@ The watch was designed last and is the fuzziest part of the file. Read these fra
 
 ---
 
-## 4. Things the crawl surfaced (for the plan)
+## 4. Things the crawls surfaced (for the plan)
 
-- **Mesocycle has a planned length** — "Week 3 of 5" on Workout A. `data-model.md` needs
-  `Mesocycle.plannedWeeks` and a derived current week. *(Added to the follow-up list.)*
-- **Workout A shows a forecast** — "6 Workouts • 2,250 Lbs • ~55m": exercise count, projected
-  volume, and an estimated duration. Duration estimate needs sets × (work + rest) — rest comes
-  from pacing, work time needs a per-set constant. [Inference]
-- **Deload suggestion is being designed** (`359:1470`) — removes one of the five "not designed"
-  gaps once it lands.
-- **Card and Radio Card are in progress** — Phase 3c build order should wait for them to settle.
-- Type styles: 9 of 14 are not Variables yet; needed before tokens can be exported rather than
-  typed by hand.
+From 2026-08-22, still true:
+
+- **Mesocycle has a planned length** — "Week 3 of 5" on Workout A → `Mesocycle.plannedWeeks`.
+- **Workout A shows a forecast** — "6 Workouts • 2,250 Lbs • ~55m". Duration estimate needs
+  sets × (work + rest). [Inference]
+- Two Post Set Timer frames still carry default names (`Android Compact - 2 / - 3`). 👤 rename.
+
+New on 2026-08-31:
+
+- **By Feel is now a specified engine** (§ above) — the `by-feel` branch of the progression code
+  ("nothing automatic") is out of date and needs a follow-up implementation, plus a
+  `FeelRating` row in the data model (the poke: reserve, form, per exercise per workout).
+- **Absence deload designed**: 2 missed workouts → offer 10% all-exercise deload. Replaces the
+  proposed days-based trigger; "missed" implies the plan knows its weekly schedule.
+- **Settings exist** (Phase 5 scope grew): equipment, unit & dumbbell scale, goal (now 4
+  options incl. *Vibing*), personal settings (bodyweight, height — new Profile fields), and
+  **Exercise Data with export** — a new requirement (CSV/share? 👤 format).
+- **Load types are six**: Barbell, Dumbbell, Body Weight, Kettlebell, Cable, Machine
+  (filter drawer `403:13713`) — the data model's `loadType` enum needs kettlebell + cable.
+- **Custom icon set** (22 icons, `436:4844`) — largely settles open decision #10 for domain
+  icons; lucide (or similar) remains only for UI chrome (chevrons, home, back).
+- Copy bugs listed inline above: By Feel AED sets group **1·3·3·10**, "Reps first" label in the
+  By Feel flow, Exercise Data header, "Helt" typo in the engine.

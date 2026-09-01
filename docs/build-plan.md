@@ -341,7 +341,8 @@ hr/below-threshold   → green/500
 > `Brand` and `Red` are both `#f04245`. Renaming `Red` → `Error` as-is makes error states pixel-identical
 > to primary buttons. Error needs its own value.
 
-- [ ] 🤖 Type scale — 14 styles in the frame, Display XL through Micro. 👤 Only 5 are Variables today; make all 14 Variables first so tokens are exported, not transcribed
+- [x] 👤 All 14 type styles are Variables (done 2026-08-31, verified via `get_variable_defs`)
+- [ ] 🤖 Type scale — export the 14 styles into `tokens.ts`
 - [ ] 🤖 Spacing, radii, elevation
 - [ ] 👤 ⚠️ Decide **Micro @ 8px** — below the ~11px mobile floor, fails under font scaling
 
@@ -354,7 +355,7 @@ hr/below-threshold   → green/500
 
 ### 3c. Components — workout path first
 
-**Exists in Figma** (11 + 2 in progress): Button (24-variant matrix), Weight (plate stack 2.5–55), Top Bar, Icon Card, Avatar, Chip, Input, Select, Textarea, Switch, Watermark. 🚧 **Card** and **Radio Card** — Justin componentising (2026-08-22). List Item exists but lives outside the library. Node IDs: `docs/figma-inventory.md`.
+**Exists in Figma** (17): Button (24-variant matrix), Weight (plate stack 2.5–55), Top Bar, Icon Card, Avatar, Chip, Input, Select, Textarea, Switch, Watermark, **Card, Radio Card, Button Group, Checkbox, Icon (22 custom), Bottom Drawer** (last six landed by 2026-08-31). Select/List Item exists but lives outside the library. Node IDs: `docs/figma-inventory.md`.
 
 **Must be designed and built** — used across screens, not in the library:
 
@@ -364,8 +365,9 @@ hr/below-threshold   → green/500
 - [ ] 🤝 **Card**
 - [ ] 🤝 **Stepper (±5)**
 - [ ] 🤝 **Segmented progress bar**
-- [ ] 🤝 **List item** *(exists as `114:2626`; move into the library)*
-- [ ] 🤝 **Button Group** — the 1/3/5/10/✎ rows on Add Exercise Details; repeated pattern, not in the library
+- [ ] 🤝 **List item** *(exists as `114:2626` "Select/List Item"; move into the library)*
+- [x] 🤝 **Button Group** — componentised in Figma (`373:7703`, 2026-08-31)
+- [ ] 🤝 **By Feel poke grid** — the 2D form × reserve input (`384:10881`); core to the By Feel loop
 
 Build order: Button → Input → Chip → Top Bar → large numeral → Timer ring → keypad → remainder.
 
@@ -452,9 +454,15 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [ ] **Watch weight adjust** — the watch set screen has two swipe panels. Left is Actions (Skip Set / Change / End) and is drawn. **Up adjusts weight** — Edit Weights' job, watch-sized — and is missing
 - [ ] **Editing a live plan** — changing an exercise inside a running mesocycle without starting over. Not drawn, no flowchart edge
 - [ ] **Plateau prompt** — after two consecutive failures on an exercise the app asks *deload or end
-      the meso?* (decisions 11b). No frame. Likely Session Done or the next Workout A
-- [ ] **Absence deload** — return after missing too much time → Workout A offers a deload. 👤 Justin is
-      designing it; not MVP-blocking. Settings surface comes later
+      the meso?* (decisions 11b). Still no frame — the absence-deload card (`359:1470`) is the
+      obvious template for it
+- [x] **Absence deload** — ✅ designed (`359:1470`, 2026-08-31): "You have missed 2 workouts →
+      Deload all exercises by 10%", Decline / Accept, on Workout A
+- [x] **By Feel progression** — ✅ designed: the Calculation Engine (`384:11049`) + poke grid
+      (`384:10881`). 🤖 Follow-up: implement the engine in `features/progression/` (the current
+      by-feel code predates the spec)
+- [ ] **Settings flows** — designed 2026-08-31 (5 screens + subscreens, incl. Exercise Data with
+      export). Fold into Phase 5 scope; export format 👤 undecided
 
 ---
 
@@ -523,8 +531,8 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 | 6 | Micro @ 8px | Justin | Phase 3a |
 | 7 | ~~Fidelity verification method~~ | — | ✅ UI Kit page |
 | 8 | ~~Figma tokens real Variables?~~ | — | ✅ Yes, namespaced |
-| 9 | Separate watch design system? | Justin | Phase 7 |
-| 10 | Icon set — `lucide-react-native` sufficient? | Justin | Phase 3c |
+| 9 | Separate watch design system? — 👤 **WIP section exists** (`364:2816`, 2026-08-31) | Justin | Phase 7 |
+| 10 | Icon set — ✅ custom WolfSet set for domain icons (`436:4844`, 22 variants); lucide only for UI chrome. Confirm chrome choice at 3c | Justin | Phase 3c |
 | 11 | ~~Progression: three strategies or one rule?~~ | — | ✅ Strategy enum, `steady` (progressive overload, weight-based) default; `reps-first`; `by-feel` last. Mesocycle typed by strategy. Increment size / plateau rule / −10% deload scope still to pin (decisions.md) |
 | 12 | First preset 5×5 — programmed by whom, when? | Justin | Preset gap |
 
