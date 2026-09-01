@@ -524,6 +524,11 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 
 ## Deferred
 
+- **Kebab menu on the loop screens** (Justin, 2026-09-02): possibly replaces the pencil in the
+  Top Bar; hosts higher-level, lower-frequency actions (edit weight, and per the context rule
+  maybe an End Exercise) as menu items — never as big CTAs on the set screen. Undesigned; revisit
+  when the loop has more than one detour
+
 **Store submission** *(verified 2026-08-17)*
 
 - [ ] Privacy policy — mandatory both stores. Apple: App Store Connect URL. Google: Play Console **and** in-app, publicly accessible, non-geofenced. One canonical URL
