@@ -5,10 +5,11 @@ import { color, type } from '@/theme/tokens';
 // Figma: Chip component set 48:579 — Style (Brand/Muted/Outline) × Size × Pressed.
 // The Pressed=True variants are the *selected* look (filled), so the prop is `selected`.
 //
-// Press feedback (Justin, 2026-09-01 — not in the file, mirrors the buttons' logic:
-// red things go darker, gray things go lighter): brand → red/200 fill; muted/outline
-// step one neutral lighter than their current fill. Only when `onPress` makes the chip
-// toggleable; a chip without `onPress` is a static label with no press state.
+// Press feedback comes straight from the file: the Pressed=True variants (78:593…608)
+// are the pressed look, and it is the same as the selected look — pressing previews the
+// fill. Only when `onPress` makes the chip toggleable; a chip without `onPress` is a
+// static label with no press state. (Corrected 2026-09-02 — an earlier round invented
+// darker/lighter shades before Justin found the file already had these.)
 
 type ChipProps = {
   label: string;
@@ -26,38 +27,24 @@ export function Chip({
   selected = false,
   onPress,
 }: ChipProps) {
-  const frame = (pressed: boolean) => [
-    styles.base,
-    size === 'large' ? styles.large : styles.small,
-    variant === 'brand' &&
-      (pressed ? styles.brandPressed : selected ? styles.brandSelected : styles.brandIdle),
-    variant === 'muted' &&
-      (pressed
-        ? selected
-          ? styles.mutedSelectedPressed
-          : styles.mutedPressed
-        : selected
-          ? styles.mutedSelected
-          : styles.mutedIdle),
-    variant === 'outline' &&
-      (pressed
-        ? selected
-          ? styles.outlineSelectedPressed
-          : styles.outlinePressed
-        : selected
-          ? styles.outlineSelected
-          : styles.outlineIdle),
-  ];
+  const frame = (pressed: boolean) => {
+    const filled = pressed || selected;
+    return [
+      styles.base,
+      size === 'large' ? styles.large : styles.small,
+      variant === 'brand' && (filled ? styles.brandFilled : styles.brandIdle),
+      variant === 'muted' && (filled ? styles.mutedFilled : styles.mutedIdle),
+      variant === 'outline' && (filled ? styles.outlineFilled : styles.outlineIdle),
+    ];
+  };
   const textColor = (pressed: boolean) =>
-    pressed && variant === 'brand'
-      ? color.text.onButton
-      : selected
-        ? variant === 'outline'
-          ? color.text.primary
-          : color.text.onButton
-        : variant === 'brand'
-          ? color.brand
-          : color.text.secondary;
+    pressed || selected
+      ? variant === 'outline'
+        ? color.text.primary
+        : color.text.onButton
+      : variant === 'brand'
+        ? color.brand
+        : color.text.secondary;
 
   const body = (pressed: boolean) => (
     <Text
@@ -89,19 +76,11 @@ const styles = StyleSheet.create({
   small: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
   large: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 24 },
   brandIdle: { borderColor: color.brand },
-  brandSelected: { backgroundColor: color.brand, borderColor: color.brand },
-  brandPressed: { backgroundColor: color.press.brand, borderColor: color.press.brand },
+  brandFilled: { backgroundColor: color.brand, borderColor: color.brand },
   mutedIdle: { backgroundColor: color.bg.raised, borderColor: color.border },
-  mutedSelected: { backgroundColor: color.border, borderColor: color.border },
-  mutedPressed: { backgroundColor: color.press.raised, borderColor: color.press.raised },
-  mutedSelectedPressed: {
-    backgroundColor: color.press.raisedSelected,
-    borderColor: color.press.raisedSelected,
-  },
+  mutedFilled: { backgroundColor: color.border, borderColor: color.border },
   outlineIdle: { borderColor: color.border },
-  outlineSelected: { backgroundColor: color.bg.raised, borderColor: color.border },
-  outlinePressed: { backgroundColor: color.bg.raised, borderColor: color.border },
-  outlineSelectedPressed: { backgroundColor: color.press.raised, borderColor: color.press.raised },
+  outlineFilled: { backgroundColor: color.bg.raised, borderColor: color.border },
   labelSmall: type.caption,
   labelLarge: type.body,
 });

@@ -123,6 +123,10 @@ Before any `prebuild`: `npx expo-doctor && npx expo install --check`.
 
 - One unit of work per branch and PR. Justin merges.
 - Title states the outcome, body states what changed and **what was verified, with results**.
+- **Visual changes need visual proof** (Justin, 2026-09-02: he reviews visually, not by reading
+  code). Screenshot or screen-record the thing working — emulator `adb exec-out screencap` —
+  commit the images under `docs/pr-shots/<branch>/`, embed them in the PR body via the branch's
+  `raw.githubusercontent.com` URL. Logic-only PRs stay text.
 - Any Kotlin (native module, watch app) gets a plain-language explanation of what it does and
   why — Justin reviews TypeScript, not Kotlin.
 - Design-derived work cites the exact Figma node or handoff-brief section it was built from.
