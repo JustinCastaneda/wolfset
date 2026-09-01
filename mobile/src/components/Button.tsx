@@ -17,10 +17,6 @@ type ButtonProps = {
   rightIcon?: React.ReactNode;
 };
 
-// Pressed Secondary layers 10% white over the raised background (Figma node 34:1098's
-// gradient). An effect of the press, not a design token.
-const PRESSED_OVERLAY = 'rgba(255, 255, 255, 0.1)';
-
 export function Button({
   title,
   onPress,
@@ -32,11 +28,12 @@ export function Button({
 }: ButtonProps) {
   const frame = (pressed: boolean): ViewStyle[] => {
     const out: ViewStyle[] = [styles.base, size === 'large' ? styles.large : styles.small];
-    if (variant === 'solid') out.push(disabled ? styles.bgRaised : styles.bgBrand);
-    if (variant === 'secondary') {
-      out.push(styles.bgRaised);
-      if (pressed && !disabled) out.push(styles.pressedOverlay);
-    }
+    // Pressed fills per Justin (2026-09-01): Solid → red/200, Secondary → neutral/700.
+    // The Figma matrix predates these; 👤 file to be updated to match.
+    if (variant === 'solid')
+      out.push(disabled ? styles.bgRaised : pressed ? styles.bgBrandPressed : styles.bgBrand);
+    if (variant === 'secondary')
+      out.push(pressed && !disabled ? styles.bgRaisedPressed : styles.bgRaised);
     if (variant === 'ghost' && pressed && !disabled) out.push(styles.bgRaised);
     if (variant === 'outline') {
       out.push(
@@ -79,8 +76,9 @@ const styles = StyleSheet.create({
   small: { minHeight: 48, minWidth: 48, padding: 12 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   bgBrand: { backgroundColor: color.brand },
+  bgBrandPressed: { backgroundColor: color.press.brand },
   bgRaised: { backgroundColor: color.bg.raised },
-  pressedOverlay: { backgroundColor: PRESSED_OVERLAY },
+  bgRaisedPressed: { backgroundColor: color.press.raised },
   borderDefault: { borderWidth: 1, borderColor: color.text.onButton },
   borderBrand: { borderWidth: 1, borderColor: color.brand },
   borderDisabled: { borderWidth: 1, borderColor: color.text.disabled },

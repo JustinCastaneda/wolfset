@@ -359,17 +359,19 @@ hr/below-threshold   → green/500
 
 **Must be designed and built** — used across screens, not in the library:
 
-- [ ] 🤝 **Timer ring** — the core differentiator UI
-- [ ] 🤝 **Numeric keypad** — custom, not OS. Numeric only, **44px minimum targets**. Built because the OS pad's keys are too small for gym use, eats the screen the set row needs, and can't host the ± buttons
+- [x] 🤝 **Timer ring** (`components/TimerRing.tsx`, geometry measured from the Spinner SVG on `25:292`: 8.2px stroke, counter-clockwise from 12, HR-zone color)
+- [x] 🤝 **Numeric keypad** (`components/Keypad.tsx` from `34:970`: 64px keys, delete + .5, Secondary recipe)
 - [ ] 🤝 **Set / Exercise row**
 - [ ] 🤝 **Card**
 - [ ] 🤝 **Stepper (±5)**
-- [ ] 🤝 **Segmented progress bar**
+- [x] 🤝 **Segmented progress bar** (`components/SegmentedProgress.tsx` from `93:479`)
 - [ ] 🤝 **List item** *(exists as `114:2626` "Select/List Item"; move into the library)*
 - [x] 🤝 **Button Group** — componentised in Figma (`373:7703`, 2026-08-31)
 - [ ] 🤝 **By Feel poke grid** — the 2D form × reserve input (`384:10881`); core to the By Feel loop
 
 Build order: Button → Input → Chip → Top Bar → large numeral → Timer ring → keypad → remainder.
+
+- [x] 🤝 **Large numeral** (`components/WeightReadout.tsx` from `34:965`: Display XL, delta line — increase warns yellow, decrease greens, per the Edit Weights screens)
 
 - [x] 🤖 **Button** (`components/Button.tsx`, from node `20:91`: sizes, 4 styles, pressed/disabled)
 - [x] 🤖 **Chip** (`components/Chip.tsx`, from node `48:579`: 3 styles × 2 sizes × selected)
@@ -549,7 +551,7 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 | 7 | ~~Fidelity verification method~~ | — | ✅ UI Kit page |
 | 8 | ~~Figma tokens real Variables?~~ | — | ✅ Yes, namespaced |
 | 9 | Separate watch design system? — 👤 **WIP section exists** (`364:2816`, 2026-08-31) | Justin | Phase 7 |
-| 10 | Icon set — ✅ custom WolfSet set for domain icons (`436:4844`, 22 variants); lucide only for UI chrome. Confirm chrome choice at 3c | Justin | Phase 3c |
+| 10 | ~~Icon set~~ | — | ✅ `lucide-react-native` for chrome (confirmed 2026-09-01 — Justin designs with lucide via shadcn); custom WolfSet set (`436:4844`) for domain icons |
 | 11 | ~~Progression: three strategies or one rule?~~ | — | ✅ Strategy enum, `steady` (progressive overload, weight-based) default; `reps-first`; `by-feel` last. Mesocycle typed by strategy. Increment size / plateau rule / −10% deload scope still to pin (decisions.md) |
 | 12 | First preset 5×5 — programmed by whom, when? | Justin | Preset gap |
 
