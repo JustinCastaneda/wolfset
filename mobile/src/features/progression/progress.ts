@@ -9,7 +9,7 @@ import type { ExerciseProgress, Outcome, Prescription, ProgressResult } from './
  * |------------|--------------------------------------------------|-----------------|
  * | steady     | weight += increment; failures = 0                | failures += 1   |
  * | reps-first | reps += repStep; past ceiling → weight up, reps reset; failures = 0 | failures += 1 |
- * | by-feel    | nothing automatic                                | nothing automatic |
+ * | by-feel    | handled by the Calculation Engine — use `applyByFeel` (by-feel.ts) | same |
  *
  * A `skipped` exercise leaves everything untouched — not doing an exercise is a miss,
  * not a failure (data-model §1).
@@ -28,6 +28,8 @@ export function applyOutcome(
   const base: ExerciseProgress = { ...progress, lastOutcome: outcome };
   const { strategy } = rx.progression;
 
+  // By Feel outcomes need the poke rating too — that path goes through applyByFeel
+  // (by-feel.ts). Reaching here without it changes nothing, deliberately.
   if (strategy === 'by-feel') return { progress: base, prompt: null };
 
   if (outcome === 'failed') {

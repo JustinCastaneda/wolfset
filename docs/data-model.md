@@ -305,8 +305,10 @@ session's `FeelRating` (the poke), and the previous session's rating.
    bad form while plenty left → hold · held at the top of the range two sessions → add weight ·
    unrated two sessions → **offer** switching the exercise to Steady (ask, don't switch).
 
-⚠️ The shipped `features/progression/` code predates this spec (its by-feel branch does nothing
-automatic) — **follow-up implementation required**.
+Implemented in `mobile/src/features/progression/by-feel.ts` (tested; the engine table above is
+the test list). The engine's deload (bad form while grinding, or two missed sessions) is a
+**prompt**, not an automatic action — Justin, 2026-08-31: *"We always want to ask before we do
+things for the user."* Accept runs `applyDeload`.
 
 ### 5.5 The gate (Phase 0 criterion B) — still undefined
 
