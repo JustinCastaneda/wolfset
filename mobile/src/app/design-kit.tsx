@@ -2,6 +2,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
+import { Input } from '@/components/Input';
+import { TopBar } from '@/components/TopBar';
 import { color, palette, type } from '@/theme/tokens';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
@@ -32,6 +34,24 @@ export default function DesignKit() {
           <Chip label={variant} variant={variant} size="large" selected />
         </View>
       ))}
+
+      <Text style={styles.section}>Input — default · filled · error · required + count</Text>
+      <View style={styles.group}>
+        <Input label="Label" placeholder="Placeholder Text" />
+        <Input label="Email" value="justin@brethrenstudios.com" onChangeText={() => {}} />
+        <Input label="Weight" required error helperText="Enter a weight" placeholder="0" />
+        <Input
+          label="Plan name"
+          placeholder="Winter Bulk"
+          maxLength={100}
+          showCount
+          helperText=" "
+        />
+      </View>
+
+      <Text style={styles.section}>Top Bar — centered · left-aligned</Text>
+      <TopBar title="Plan A • Squat • 4/5" />
+      <TopBar title="Plan A • Squat • 4/5" align="left" />
 
       <Text style={styles.section}>Type scale — Geom</Text>
       {Object.entries(type).map(([name, style]) => (
