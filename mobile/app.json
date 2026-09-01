@@ -25,6 +25,59 @@
     "plugins": [
       "expo-router",
       [
+        "expo-font",
+        {
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Geom",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Geom-Light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/fonts/Geom-Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/Geom-Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/fonts/Geom-SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/fonts/Geom-Bold.ttf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "./assets/fonts/Geom-ExtraBold.ttf",
+                    "weight": 800
+                  },
+                  {
+                    "path": "./assets/fonts/Geom-Black.ttf",
+                    "weight": 900
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": [
+              "./assets/fonts/Geom-Light.ttf",
+              "./assets/fonts/Geom-Regular.ttf",
+              "./assets/fonts/Geom-Medium.ttf",
+              "./assets/fonts/Geom-SemiBold.ttf",
+              "./assets/fonts/Geom-Bold.ttf",
+              "./assets/fonts/Geom-ExtraBold.ttf",
+              "./assets/fonts/Geom-Black.ttf"
+            ]
+          }
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {
