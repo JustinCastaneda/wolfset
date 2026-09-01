@@ -6,11 +6,11 @@ description: How code is written in the WOLFSET phone app (mobile/) — structur
 # WOLFSET conventions (`mobile/`)
 
 These are the rules every agent follows when touching `mobile/`. The root `CLAUDE.md` holds the
-product rules (naming, stack, Health Connect, secrets); this skill holds the *code* rules. If the
+product rules (naming, stack, Health Connect, secrets); this skill holds the _code_ rules. If the
 two ever disagree, `CLAUDE.md` wins — fix this file.
 
 Justin reviews every TypeScript PR and is not a developer. Optimise for code he can read: plain
-names, small files, one idea per function, comments that say *why*.
+names, small files, one idea per function, comments that say _why_.
 
 ## 1. Structure
 
@@ -36,20 +36,20 @@ mobile/src/
 
 ## 2. Naming
 
-| Thing | Convention | Example |
-|---|---|---|
-| Files, directories | `kebab-case` | `rest-timer.ts`, `set-loop/` |
-| React components | `PascalCase`, one per file, file matches name | `TimerRing.tsx` |
-| Hooks | `useThing` | `useRestTimer` |
-| Types / interfaces | `PascalCase`, no `I` prefix | `WorkoutSet`, not `IWorkoutSet` |
-| Constants | `SCREAMING_SNAKE` only for true constants | `MIN_REST_SECONDS` |
-| Booleans | read as a question | `isRecovered`, `hasWatch` |
-| Events / actions | past tense for facts, imperative for commands | `setLogged`, `startRest` |
+| Thing              | Convention                                    | Example                         |
+| ------------------ | --------------------------------------------- | ------------------------------- |
+| Files, directories | `kebab-case`                                  | `rest-timer.ts`, `set-loop/`    |
+| React components   | `PascalCase`, one per file, file matches name | `TimerRing.tsx`                 |
+| Hooks              | `useThing`                                    | `useRestTimer`                  |
+| Types / interfaces | `PascalCase`, no `I` prefix                   | `WorkoutSet`, not `IWorkoutSet` |
+| Constants          | `SCREAMING_SNAKE` only for true constants     | `MIN_REST_SECONDS`              |
+| Booleans           | read as a question                            | `isRecovered`, `hasWatch`       |
+| Events / actions   | past tense for facts, imperative for commands | `setLogged`, `startRest`        |
 
 - Product name is **WOLFSET** everywhere: identifiers, strings, package names. `Gym Wolf` and
   `nextset` are stale labels that must not appear in code.
-- Domain words are fixed — use them, don't invent synonyms: *workout · exercise · set · rep ·
-  rest · recovered · plan · mesocycle · progression · pacing*. An "exercise" is the movement
+- Domain words are fixed — use them, don't invent synonyms: _workout · exercise · set · rep ·
+  rest · recovered · plan · mesocycle · progression · pacing_. An "exercise" is the movement
   (Squat); a "set" is one performance of it; a "workout" is one session.
 
 ## 3. Styling — `StyleSheet` + typed tokens (decision #4)
@@ -66,6 +66,10 @@ mobile/src/
 - One `const styles = StyleSheet.create({...})` at the bottom of each component file.
 - **Err on the side of making a component.** If a pattern appears twice, it is a component in
   `components/`, with variants matching Figma's. Screens compose; they don't redraw.
+- **CTAs act only on the context they live in** (Justin, 2026-09-02). A set screen may end
+  the set; ending the _workout_ lives on the workout view, reached by going up (the tree
+  icon). Never offer an action that kills the parent context from a child screen, and
+  destructive session-enders always double-confirm via a bottom sheet.
 - **The Design Kit comes first.** Every component renders in the Design Kit route (Phase 3d)
   before any flow uses it. No serious flow is built against components that aren't in the kit.
 
@@ -100,7 +104,7 @@ mobile/src/
   components get tests only when they have behaviour (a keypad, a stepper), not for layout.
 - Tests live next to the code: `rest-timer.ts` → `rest-timer.test.ts`.
 - Name tests as sentences about behaviour: `it('unlocks the next set when HR drops below the
-  threshold for two consecutive samples')`.
+threshold for two consecutive samples')`.
 - No mocking the clock with sleeps — inject it (see §4).
 - Runner is `jest-expo` (`npm test`); it is part of `npm run verify` and CI. Tests match
   `src/**/*.test.ts`. The progression rules (`features/progression/`) are the reference example.
@@ -128,8 +132,8 @@ Before any `prebuild`: `npx expo-doctor && npx expo install --check`.
   commit the images under `docs/pr-shots/<branch>/`, embed them in the PR body via the branch's
   `raw.githubusercontent.com` URL. Logic-only PRs stay text.
 - **Every PR body ends with a "Next Steps" section for Justin** (2026-09-02): the exact commands
-  or actions he needs after merging, chosen from: *nothing* · *JS reload* (shake / press `r` in
-  Metro) · *restart Metro* · *rebuild* (`npm run android`) · *clean rebuild*
+  or actions he needs after merging, chosen from: _nothing_ · _JS reload_ (shake / press `r` in
+  Metro) · _restart Metro_ · _rebuild_ (`npm run android`) · _clean rebuild_
   (`npx expo prebuild --platform android --clean && npm run android` — required whenever
   `app.json` plugins, fonts, or native deps changed) · plus any Figma-side tasks flowing back to
   him. Never assume he knows which; say it every time.
