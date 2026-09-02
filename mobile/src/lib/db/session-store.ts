@@ -1,4 +1,5 @@
 import { getDb } from './database';
+import { newId } from './ids';
 import type { SessionState } from '@/features/set-loop/types';
 
 // Persistence for the live session. Every machine event is followed by a snapshot
@@ -124,9 +125,4 @@ export function workoutRows(state: SessionState, startedAt: number, endedAt: num
       restEndReason: s.restEndReason,
     })),
   };
-}
-
-// UUIDs are generated on the phone (data-model §0) so rows sync later without renumbering.
-function newId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }

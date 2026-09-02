@@ -117,8 +117,8 @@ journey — build once (brief §03).
 | Flowchart screen | Frame | ID | Notes |
 |---|---|---|---|
 | Get Started / Change It Up hub | Home Hub - Change it up | `34:1464`, `70:281`, `101:637` (412×1120), `93:668` | four drawings of the hub |
-| Name this Plan | New Plan | `101:994` | |
-| How You Get Stronger | New Plan | `114:3014` | three Radio Cards |
+| Name this Plan | New Plan | `114:3014` | |
+| How You Get Stronger | New Plan / Reps First | `101:994` | three Radio Cards (IDs corrected 2026-09-02 — they were swapped) |
 | What's the first lift? | Search Exercise | `70:339`, `101:814` | shared with Freestyle |
 | Add Exercise | Add Exercise | `48:463` | |
 | **Add Exercise Details** | Add Exercise Details | **`123:1092`** (412×1214) | sets / starting reps / max reps before weight increase / progression / pacing — see `data-model.md` |

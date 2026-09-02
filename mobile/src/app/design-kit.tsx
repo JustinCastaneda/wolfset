@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { Input } from '@/components/Input';
 import { Keypad } from '@/components/Keypad';
+import { RadioCard } from '@/components/RadioCard';
 import { SegmentedProgress } from '@/components/SegmentedProgress';
 import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
@@ -50,6 +51,9 @@ export default function DesignKit() {
       ))}
       <Text style={styles.caption}>Toggleable — tap to select, hold to see the press shade</Text>
       <ToggleChipsDemo />
+
+      <Text style={styles.section}>Radio Card — default · selected (tap to move)</Text>
+      <RadioCardDemo />
 
       <Text style={styles.section}>Input — default · filled · error · required + count</Text>
       <View style={styles.group}>
@@ -140,6 +144,26 @@ function ToggleChipsDemo() {
           variant={variant}
         />
       ))}
+    </View>
+  );
+}
+
+function RadioCardDemo() {
+  const [picked, setPicked] = useState<'steady' | 'by-feel'>('steady');
+  return (
+    <View style={styles.group}>
+      <RadioCard
+        description="Hit all of your reps and the next set will add 5lbs. Miss twice, and we’ll drop 10%"
+        onPress={() => setPicked('steady')}
+        selected={picked === 'steady'}
+        title="Steady"
+      />
+      <RadioCard
+        description="Decide after each set. We’ll make suggestions but the choice is up to you"
+        onPress={() => setPicked('by-feel')}
+        selected={picked === 'by-feel'}
+        title="By Feel"
+      />
     </View>
   );
 }
