@@ -47,8 +47,17 @@ export function LogASetScreen({
 
       <View style={styles.center}>
         <Text style={styles.weight}>{exercise.weight}</Text>
+        {/* Reduced reps read "3/5 reps" in brand — the original target stays visible
+            (Log a Set / Failed Reps mock, 2026-09-02). */}
         <Text style={styles.context}>
-          Lbs x {reps} {reps === 1 ? 'rep' : 'reps'}
+          Lbs x{' '}
+          {reps < exercise.targetReps ? (
+            <Text style={styles.contextShort}>
+              {reps}/{exercise.targetReps} reps
+            </Text>
+          ) : (
+            `${reps} ${reps === 1 ? 'rep' : 'reps'}`
+          )}
         </Text>
       </View>
 
@@ -83,6 +92,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   weight: { ...type.displayXl, color: color.text.primary },
   context: { ...type.h3, color: color.text.secondary },
+  contextShort: { color: color.brand },
   hint: { ...type.bodyLight, color: color.text.secondary, textAlign: 'center', marginBottom: 12 },
   bottomBar: {
     flexDirection: 'row',

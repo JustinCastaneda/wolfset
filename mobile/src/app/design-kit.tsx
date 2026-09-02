@@ -1,6 +1,7 @@
 import { ListTree, Settings2, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
@@ -17,9 +18,16 @@ import { color, palette, type } from '@/theme/tokens';
 // __DEV__ branch from production bundles, so the kit's content tree-shakes away.
 
 export default function DesignKit() {
+  const insets = useSafeAreaInsets();
   if (!__DEV__) return null;
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
+      ]}
+    >
       <Text style={styles.h1}>Design Kit</Text>
 
       <Text style={styles.section}>Button — Solid · Outline · Ghost · Secondary</Text>
@@ -138,7 +146,7 @@ function ToggleChipsDemo() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg.base },
-  content: { padding: 16, paddingTop: 64, gap: 12, paddingBottom: 64 },
+  content: { paddingHorizontal: 16, gap: 12 },
   h1: { ...type.h1, color: color.text.primary },
   section: { ...type.label, color: color.text.secondary, marginTop: 16 },
   caption: { ...type.caption, color: color.text.muted },
