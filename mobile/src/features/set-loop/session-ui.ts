@@ -16,10 +16,19 @@ export function loopTitle(dayName: string, state: SessionState): string {
   return `${dayName} • ${ex.name} • ${Math.min(current, ex.prescribedSets)}/${ex.prescribedSets}`;
 }
 
-/** Whole-day sets bar: done = every logged set, total = every prescribed set. */
+/** Whole-day progress: done = every logged set, total = every prescribed set.
+ *  Drives the overview's fill bar. */
 export function dayProgress(state: SessionState): { done: number; total: number } {
   const total = state.exercises.reduce((sum, ex) => sum + (ex.prescribedSets ?? 0), 0);
   return { done: Math.min(state.sets.length, total), total };
+}
+
+/** The loop screens' segment bar shows *this exercise's* sets, not the day's
+ *  (Justin, round 4). done = sets logged for the current exercise. */
+export function exerciseProgress(state: SessionState): { done: number; total: number } {
+  const ex = currentExercise(state);
+  const done = state.sets.filter((s) => s.exerciseIndex === state.exerciseIndex).length;
+  return { done, total: ex.prescribedSets ?? Math.max(done + 1, 1) };
 }
 
 /** "1:23" from seconds, zero-padded, floor — what the ring's numeral shows. */

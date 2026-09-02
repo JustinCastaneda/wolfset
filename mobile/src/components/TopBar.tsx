@@ -51,8 +51,10 @@ function Slot({ children, onPress }: { children?: React.ReactNode; onPress?: () 
 }
 
 const styles = StyleSheet.create({
-  // Figma: pt32 pb12; Default px12, Left-Aligned pl24 pr12.
-  root: { flexDirection: 'row', alignItems: 'center', paddingTop: 32, paddingBottom: 12 },
+  // Figma draws pt32 from the frame's top edge, which on-device is the status zone the
+  // runtime inset now supplies — so the bar itself keeps a symmetric 12 (Justin, round 4:
+  // the two were stacking into a gap).
+  root: { flexDirection: 'row', alignItems: 'center', paddingTop: 12, paddingBottom: 12 },
   rootCenter: { paddingHorizontal: 12 },
   rootLeft: { paddingLeft: 24, paddingRight: 12 },
   titleBox: { flex: 1, height: 48, justifyContent: 'center' },

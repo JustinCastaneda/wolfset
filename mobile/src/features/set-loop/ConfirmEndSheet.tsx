@@ -1,4 +1,5 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { color, type } from '@/theme/tokens';
@@ -22,10 +23,13 @@ export function ConfirmEndSheet({
   onEnd: () => void;
 }) {
   const early = setsDone < setsTotal;
+  // The Modal floats outside the inset-padded screen root, so the sheet carries its
+  // own bottom inset (Justin's round 4: buttons sat flush on the 3-button nav bar).
+  const insets = useSafeAreaInsets();
   return (
     <Modal animationType="slide" onRequestClose={onCancel} transparent visible={visible}>
       <Pressable onPress={onCancel} style={styles.scrim} />
-      <View style={styles.sheet}>
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.handle} />
         <Text style={styles.title}>End Workout?</Text>
         <Text style={styles.body}>
@@ -53,7 +57,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     paddingTop: 12,
     gap: 16,
   },
