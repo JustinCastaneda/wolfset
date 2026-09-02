@@ -1,0 +1,180 @@
+import { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+
+import { Button } from '@/components/Button';
+import { TopBar } from '@/components/TopBar';
+import { color, type } from '@/theme/tokens';
+import type { Dispatch } from './session-ui';
+import type { FeelRating, SessionState } from './types';
+
+// The By Feel poke grid — "How was it?" (Figma 384:10881, engine 384:11049). Appears
+// when a by-feel lift finishes its sets. The quadrants are the visual; the *poke* is
+// positional: x → form (clean | bad), y → reps left in the tank in five bands
+// (Nothing Left 0 · 1 · 2 · 3 · 4+ Plenty Left). Auto-skips after 8 s — a skip
+// repeats the progression.
+
+const SKIP_MS = 8_000;
+
+export function ByFeelGridScreen({
+  state,
+  exerciseIndex,
+  dayName,
+  onEvent,
+}: {
+  state: SessionState;
+  exerciseIndex: number;
+  dayName: string;
+  onEvent: Dispatch;
+}) {
+  const ex = state.exercises[exerciseIndex];
+  const [rating, setRating] = useState<FeelRating | null>(null);
+  const [poke, setPoke] = useState<{ x: number; y: number } | null>(null);
+  const [size, setSize] = useState({ w: 1, h: 1 });
+
+  // The 8s skip — cancelled the moment a poke lands.
+  useEffect(() => {
+    if (rating) return;
+    const id = setTimeout(
+      () => onEvent({ type: 'feelRated', exerciseIndex, rating: null }),
+      SKIP_MS,
+    );
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onEvent is stable enough; re-arm only on rating
+  }, [rating, exerciseIndex]);
+
+  const onLayout = (e: LayoutChangeEvent) =>
+    setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
+
+  const onPoke = (x: number, y: number) => {
+    const bands: FeelRating['reserve'][] = ['0', '1', '2', '3', '4plus'];
+    const band = Math.min(4, Math.max(0, Math.floor((y / size.h) * 5)));
+    setRating({ form: x < size.w / 2 ? 'clean' : 'bad', reserve: bands[band] });
+    setPoke({ x, y });
+  };
+
+  return (
+    <View style={styles.root}>
+      <TopBar title={`${ex.name} • ${ex.prescribedSets}x${ex.targetReps} @ ${ex.weight} Done`} />
+      <View style={styles.body}>
+        <View style={styles.titleBlock}>
+          <Text style={styles.h1}>How was it?</Text>
+          <Text style={styles.subtitle}>Tap below to progress by feel</Text>
+        </View>
+
+        <View onLayout={onLayout} style={styles.grid}>
+          <Pressable
+            accessibilityHint="left is clean form, right is bad form; top is nothing left, bottom is plenty left"
+            accessibilityLabel="How did the sets feel?"
+            onPress={(e) => onPoke(e.nativeEvent.locationX, e.nativeEvent.locationY)}
+            style={styles.gridPress}
+          >
+            <View style={[styles.cell, styles.cellTL]} />
+            <View style={[styles.cell, styles.cellTR]} />
+            <View style={[styles.cell, styles.cellBL]} />
+            <View style={[styles.cell, styles.cellBR]} />
+            <View pointerEvents="none" style={styles.xLabels}>
+              <Text style={styles.axis}>Clean</Text>
+              <Text style={styles.axis}>Bad Form</Text>
+            </View>
+            <View pointerEvents="none" style={styles.yLabels}>
+              <Text style={styles.axis}>Nothing Left</Text>
+              <Text style={styles.axis}>Plenty Left</Text>
+            </View>
+            {poke && (
+              <View
+                pointerEvents="none"
+                style={[styles.pokeDot, { left: poke.x - 12, top: poke.y - 12 }]}
+              />
+            )}
+          </Pressable>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardBody}>Skipping will repeat this set</Text>
+          <Text style={styles.cardStrong}>
+            Next {ex.name.toLowerCase()} is {ex.weight} x {ex.targetReps}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={styles.hint}>Skips after 8s • A skip repeats progression</Text>
+      <View style={styles.bottomBar}>
+        <Button
+          disabled={!rating}
+          onPress={() => rating && onEvent({ type: 'feelRated', exerciseIndex, rating })}
+          title="Log Feel"
+          variant="secondary"
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: color.bg.base },
+  body: { flex: 1, paddingTop: 24, gap: 32 },
+  titleBlock: { paddingHorizontal: 24, gap: 8 },
+  h1: { ...type.h1, color: color.text.primary },
+  subtitle: { fontFamily: 'Geom', fontSize: 20, fontWeight: '400', color: color.text.secondary },
+  // Figma: 365×292, r12, quadrants on the raised bg with border lines.
+  grid: { marginHorizontal: 24, height: 292 },
+  gridPress: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: color.border,
+    overflow: 'hidden',
+  },
+  cell: {
+    width: '50%',
+    height: '50%',
+    backgroundColor: color.bg.raised,
+    borderWidth: 0.5,
+    borderColor: color.border,
+  },
+  cellTL: {},
+  cellTR: {},
+  cellBL: {},
+  cellBR: {},
+  xLabels: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    marginTop: -8,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  yLabels: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  axis: { ...type.label, color: color.text.primary },
+  pokeDot: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: color.brand,
+  },
+  card: {
+    marginHorizontal: 24,
+    padding: 24,
+    borderRadius: 12,
+    backgroundColor: color.bg.raised,
+    gap: 4,
+  },
+  cardBody: { ...type.body, color: color.text.primary },
+  cardStrong: { ...type.h3Bold, color: color.text.primary },
+  hint: { ...type.bodyLight, color: color.text.secondary, textAlign: 'center', marginBottom: 12 },
+  bottomBar: { paddingHorizontal: 24, paddingBottom: 40, paddingTop: 12 },
+});

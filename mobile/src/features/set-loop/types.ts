@@ -15,6 +15,15 @@ export type SessionExercise = {
   weight: number;
   restSeconds: number;
   autoStartTimer: boolean;
+  /** How this lift progresses. Defaults to steady; by-feel lifts get the poke grid
+   *  when their sets finish (engine: Figma 384:11049). */
+  strategy?: 'steady' | 'by-feel';
+};
+
+/** The poke on the By Feel grid (384:10881): x = form, y = reps left in the tank. */
+export type FeelRating = {
+  reserve: '0' | '1' | '2' | '3' | '4plus';
+  form: 'clean' | 'bad';
 };
 
 /** One logged set, the machine's output. Mirrors data-model `WorkoutSet`. */
@@ -49,6 +58,10 @@ export type SessionState = {
   setIndex: number;
   sets: LoggedSet[];
   phase: Phase;
+  /** Exercise indexes whose By Feel grid still awaits an answer (or the 8s skip). */
+  pendingRatings: number[];
+  /** Answers so far; null = skipped. Read by settle when the session ends. */
+  feelRatings: Record<number, FeelRating | null>;
 };
 
 /** Everything that can happen to the loop. Timestamps come from the caller's clock —
@@ -65,4 +78,6 @@ export type SessionEvent =
   /** Jump to any exercise from the overview, even midway through sets (Justin,
    *  2026-09-02). Resumes at that exercise's next unlogged set; cuts a running rest. */
   | { type: 'exerciseJumped'; index: number; at: number }
+  /** The poke grid answered (rating) or auto-skipped after 8 s (null). */
+  | { type: 'feelRated'; exerciseIndex: number; rating: FeelRating | null }
   | { type: 'workoutEnded'; at: number };

@@ -14,6 +14,7 @@ import { LogASetScreen } from './LogASetScreen';
 import { PostSetTimerScreen } from './PostSetTimerScreen';
 import { SessionDoneScreen } from './SessionDoneScreen';
 import { WorkoutOverviewScreen } from './WorkoutOverviewScreen';
+import { ByFeelGridScreen } from './ByFeelGridScreen';
 import { dayProgress } from './session-ui';
 import { reduce, restRemaining, startSession } from './machine';
 import type { SessionState } from './types';
@@ -45,6 +46,10 @@ export function SessionScreen() {
       const day = DEMO_DAY.map((ex) => ({
         ...ex,
         weight: progress[ex.exerciseId]?.currentWeight ?? ex.weight,
+        targetReps:
+          ex.strategy === 'by-feel'
+            ? (progress[ex.exerciseId]?.currentReps ?? ex.targetReps)
+            : ex.targetReps,
       }));
       setBoot({ state: startSession('plan', day), startedAt: 0 });
     }, 0);
@@ -94,9 +99,10 @@ function SessionRunner({ boot }: { boot: Boot }) {
     }
   }, [resting, remaining]);
 
-  // Persistence: snapshot after every state change; on done, settle once — score the
-  // lifts, move next session's weights, store them, and turn the snapshot into history.
-  const sessionOver = state.phase.name === 'done';
+  // Persistence: snapshot after every state change; on done — once the poke grid has
+  // been answered or skipped — settle: score the lifts, move next session's weights,
+  // store them, and turn the snapshot into history.
+  const sessionOver = state.phase.name === 'done' && state.pendingRatings.length === 0;
   useEffect(() => {
     if (clock.startedAt === 0) return;
     if (!sessionOver) {
@@ -135,10 +141,19 @@ function SessionRunner({ boot }: { boot: Boot }) {
   };
 
   const { done, total } = dayProgress(state);
+  const pendingRating = state.pendingRatings[0];
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      {showOverview && !sessionOver ? (
+      {pendingRating !== undefined ? (
+        <ByFeelGridScreen
+          dayName={DEMO_DAY_NAME}
+          exerciseIndex={pendingRating}
+          key={pendingRating}
+          onEvent={send}
+          state={state}
+        />
+      ) : showOverview && !sessionOver ? (
         <WorkoutOverviewScreen
           dayName={DEMO_DAY_NAME}
           now={clock.now}
