@@ -60,9 +60,11 @@ export function Button({
     >
       {({ pressed }) => (
         <View style={styles.row}>
-          {leftIcon}
-          <Text style={[styles.label, { color: textColor(pressed) }]}>{title}</Text>
-          {rightIcon}
+          {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
+          <Text numberOfLines={1} style={[styles.label, { color: textColor(pressed) }]}>
+            {title}
+          </Text>
+          {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
         </View>
       )}
     </Pressable>
@@ -74,7 +76,12 @@ const styles = StyleSheet.create({
   // Figma: Large minH 64 / pad 20; Small minH 48 / pad 12 — both clear the 44px floor.
   large: { minHeight: 64, minWidth: 64, padding: 20 },
   small: { minHeight: 48, minWidth: 48, padding: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  // A button label is one line by contract (numberOfLines above). Without it, Android
+  // wrapped the second word of a label beside an icon onto a line the 24px box hid —
+  // "Add Workout +" rendered as "Add +" (2026-09-02).
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  iconLeft: { marginRight: 10 },
+  iconRight: { marginLeft: 10 },
   bgBrand: { backgroundColor: color.brand },
   bgBrandPressed: { backgroundColor: color.press.brand },
   bgRaised: { backgroundColor: color.bg.raised },
