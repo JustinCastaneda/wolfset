@@ -6,7 +6,7 @@ import { Button } from '@/components/Button';
 import { SegmentedProgress } from '@/components/SegmentedProgress';
 import { TopBar } from '@/components/TopBar';
 import { color, type } from '@/theme/tokens';
-import { currentExercise, dayProgress, loopTitle, type Dispatch } from './session-ui';
+import { currentExercise, exerciseProgress, loopTitle, type Dispatch } from './session-ui';
 import type { SessionState } from './types';
 
 // Log a Set (Figma 384:11460): Display XL weight, "Lbs x N reps", sets bar, and a
@@ -30,7 +30,7 @@ export function LogASetScreen({
   const [reps, setReps] = useState(exercise.targetReps);
 
   const allDone = state.phase.name === 'all-sets-done';
-  const { done, total } = dayProgress(state);
+  const { done, total } = exerciseProgress(state);
 
   return (
     <View style={styles.root}>

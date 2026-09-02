@@ -7,7 +7,7 @@ import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
 import { color, type } from '@/theme/tokens';
 import { restRemaining } from './machine';
-import { dayProgress, formatClock, loopTitle, type Dispatch } from './session-ui';
+import { exerciseProgress, formatClock, loopTitle, type Dispatch } from './session-ui';
 import type { SessionState } from './types';
 
 // Post Set Timer (Figma 25:292): the ring with the countdown inside, the HR line, a
@@ -32,7 +32,7 @@ export function PostSetTimerScreen({
   const remaining = restRemaining(state, now) ?? 0;
   const fraction = state.phase.restSeconds > 0 ? remaining / state.phase.restSeconds : 0;
   const zone = state.phase.recovered ? 'ready' : fraction > 0.5 ? 'resting' : 'approaching';
-  const { done, total } = dayProgress(state);
+  const { done, total } = exerciseProgress(state);
 
   return (
     <View style={styles.root}>
