@@ -68,10 +68,15 @@ export function ByFeelGridScreen({
             onPress={(e) => onPoke(e.nativeEvent.locationX, e.nativeEvent.locationY)}
             style={styles.gridPress}
           >
-            <View style={[styles.cell, styles.cellTL]} />
-            <View style={[styles.cell, styles.cellTR]} />
-            <View style={[styles.cell, styles.cellBL]} />
-            <View style={[styles.cell, styles.cellBR]} />
+            {/* Decorative only — pointerEvents none so every touch lands on the
+                Pressable itself and locationX/Y are grid-relative (touching a child
+                made coordinates cell-relative, which pinned every poke upper-left). */}
+            <View pointerEvents="none" style={styles.cells}>
+              <View style={styles.cell} />
+              <View style={styles.cell} />
+              <View style={styles.cell} />
+              <View style={styles.cell} />
+            </View>
             <View pointerEvents="none" style={styles.xLabels}>
               <Text style={styles.axis}>Clean</Text>
               <Text style={styles.axis}>Bad Form</Text>
@@ -91,8 +96,9 @@ export function ByFeelGridScreen({
 
         <View style={styles.card}>
           <Text style={styles.cardBody}>Skipping will repeat this set</Text>
+          {/* "Next session" not the lift name — insulated against long names (Justin). */}
           <Text style={styles.cardStrong}>
-            Next {ex.name.toLowerCase()} is {ex.weight} x {ex.targetReps}
+            Next session is {ex.weight} x {ex.targetReps}
           </Text>
         </View>
       </View>
@@ -112,7 +118,7 @@ export function ByFeelGridScreen({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg.base },
-  body: { flex: 1, paddingTop: 24, gap: 32 },
+  body: { flex: 1, paddingTop: 24, gap: 24 },
   titleBlock: { paddingHorizontal: 24, gap: 8 },
   h1: { ...type.h1, color: color.text.primary },
   subtitle: { fontFamily: 'Geom', fontSize: 20, fontWeight: '400', color: color.text.secondary },
@@ -120,12 +126,19 @@ const styles = StyleSheet.create({
   grid: { marginHorizontal: 24, height: 292 },
   gridPress: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: color.border,
     overflow: 'hidden',
+  },
+  cells: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   cell: {
     width: '50%',
@@ -134,10 +147,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: color.border,
   },
-  cellTL: {},
-  cellTR: {},
-  cellBL: {},
-  cellBR: {},
   xLabels: {
     position: 'absolute',
     top: '50%',
@@ -175,6 +184,12 @@ const styles = StyleSheet.create({
   },
   cardBody: { ...type.body, color: color.text.primary },
   cardStrong: { ...type.h3Bold, color: color.text.primary },
-  hint: { ...type.bodyLight, color: color.text.secondary, textAlign: 'center', marginBottom: 12 },
+  hint: {
+    ...type.bodyLight,
+    color: color.text.secondary,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 12,
+  },
   bottomBar: { paddingHorizontal: 24, paddingBottom: 40, paddingTop: 12 },
 });
