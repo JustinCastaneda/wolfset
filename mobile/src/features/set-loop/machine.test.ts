@@ -59,7 +59,8 @@ describe('the loop — log a set, rest, next set', () => {
   });
 
   it('sets exhausted → next lift, with the next lift’s own rest seconds', () => {
-    let s = logAndRest(startSession('plan', [squat, curl]), t(0));
+    const twoSetCurl = { ...curl, prescribedSets: 2 };
+    let s = logAndRest(startSession('plan', [squat, twoSetCurl]), t(0));
     s = logAndRest(s, t(120)); // squat set 2 → advance to curls
     expect(s.exerciseIndex).toBe(1);
     expect(s.setIndex).toBe(0);
@@ -67,22 +68,24 @@ describe('the loop — log a set, rest, next set', () => {
     expect(s.phase).toMatchObject({ name: 'resting', restSeconds: 60 });
   });
 
-  it('last lift done → all-sets-done, and Finish is still the real exit', () => {
+  it('the last rep of the last set ends the workout on its own — no rest, no prompt', () => {
     let s = logAndRest(startSession('plan', [squat, curl]), t(0));
     s = logAndRest(s, t(120));
-    s = logAndRest(s, t(300));
-    expect(s.phase).toEqual({ name: 'all-sets-done' });
-    const done = reduce(s, { type: 'workoutEnded', at: t(400) });
-    expect(done.phase).toEqual({ name: 'done', endedEarly: false });
+    s = reduce(s, { type: 'setLogged', reps: 10, at: t(300) });
+    expect(s.phase).toEqual({ name: 'done', endedEarly: false });
+    expect(s.sets).toHaveLength(3);
+    expect(s.sets[2].restStartedAt).toBeNull(); // no timer after the final set
   });
 
-  it('bonus sets can still be logged after all-sets-done', () => {
-    let s = logAndRest(startSession('plan', [squat, curl]), t(0));
-    s = logAndRest(s, t(120));
-    s = logAndRest(s, t(300));
-    const bonus = reduce(s, { type: 'setLogged', reps: 8, at: t(400) });
-    expect(bonus.phase.name).toBe('resting');
-    expect(bonus.sets).toHaveLength(4);
+  it('auto-finish also fires when the last unfinished lift completes out of order', () => {
+    let s = startSession('plan', [squat, curl]);
+    s = reduce(s, { type: 'exerciseJumped', index: 1, at: t(0) }); // curls first
+    s = reduce(s, { type: 'setLogged', reps: 10, at: t(10) });
+    s = reduce(s, { type: 'restEnded', reason: 'continue', at: t(20) }); // → back to squats
+    expect(s.exerciseIndex).toBe(0);
+    s = logAndRest(s, t(30));
+    s = reduce(s, { type: 'setLogged', reps: 5, at: t(200) }); // squat set 2 = last remaining
+    expect(s.phase).toEqual({ name: 'done', endedEarly: false });
   });
 });
 
@@ -128,6 +131,45 @@ describe('the Edit Weights detour', () => {
   it('cannot open mid-rest — it is a detour off Log a Set, not the timer', () => {
     const resting = reduce(startSession('plan', [squat]), { type: 'setLogged', reps: 5, at: t(0) });
     expect(reduce(resting, { type: 'weightEditOpened' }).phase.name).toBe('resting');
+  });
+});
+
+describe('jumping between exercises (Justin, 2026-09-02)', () => {
+  it('jumps to any exercise and resumes at its next unlogged set', () => {
+    let s = logAndRest(startSession('plan', [squat, curl]), t(0)); // squat set 1 done
+    s = reduce(s, { type: 'exerciseJumped', index: 1, at: t(100) });
+    expect(s.exerciseIndex).toBe(1);
+    expect(s.setIndex).toBe(0);
+    expect(s.phase).toEqual({ name: 'logging' });
+    // jump back mid-way: squat resumes at set 2, not set 1
+    s = reduce(s, { type: 'exerciseJumped', index: 0, at: t(110) });
+    expect(s.setIndex).toBe(1);
+  });
+
+  it('jumping mid-rest cuts the rest short and records it', () => {
+    const resting = reduce(startSession('plan', [squat, curl]), {
+      type: 'setLogged',
+      reps: 5,
+      at: t(0),
+    });
+    const s = reduce(resting, { type: 'exerciseJumped', index: 1, at: t(30) });
+    expect(s.phase).toEqual({ name: 'logging' });
+    expect(s.sets[0].restEndedAt).toBe(t(30));
+    expect(s.sets[0].restEndReason).toBe('continue');
+  });
+
+  it('advancing wraps past finished lifts back to earlier unfinished ones', () => {
+    let s = startSession('plan', [squat, curl]);
+    s = reduce(s, { type: 'exerciseJumped', index: 1, at: t(0) });
+    s = reduce(s, { type: 'setLogged', reps: 10, at: t(10) }); // curls done (1 set)
+    s = reduce(s, { type: 'restEnded', reason: 'timer', at: t(70) });
+    expect(s.exerciseIndex).toBe(0); // wrapped back to squats
+    expect(s.setIndex).toBe(0);
+  });
+
+  it('an out-of-range jump changes nothing', () => {
+    const s = startSession('plan', [squat]);
+    expect(reduce(s, { type: 'exerciseJumped', index: 5, at: t(0) })).toBe(s);
   });
 });
 

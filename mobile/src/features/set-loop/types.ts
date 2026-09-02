@@ -62,4 +62,7 @@ export type SessionEvent =
   | { type: 'weightEditClosed' }
   /** Freestyle: a new exercise joins mid-session and becomes current. */
   | { type: 'exerciseAdded'; exercise: SessionExercise; at: number }
+  /** Jump to any exercise from the overview, even midway through sets (Justin,
+   *  2026-09-02). Resumes at that exercise's next unlogged set; cuts a running rest. */
+  | { type: 'exerciseJumped'; index: number; at: number }
   | { type: 'workoutEnded'; at: number };
