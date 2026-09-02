@@ -24,6 +24,15 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
     case 'setLogged': {
       if (state.phase.name !== 'logging' && state.phase.name !== 'all-sets-done') return state;
       const exercise = current(state);
+      // The last rep of the last prescribed set ends the workout on its own — they did
+      // it; no rest, straight to Session Done (Justin, 2026-09-02).
+      const finishes =
+        state.kind === 'plan' &&
+        state.exercises.every((ex, i) => {
+          if (ex.prescribedSets === null) return false;
+          const logged = countLogged(state, i) + (i === state.exerciseIndex ? 1 : 0);
+          return logged >= ex.prescribedSets;
+        });
       const sets = [
         ...state.sets,
         {
@@ -32,11 +41,12 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
           weight: exercise.weight,
           reps: event.reps,
           loggedAt: event.at,
-          restStartedAt: exercise.autoStartTimer ? event.at : null,
+          restStartedAt: !finishes && exercise.autoStartTimer ? event.at : null,
           restEndedAt: null,
           restEndReason: null,
         },
       ];
+      if (finishes) return { ...state, sets, phase: { name: 'done', endedEarly: false } };
       // The timer starts on its own; it is not a screen the user chooses to visit.
       const phase: Phase = {
         name: 'resting',
@@ -93,6 +103,14 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
       };
     }
 
+    case 'exerciseJumped': {
+      if (event.index < 0 || event.index >= state.exercises.length) return state;
+      const sets =
+        state.phase.name === 'resting' ? closeRest(state, 'continue', event.at) : state.sets;
+      const jumped = { ...state, sets, exerciseIndex: event.index };
+      return { ...jumped, setIndex: countLogged(jumped, event.index), phase: { name: 'logging' } };
+    }
+
     case 'workoutEnded': {
       const sets =
         state.phase.name === 'resting' ? closeRest(state, 'continue', event.at) : state.sets;
@@ -122,7 +140,12 @@ function closeRest(state: SessionState, reason: 'timer' | 'continue', at: number
   );
 }
 
-/** After a rest: next set of the same exercise, or the next lift, or all done. */
+function countLogged(state: SessionState, exerciseIndex: number): number {
+  return state.sets.filter((s) => s.exerciseIndex === exerciseIndex).length;
+}
+
+/** After a rest: next set of the same exercise, or the next *unfinished* lift — the
+ *  search wraps, because jumping around can leave earlier lifts incomplete. */
 function advance(state: SessionState): SessionState {
   const exercise = current(state);
   const nextSet = state.setIndex + 1;
@@ -132,10 +155,16 @@ function advance(state: SessionState): SessionState {
     return { ...state, setIndex: nextSet, phase: { name: 'logging' } };
   }
 
-  const nextExercise = state.exerciseIndex + 1;
-  if (nextExercise < state.exercises.length) {
-    return { ...state, exerciseIndex: nextExercise, setIndex: 0, phase: { name: 'logging' } };
+  const count = state.exercises.length;
+  for (let step = 1; step < count; step++) {
+    const i = (state.exerciseIndex + step) % count;
+    const prescribed = state.exercises[i].prescribedSets;
+    const logged = countLogged(state, i);
+    if (prescribed === null || logged < prescribed) {
+      return { ...state, exerciseIndex: i, setIndex: logged, phase: { name: 'logging' } };
+    }
   }
 
+  // Belt only: plans auto-finish on the final logged set, so this is unreachable there.
   return { ...state, phase: { name: 'all-sets-done' } };
 }

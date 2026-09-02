@@ -86,6 +86,10 @@ export function SessionScreen() {
           dayName={DEMO_DAY_NAME}
           now={clock.now}
           onContinue={continueFromOverview}
+          onJump={(index) => {
+            send({ type: 'exerciseJumped', index, at: Date.now() });
+            setShowOverview(false);
+          }}
           onReturn={() => setShowOverview(false)}
           onEndRequest={() => setConfirmingEnd(true)}
           onLeave={() => router.back()}

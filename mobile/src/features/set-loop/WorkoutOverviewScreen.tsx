@@ -21,6 +21,7 @@ export function WorkoutOverviewScreen({
   now,
   onContinue,
   onReturn,
+  onJump,
   onEndRequest,
   onLeave,
 }: {
@@ -28,8 +29,10 @@ export function WorkoutOverviewScreen({
   dayName: string;
   now: number;
   onContinue: () => void;
-  /** Row tap: plain return to wherever the session is — logging or mid-timer. */
+  /** Current row tap: plain return to wherever the session is — logging or mid-timer. */
   onReturn: () => void;
+  /** Any other row tap: jump to that exercise, even midway through sets. */
+  onJump: (index: number) => void;
   onEndRequest: () => void;
   onLeave: () => void;
 }) {
@@ -104,14 +107,13 @@ export function WorkoutOverviewScreen({
             );
             return (
               <Pressable
-                accessibilityRole={current ? 'button' : undefined}
-                disabled={!current}
+                accessibilityRole="button"
                 key={ex.exerciseId}
-                onPress={onReturn}
+                onPress={() => (current ? onReturn() : onJump(i))}
                 style={({ pressed }) => [
                   styles.row,
                   current && styles.rowCurrent,
-                  pressed && current && styles.rowPressed,
+                  pressed && styles.rowPressed,
                 ]}
               >
                 <View style={styles.rowLeft}>
