@@ -33,10 +33,12 @@ export function EditWeightsScreen({
 
   const onKey = (key: KeypadKey) => {
     setDraft((d) => {
-      if (key === 'delete') return d.slice(0, -1).replace(/\.$/, '');
-      if (key === '.5') return d === '' || d.includes('.') ? d : `${d}.5`;
-      if (d.includes('.')) return d; // digits after .5 make no loadable weight
-      return d.length >= 4 ? d : d === '0' ? key : d + key;
+      if (key === 'delete') return d.slice(0, -1);
+      if (key === '.') return d.includes('.') ? d : d === '' ? '0.' : `${d}.`;
+      const [, decimals = ''] = d.split('.');
+      if (d.includes('.') && decimals.length >= 2) return d; // weights need ≤2 decimals
+      if (!d.includes('.') && d.replace('.', '').length >= 4) return d;
+      return d === '0' ? key : d + key;
     });
   };
 
@@ -48,7 +50,12 @@ export function EditWeightsScreen({
         title={`${dayName} • ${exercise.name} • Edit Weight`}
       />
       <View style={styles.center}>
-        <WeightReadout unit="Lbs" value={value} was={exercise.weight} />
+        <WeightReadout
+          text={mode === 'keypad' && draft !== '' ? draft : undefined}
+          unit="Lbs"
+          value={value}
+          was={exercise.weight}
+        />
       </View>
 
       {mode === 'stepper' ? (

@@ -12,15 +12,17 @@ type WeightReadoutProps = {
   unit: 'Lbs' | 'Kgs';
   /** The weight this replaces — shows "Was N" and the signed delta when different. */
   was?: number;
+  /** Raw text override for the numeral while typing, so "25." keeps its dot visible. */
+  text?: string;
 };
 
-export function WeightReadout({ value, unit, was }: WeightReadoutProps) {
+export function WeightReadout({ value, unit, was, text }: WeightReadoutProps) {
   const delta = was === undefined ? 0 : value - was;
   const deltaColor = delta > 0 ? color.warning : color.success;
   const valueColor = delta === 0 ? color.text.primary : deltaColor;
   return (
     <View style={styles.root}>
-      <Text style={[styles.value, { color: valueColor }]}>{formatWeight(value)}</Text>
+      <Text style={[styles.value, { color: valueColor }]}>{text ?? formatWeight(value)}</Text>
       <Text style={styles.context}>
         {unit}
         {was !== undefined && delta !== 0 && (
