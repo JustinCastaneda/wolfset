@@ -6,7 +6,7 @@ import { openDatabaseSync, type SQLiteDatabase } from 'expo-sqlite';
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 1;
+const VERSION = 2;
 
 let db: SQLiteDatabase | null = null;
 
@@ -64,6 +64,19 @@ function migrate(database: SQLiteDatabase) {
           rest_end_reason TEXT
         );
         CREATE INDEX idx_sets_workout ON workout_sets(workout_id);
+      `);
+    }
+    if (from < 2) {
+      database.execSync(`
+        -- The live numbers per exercise (data-model ExerciseProgress): what Log a Set
+        -- pre-fills next session, and the failure streak behind the plateau prompt.
+        CREATE TABLE exercise_progress (
+          exercise_id TEXT PRIMARY KEY,
+          current_weight REAL NOT NULL,
+          consecutive_failures INTEGER NOT NULL DEFAULT 0,
+          last_outcome TEXT,
+          updated_at INTEGER NOT NULL
+        );
       `);
     }
     database.execSync(`PRAGMA user_version = ${VERSION}`);
