@@ -3,51 +3,66 @@ import { useEffect, useReducer, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { reduce, restRemaining, startSession } from './machine';
-import type { SessionState } from './types';
+import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
+import { color } from '@/theme/tokens';
+import { ConfirmEndSheet } from './ConfirmEndSheet';
 import { DEMO_DAY, DEMO_DAY_NAME } from './demo-day';
 import { EditWeightsScreen } from './EditWeightsScreen';
 import { LogASetScreen } from './LogASetScreen';
 import { PostSetTimerScreen } from './PostSetTimerScreen';
-import { WorkoutOverviewScreen } from './WorkoutOverviewScreen';
-import { ConfirmEndSheet } from './ConfirmEndSheet';
-import { dayProgress } from './session-ui';
 import { SessionDoneScreen } from './SessionDoneScreen';
-import { color } from '@/theme/tokens';
+import { WorkoutOverviewScreen } from './WorkoutOverviewScreen';
+import { dayProgress } from './session-ui';
+import { reduce, restRemaining, startSession } from './machine';
+import type { SessionState } from './types';
 
 // The session container: one useReducer over the tested machine, one screen per phase
-// (handoff brief §01 — five screens, one state machine). The route file only mounts this.
+// (handoff brief §01). The route file only mounts this.
 //
-// Rest is time-only for now: the ring runs on the clock and 0:00 auto-advances, exactly
-// the "0:00 or Continue" flow. The HR gate plugs into `recoveredChanged` in Phase 7.
+// Local-first (decision #1): every event snapshots the whole machine state to SQLite,
+// so a killed app resumes exactly where it stood — including a running rest, because
+// its timestamps are absolute. Finishing turns the snapshot into history rows.
+//
+// Rest is time-only for now; the HR gate plugs into `recoveredChanged` in Phase 7.
 
-function initSession() {
-  return startSession('plan', DEMO_DAY);
-}
+type Boot = { state: SessionState; startedAt: number };
 
 export function SessionScreen() {
-  // The app draws edge-to-edge (SDK 35); system-bar insets are runtime values, so the
-  // screens' design paddings sit inside them instead of under them.
-  const insets = useSafeAreaInsets();
-  const [state, dispatch] = useReducer(reduce, undefined, initSession);
-  // The overview is navigation, not a machine phase (brief §01: "Workout Summary is
-  // the running list, reachable during the session"). The tree icon leads up here.
-  const [showOverview, setShowOverview] = useState(false);
-  const [confirmingEnd, setConfirmingEnd] = useState(false);
-  // Clocks are set inside effects, never during render (React Compiler rule); the
-  // machine itself only ever sees timestamps we hand it.
-  const [clock, setClock] = useState({ startedAt: 0, now: 0 });
+  // The snapshot read is impure, so it happens in an effect, never during render.
+  const [boot, setBoot] = useState<Boot | null>(null);
   useEffect(() => {
-    // Seeded async so no state is set synchronously inside an effect (compiler rule).
     const id = setTimeout(() => {
-      const t = Date.now();
-      setClock((c) => (c.startedAt === 0 ? { startedAt: t, now: t } : c));
+      const saved = loadSnapshot();
+      setBoot(
+        saved && saved.state.phase.name !== 'done'
+          ? saved
+          : { state: startSession('plan', DEMO_DAY), startedAt: 0 },
+      );
     }, 0);
     return () => clearTimeout(id);
   }, []);
 
-  // Every timestamped event also moves the clock, so screens (like Session Done's
-  // duration) never need to read time during render.
+  if (!boot) return <View style={styles.root} />;
+  return <SessionRunner boot={boot} />;
+}
+
+function SessionRunner({ boot }: { boot: Boot }) {
+  const insets = useSafeAreaInsets();
+  const [state, dispatch] = useReducer(reduce, boot.state);
+  // The overview is navigation, not a machine phase (brief §01). Tree icon leads here.
+  const [showOverview, setShowOverview] = useState(false);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [clock, setClock] = useState({ startedAt: boot.startedAt, now: 0 });
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const t = Date.now();
+      setClock((c) => ({ startedAt: c.startedAt || t, now: t }));
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  // Every timestamped event also moves the clock, so screens never read time in render.
   const send: typeof dispatch = (event) => {
     if ('at' in event) {
       setClock((c) => ({ startedAt: c.startedAt || event.at, now: event.at }));
@@ -69,15 +84,18 @@ export function SessionScreen() {
     }
   }, [resting, remaining]);
 
-  const { done, total } = dayProgress(state);
+  // Persistence: snapshot after every state change; finalize exactly once on done.
   const sessionOver = state.phase.name === 'done';
+  useEffect(() => {
+    if (clock.startedAt === 0) return;
+    if (sessionOver) {
+      finalizeSession(state, clock.startedAt, Date.now());
+    } else {
+      saveSnapshot(state, clock.startedAt, Date.now());
+    }
+  }, [state, sessionOver, clock.startedAt]);
 
-  // Continue on the overview means "let's do the next set": mid-rest it skips the
-  // timer and advances; otherwise it returns to the set in progress (Justin, 2026-09-02).
-  const continueFromOverview = () => {
-    if (resting) send({ type: 'restEnded', reason: 'continue', at: Date.now() });
-    setShowOverview(false);
-  };
+  const { done, total } = dayProgress(state);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -85,24 +103,27 @@ export function SessionScreen() {
         <WorkoutOverviewScreen
           dayName={DEMO_DAY_NAME}
           now={clock.now}
-          onContinue={continueFromOverview}
+          onContinue={() => {
+            if (resting) send({ type: 'restEnded', reason: 'continue', at: Date.now() });
+            setShowOverview(false);
+          }}
+          onEndRequest={() => setConfirmingEnd(true)}
           onJump={(index) => {
             send({ type: 'exerciseJumped', index, at: Date.now() });
             setShowOverview(false);
           }}
-          onReturn={() => setShowOverview(false)}
-          onEndRequest={() => setConfirmingEnd(true)}
           onLeave={() => router.back()}
+          onReturn={() => setShowOverview(false)}
           state={state}
         />
       ) : (
         <SessionBody
           now={clock.now}
           onEvent={send}
+          onLeave={() => router.back()}
           onOverview={() => setShowOverview(true)}
           startedAt={clock.startedAt}
           state={state}
-          onLeave={() => router.back()}
         />
       )}
       <ConfirmEndSheet
