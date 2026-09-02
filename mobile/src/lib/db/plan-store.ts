@@ -1,4 +1,5 @@
 import { getDb } from './database';
+import { newId } from './ids';
 import type { SessionExercise } from '@/features/set-loop/types';
 
 // Reads the plan tables (data-model §2: Plan → PlanDay → PlanExercise). The session
@@ -61,4 +62,36 @@ export function sessionExercisesFrom(rows: PlanExerciseRow[]): SessionExercise[]
     autoStartTimer: r.auto_start_timer === 1,
     ...(r.strategy === 'by-feel' ? { strategy: 'by-feel' as const } : {}),
   }));
+}
+
+export type ProgressionStrategy = 'steady' | 'reps-first' | 'by-feel';
+
+/** How many plans exist — feeds the "Plan N" name suggestion (Figma 114:3014). */
+export function countPlans(): number {
+  const row = getDb().getFirstSync<{ n: number }>('SELECT count(*) AS n FROM plans');
+  return row?.n ?? 0;
+}
+
+/** The builder's first write: a new, inactive plan with its first day. It becomes the
+ *  active plan only when Plan Summary saves it (data-model §2 Plan.source = built). */
+export function createPlan(
+  input: { name: string; progressionDefault: ProgressionStrategy },
+  now: number,
+): { planId: string; dayId: string } {
+  const planId = newId();
+  const dayId = newId();
+  const db = getDb();
+  db.withTransactionSync(() => {
+    db.runSync(
+      `INSERT INTO plans (id, name, source, progression_default, is_active, created_at, updated_at)
+       VALUES (?, ?, 'built', ?, 0, ?, ?)`,
+      [planId, input.name, input.progressionDefault, now, now],
+    );
+    db.runSync('INSERT INTO plan_days (id, plan_id, day_order, name) VALUES (?, ?, 0, ?)', [
+      dayId,
+      planId,
+      'Day 1',
+    ]);
+  });
+  return { planId, dayId };
 }

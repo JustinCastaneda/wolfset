@@ -33,6 +33,8 @@ export default function Index() {
           onPress={() => router.push('/session')}
           title={hasSession ? 'Resume Workout' : 'Start Workout'}
         />
+        {/* Placeholder entry until the Get Started hub (Figma 101:637) is built. */}
+        <Button onPress={() => router.push('/plan/new')} title="Build a Plan" variant="secondary" />
       </View>
       {__DEV__ && (
         <Link href="/design-kit" style={styles.kitLink}>
@@ -47,7 +49,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg.base },
   // Wordmark is Geom Black (the h1 token), WOLF red / SET white — the naming rule in CLAUDE.md.
   wordmark: { ...type.h1, letterSpacing: 2 },
-  startBar: { alignSelf: 'stretch', paddingHorizontal: 24, marginTop: 48 },
+  startBar: { alignSelf: 'stretch', paddingHorizontal: 24, marginTop: 48, gap: 12 },
   kitLink: { ...type.label, color: color.text.muted, marginTop: 24, padding: 12 },
   wolf: { color: color.brand },
   set: { color: color.text.primary },
