@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useReducer, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { reduce, restRemaining, startSession } from './machine';
 import type { SessionState } from './types';
@@ -25,6 +26,9 @@ function initSession() {
 }
 
 export function SessionScreen() {
+  // The app draws edge-to-edge (SDK 35); system-bar insets are runtime values, so the
+  // screens' design paddings sit inside them instead of under them.
+  const insets = useSafeAreaInsets();
   const [state, dispatch] = useReducer(reduce, undefined, initSession);
   // The overview is navigation, not a machine phase (brief §01: "Workout Summary is
   // the running list, reachable during the session"). The tree icon leads up here.
@@ -68,12 +72,21 @@ export function SessionScreen() {
   const { done, total } = dayProgress(state);
   const sessionOver = state.phase.name === 'done';
 
+  // Continue on the overview means "let's do the next set": mid-rest it skips the
+  // timer and advances; otherwise it returns to the set in progress (Justin, 2026-09-02).
+  const continueFromOverview = () => {
+    if (resting) send({ type: 'restEnded', reason: 'continue', at: Date.now() });
+    setShowOverview(false);
+  };
+
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       {showOverview && !sessionOver ? (
         <WorkoutOverviewScreen
           dayName={DEMO_DAY_NAME}
-          onContinue={() => setShowOverview(false)}
+          now={clock.now}
+          onContinue={continueFromOverview}
+          onReturn={() => setShowOverview(false)}
           onEndRequest={() => setConfirmingEnd(true)}
           onLeave={() => router.back()}
           state={state}
