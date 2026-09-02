@@ -50,6 +50,8 @@ export const DEMO_DAY: SessionExercise[] = [
     weight: 50,
     restSeconds: 90,
     autoStartTimer: true,
+    // The demo's By Feel lift: rep range 10–13 (targetReps .. +3), poke grid on finish.
+    strategy: 'by-feel',
   },
   {
     exerciseId: 'stu',

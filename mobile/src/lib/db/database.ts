@@ -6,7 +6,7 @@ import { openDatabaseSync, type SQLiteDatabase } from 'expo-sqlite';
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 2;
+const VERSION = 3;
 
 let db: SQLiteDatabase | null = null;
 
@@ -77,6 +77,17 @@ function migrate(database: SQLiteDatabase) {
           last_outcome TEXT,
           updated_at INTEGER NOT NULL
         );
+      `);
+    }
+    if (from < 3) {
+      database.execSync(`
+        -- By-feel bookkeeping (engine 384:11049 reads only the previous session):
+        -- the moving rep target, the last poke, and whether the lift held at the
+        -- top of its range.
+        ALTER TABLE exercise_progress ADD COLUMN current_reps INTEGER;
+        ALTER TABLE exercise_progress ADD COLUMN last_reserve TEXT;
+        ALTER TABLE exercise_progress ADD COLUMN last_form TEXT;
+        ALTER TABLE exercise_progress ADD COLUMN held_at_top INTEGER NOT NULL DEFAULT 0;
       `);
     }
     database.execSync(`PRAGMA user_version = ${VERSION}`);

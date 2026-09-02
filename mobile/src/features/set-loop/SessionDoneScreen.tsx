@@ -59,8 +59,17 @@ export function SessionDoneScreen({
                   <Text style={styles.liftChange}>
                     {s.prevWeight} → <Text style={styles.up}>{s.nextWeight}</Text>
                   </Text>
+                ) : s.nextReps !== s.prevReps ? (
+                  <Text style={styles.liftChange}>
+                    {s.prevReps} → <Text style={styles.up}>{s.nextReps}</Text> reps
+                  </Text>
                 ) : (
                   <Text style={styles.liftHold}>{s.nextWeight}</Text>
+                )}
+                {s.offerSteady && (
+                  <Text style={styles.offerSteady}>
+                    Unrated two sessions — consider switching this lift to Steady
+                  </Text>
                 )}
                 {s.plateau && (
                   <View style={styles.plateau}>
@@ -149,6 +158,7 @@ const styles = StyleSheet.create({
   },
   plateauKeyPressed: { backgroundColor: color.press.raised },
   plateauKeyLabel: { ...type.label, color: color.text.onButton },
+  offerSteady: { ...type.caption, color: color.text.muted, width: '100%', paddingLeft: 28 },
   early: { ...type.bodyLight, color: color.warning, marginTop: 16 },
   bottomBar: { paddingHorizontal: 24, paddingBottom: 40, paddingTop: 12 },
 });

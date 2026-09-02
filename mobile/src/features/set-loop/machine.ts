@@ -14,11 +14,21 @@ export function startSession(
   exercises: SessionExercise[],
 ): SessionState {
   if (exercises.length === 0) throw new Error('a session needs at least one exercise');
-  return { kind, exercises, exerciseIndex: 0, setIndex: 0, sets: [], phase: { name: 'logging' } };
+  return {
+    kind,
+    exercises,
+    exerciseIndex: 0,
+    setIndex: 0,
+    sets: [],
+    phase: { name: 'logging' },
+    pendingRatings: [],
+    feelRatings: {},
+  };
 }
 
 export function reduce(state: SessionState, event: SessionEvent): SessionState {
-  if (state.phase.name === 'done') return state;
+  // The poke grid may still be answering after the final set auto-finished.
+  if (state.phase.name === 'done' && event.type !== 'feelRated') return state;
 
   switch (event.type) {
     case 'setLogged': {
@@ -46,7 +56,18 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
           restEndReason: null,
         },
       ];
-      if (finishes) return { ...state, sets, phase: { name: 'done', endedEarly: false } };
+      // A by-feel lift completing its prescription queues the poke grid ("How was
+      // it?"), even when that same log auto-finishes the workout.
+      const completedByFeel =
+        exercise.strategy === 'by-feel' &&
+        exercise.prescribedSets !== null &&
+        countLogged(state, state.exerciseIndex) + 1 >= exercise.prescribedSets &&
+        !state.pendingRatings.includes(state.exerciseIndex);
+      const pendingRatings = completedByFeel
+        ? [...state.pendingRatings, state.exerciseIndex]
+        : state.pendingRatings;
+      if (finishes)
+        return { ...state, sets, pendingRatings, phase: { name: 'done', endedEarly: false } };
       // The timer starts on its own; it is not a screen the user chooses to visit.
       const phase: Phase = {
         name: 'resting',
@@ -54,7 +75,16 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
         restSeconds: exercise.restSeconds,
         recovered: false,
       };
-      return { ...state, sets, phase };
+      return { ...state, sets, pendingRatings, phase };
+    }
+
+    case 'feelRated': {
+      if (!state.pendingRatings.includes(event.exerciseIndex)) return state;
+      return {
+        ...state,
+        pendingRatings: state.pendingRatings.filter((i) => i !== event.exerciseIndex),
+        feelRatings: { ...state.feelRatings, [event.exerciseIndex]: event.rating },
+      };
     }
 
     case 'restEnded': {
