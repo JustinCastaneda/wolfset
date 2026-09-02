@@ -13,13 +13,33 @@ export function loadSnapshot(): SavedSession | null {
   );
   if (!row) return null;
   try {
-    return { state: JSON.parse(row.state) as SessionState, startedAt: row.started_at };
+    return { state: migrateSnapshot(JSON.parse(row.state)), startedAt: row.started_at };
   } catch {
     // A corrupt snapshot must never block starting a workout (conventions §5) —
     // drop it and start fresh.
     clearSnapshot();
     return null;
   }
+}
+
+/** Snapshots persist across app updates, so they migrate like the schema does:
+ *  fields added to SessionState get defaults here, and a snapshot that still can't
+ *  stand up throws into the corrupt-drop path above. Never let an old save brick
+ *  the workout screen (learned 2026-09-02: pre-By-Feel snapshots lacked the rating
+ *  fields and crashed resume). */
+export function migrateSnapshot(raw: unknown): SessionState {
+  if (typeof raw !== 'object' || raw === null) throw new Error('snapshot is not an object');
+  const state = raw as SessionState;
+  if (!Array.isArray(state.exercises) || !state.phase || !Array.isArray(state.sets)) {
+    throw new Error('snapshot missing core fields');
+  }
+  return {
+    ...state,
+    // Added with the By Feel grid (PR #32); older saves predate them.
+    pendingRatings: Array.isArray(state.pendingRatings) ? state.pendingRatings : [],
+    feelRatings:
+      typeof state.feelRatings === 'object' && state.feelRatings !== null ? state.feelRatings : {},
+  };
 }
 
 export function saveSnapshot(state: SessionState, startedAt: number, now: number) {
