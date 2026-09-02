@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { reduce, startSession } from './machine';
-import { acceptDeload, settleSession } from './settle-session';
+import { acceptDeload, prescriptionFor, settleSession } from './settle-session';
 import type { StoredProgress } from '@/lib/db/progress-store';
 import type { SessionExercise, SessionState } from './types';
 
@@ -144,5 +144,21 @@ describe('settleSession — by-feel lifts run the engine', () => {
       squat: stored({ lastOutcome: 'hit', lastReserve: null, lastForm: null }),
     });
     expect(s.offerSteady).toBe(true);
+  });
+});
+
+describe('prescriptionFor — the plan defaults per strategy', () => {
+  it('reps-first climbs one rep per hit to the lift ceiling, or 20 by default', () => {
+    const rx = prescriptionFor({ ...squat, strategy: 'reps-first', repCeiling: 12 });
+    expect(rx.progression).toEqual({ strategy: 'reps-first', repStep: 1 });
+    expect(rx.repCeiling).toBe(12);
+    expect(prescriptionFor({ ...squat, strategy: 'reps-first' }).repCeiling).toBe(20);
+  });
+
+  it('a reps-first hit moves the rep target and stores it for next session', () => {
+    const [s] = settleSession(run([5, 5], [{ ...squat, strategy: 'reps-first' }]), {});
+    expect(s.nextWeight).toBe(85);
+    expect(s.nextReps).toBe(6);
+    expect(s.progress.currentReps).toBe(6);
   });
 });

@@ -12,6 +12,7 @@ const row = (over: Partial<PlanExerciseRow>): PlanExerciseRow => ({
   rest_seconds: 90,
   auto_start_timer: 1,
   strategy: null,
+  rep_ceiling: null,
   ...over,
 });
 
@@ -37,6 +38,16 @@ describe('sessionExercisesFrom — plan rows become what the loop starts with', 
     ]);
     expect(byFeel.strategy).toBe('by-feel');
     expect(steady.strategy).toBeUndefined();
+  });
+
+  it('a reps-first row carries its strategy and ceiling; no ceiling means the plan default', () => {
+    const [withCeiling, without] = sessionExercisesFrom([
+      row({ strategy: 'reps-first', rep_ceiling: 12 }),
+      row({ strategy: 'reps-first' }),
+    ]);
+    expect(withCeiling).toMatchObject({ strategy: 'reps-first', repCeiling: 12 });
+    expect(without.strategy).toBe('reps-first');
+    expect(without.repCeiling).toBeUndefined();
   });
 
   it('auto_start_timer is a SQLite 0/1, not a boolean', () => {
@@ -80,7 +91,8 @@ describe('STARTER_PLAN — the seeded Workout A the loop trains from until a pla
       start_weight: e.startWeight,
       rest_seconds: e.restSeconds,
       auto_start_timer: e.autoStartTimer ? 1 : 0,
-      strategy: e.strategy,
+      strategy: e.strategy ?? 'steady',
+      rep_ceiling: null,
     }));
     const state = startSession('plan', sessionExercisesFrom(rows));
     const planned = state.exercises.reduce(

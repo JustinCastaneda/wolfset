@@ -4,9 +4,11 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
+import { ButtonGroup } from '@/components/ButtonGroup';
 import { Chip } from '@/components/Chip';
 import { Input } from '@/components/Input';
 import { Keypad } from '@/components/Keypad';
+import { ListItem } from '@/components/ListItem';
 import { RadioCard } from '@/components/RadioCard';
 import { SegmentedProgress } from '@/components/SegmentedProgress';
 import { TimerRing } from '@/components/TimerRing';
@@ -54,6 +56,24 @@ export default function DesignKit() {
 
       <Text style={styles.section}>Radio Card — default · selected (tap to move)</Text>
       <RadioCardDemo />
+
+      <Text style={styles.section}>
+        Button Group — 1 · 3 · 5 · 10 · custom (pencil opens a keypad)
+      </Text>
+      <ButtonGroupDemo />
+
+      <Text style={styles.section}>List Item — leading · trailing · accent caption</Text>
+      <ListItem
+        caption="Barbell • Legs, Back"
+        title="Deadlift"
+        trailing={<Button size="small" title="Go" />}
+      />
+      <ListItem caption="Reps First • Plan Default" title="Progression" />
+      <ListItem
+        caption="1:30 Rest"
+        captionAccent="Progression Override"
+        title="Bulgarian Split Squat"
+      />
 
       <Text style={styles.section}>Input — default · filled · error · required + count</Text>
       <View style={styles.group}>
@@ -146,6 +166,11 @@ function ToggleChipsDemo() {
       ))}
     </View>
   );
+}
+
+function ButtonGroupDemo() {
+  const [sets, setSets] = useState(5);
+  return <ButtonGroup label="Sets" onChange={setSets} options={[1, 3, 5, 10]} value={sets} />;
 }
 
 function RadioCardDemo() {

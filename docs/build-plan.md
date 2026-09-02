@@ -463,9 +463,11 @@ Order:
 - [ ] Post Set Timer full states + Pacing Override detour
 - [ ] Next Workout / Workout A
 - [ ] Freestyle — **after** Set Workflow, needs the engine to handle open-ended sets
-- [ ] Getting Started **(= Create New MesoCycle — one build)**
-- [ ] Add Exercise Details · Progression Override · Pacing Override
-- [ ] Day Summary · Plan Summary
+- [x] Getting Started **(= Create New MesoCycle — one build)** — Name this Plan · How You Get
+      Stronger (#37); Search Exercise · Add Exercise Details · Day Summary, Save Day activates
+      the plan (2026-09-02). Still open: illustrations (#10), filter drawer, Plan Summary
+- [ ] Progression Override · Pacing Override
+- [ ] Plan Summary (multi-day, suggested week)
 - [ ] Onboarding — Setup → Equipment → Goals → Select a Plan (all skippable)
 - [ ] Search Exercise / Add Exercise
 - [ ] Edit Set — reached from a logged row, not from the timer

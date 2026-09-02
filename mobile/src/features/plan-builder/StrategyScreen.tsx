@@ -13,7 +13,7 @@ import { DEFAULT_STRATEGY, STRATEGIES } from './strategies';
 
 // How You Get Stronger — the plan's default progression (Figma 101:994; selected rows
 // 380:8548 steady / 380:9747 by feel). Next writes the plan: name + default, plus its
-// first day. The builder continues from that row (Search Exercise → Day Summary).
+// first day, then opens Search Exercise for that day's first lift.
 
 export function StrategyScreen() {
   const insets = useSafeAreaInsets();
@@ -22,9 +22,11 @@ export function StrategyScreen() {
   const [strategy, setStrategy] = useState<ProgressionStrategy>(DEFAULT_STRATEGY);
 
   const onNext = () => {
-    createPlan({ name: planName, progressionDefault: strategy }, Date.now());
-    // The lift screens land next; until then the builder returns home with the plan saved.
+    const { dayId } = createPlan({ name: planName, progressionDefault: strategy }, Date.now());
+    // The plan exists now, so the naming steps leave the stack: back from "What's the
+    // first lift?" is home, not a second copy of this plan.
     router.dismissAll();
+    router.push({ pathname: '/plan/day/[dayId]/search', params: { dayId } });
   };
 
   return (

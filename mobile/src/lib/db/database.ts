@@ -1,14 +1,15 @@
 import { openDatabaseSync, type SQLiteDatabase } from 'expo-sqlite';
 
+import { STARTER_EXERCISES } from './seed-exercises';
 import { STARTER_PLAN } from './seed-plan';
 
 // The local database — the source of truth (decision #1: local-first; Supabase syncs
 // later, Phase 6). Schema follows docs/data-model.md: the session loop's tables, the
-// per-exercise progress, and (v4) the plan tables the builder edits.
+// per-exercise progress, (v4) the plan tables the builder edits, (v5) the exercise catalog.
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 4;
+const VERSION = 5;
 
 let db: SQLiteDatabase | null = null;
 
@@ -129,6 +130,39 @@ function migrate(database: SQLiteDatabase) {
         CREATE INDEX idx_plan_exercises_day ON plan_exercises(plan_day_id);
       `);
       seedStarterPlan(database, Date.now());
+    }
+    if (from < 5) {
+      database.execSync(`
+        -- The exercise catalog (data-model §2 Exercise): what Search Exercise lists.
+        -- muscle_groups is comma-joined; sort_order keeps the seeded order on screen.
+        CREATE TABLE exercises (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          description TEXT NOT NULL DEFAULT '',
+          load_type TEXT NOT NULL,
+          muscle_groups TEXT NOT NULL DEFAULT '',
+          is_unilateral INTEGER NOT NULL DEFAULT 0,
+          is_custom INTEGER NOT NULL DEFAULT 0,
+          sort_order INTEGER NOT NULL DEFAULT 0
+        );
+        -- Reps First: "Max Reps before Weight Increase" (NULL = plan default, 20).
+        ALTER TABLE plan_exercises ADD COLUMN rep_ceiling INTEGER;
+      `);
+      STARTER_EXERCISES.forEach((ex, i) => {
+        database.runSync(
+          `INSERT INTO exercises (id, name, description, load_type, muscle_groups, is_unilateral, is_custom, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, 0, ?)`,
+          [
+            ex.id,
+            ex.name,
+            ex.description,
+            ex.loadType,
+            ex.muscles.join(','),
+            ex.unilateral ? 1 : 0,
+            i,
+          ],
+        );
+      });
     }
     database.execSync(`PRAGMA user_version = ${VERSION}`);
   });
