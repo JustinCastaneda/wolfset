@@ -7,7 +7,7 @@ import type { SessionState } from './types';
 
 // Settling a finished session (data-model §5.1–5.2): score each lift, run the tested
 // progression rules, and produce what Session Done shows and what gets stored. Pure —
-// the caller persists. Until the plan builder exists, every demo-day lift runs the
+// the caller persists. Until the plan builder stores per-lift overrides, every lift runs the
 // plan defaults: steady, +5 lb, deload 10% after 2 failures, 5 lb steps.
 
 const DEFAULT_RX: Omit<Prescription, 'sets' | 'reps'> = {

@@ -4,11 +4,11 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
+import { loadActiveDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
 import { acceptDeload, settleSession, type SettledExercise } from './settle-session';
 import { color } from '@/theme/tokens';
 import { ConfirmEndSheet } from './ConfirmEndSheet';
-import { DEMO_DAY, DEMO_DAY_NAME } from './demo-day';
 import { EditWeightsScreen } from './EditWeightsScreen';
 import { LogASetScreen } from './LogASetScreen';
 import { PostSetTimerScreen } from './PostSetTimerScreen';
@@ -28,22 +28,29 @@ import type { SessionState } from './types';
 //
 // Rest is time-only for now; the HR gate plugs into `recoveredChanged` in Phase 7.
 
-type Boot = { state: SessionState; startedAt: number };
+type Boot = { state: SessionState; startedAt: number; dayName: string };
 
 export function SessionScreen() {
-  // The snapshot read is impure, so it happens in an effect, never during render.
+  // The snapshot and plan reads are impure, so they happen in an effect, never in render.
   const [boot, setBoot] = useState<Boot | null>(null);
   useEffect(() => {
     const id = setTimeout(() => {
+      // The day comes from the stored plan (plan-store): the active plan's next day.
+      // No plan means nothing to run — back to home until the plan builder makes one.
+      const day = loadActiveDay();
+      if (!day) {
+        router.back();
+        return;
+      }
       const saved = loadSnapshot();
       if (saved && saved.state.phase.name !== 'done') {
-        setBoot(saved);
+        setBoot({ ...saved, dayName: day.dayName });
         return;
       }
       // A fresh session starts from the stored progress: yesterday's hits moved
-      // today's weights (data-model §5.2).
+      // today's weights (data-model §5.2); the plan's start weight is only the first.
       const progress = loadAllProgress();
-      const day = DEMO_DAY.map((ex) => ({
+      const exercises = day.exercises.map((ex) => ({
         ...ex,
         weight: progress[ex.exerciseId]?.currentWeight ?? ex.weight,
         targetReps:
@@ -51,7 +58,7 @@ export function SessionScreen() {
             ? (progress[ex.exerciseId]?.currentReps ?? ex.targetReps)
             : ex.targetReps,
       }));
-      setBoot({ state: startSession('plan', day), startedAt: 0 });
+      setBoot({ state: startSession('plan', exercises), startedAt: 0, dayName: day.dayName });
     }, 0);
     return () => clearTimeout(id);
   }, []);
@@ -61,6 +68,7 @@ export function SessionScreen() {
 }
 
 function SessionRunner({ boot }: { boot: Boot }) {
+  const dayName = boot.dayName;
   const insets = useSafeAreaInsets();
   const [state, dispatch] = useReducer(reduce, boot.state);
   // The overview is navigation, not a machine phase (brief §01). Tree icon leads here.
@@ -147,7 +155,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       {pendingRating !== undefined ? (
         <ByFeelGridScreen
-          dayName={DEMO_DAY_NAME}
+          dayName={dayName}
           exerciseIndex={pendingRating}
           key={pendingRating}
           onEvent={send}
@@ -155,7 +163,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
         />
       ) : showOverview && !sessionOver ? (
         <WorkoutOverviewScreen
-          dayName={DEMO_DAY_NAME}
+          dayName={dayName}
           now={clock.now}
           onContinue={() => {
             if (resting) send({ type: 'restEnded', reason: 'continue', at: Date.now() });
@@ -172,6 +180,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
         />
       ) : (
         <SessionBody
+          dayName={dayName}
           now={clock.now}
           onEvent={send}
           onLeave={() => router.back()}
@@ -199,6 +208,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
 
 function SessionBody({
   state,
+  dayName,
   now,
   startedAt,
   summary,
@@ -208,6 +218,7 @@ function SessionBody({
   onLeave,
 }: {
   state: SessionState;
+  dayName: string;
   now: number;
   startedAt: number;
   summary: SettledExercise[] | null;
@@ -221,7 +232,7 @@ function SessionBody({
     case 'all-sets-done':
       return (
         <LogASetScreen
-          dayName={DEMO_DAY_NAME}
+          dayName={dayName}
           // Remounting per set resets the rep counter to the target without an effect.
           key={`${state.exerciseIndex}:${state.setIndex}`}
           onEvent={onEvent}
@@ -232,7 +243,7 @@ function SessionBody({
     case 'resting':
       return (
         <PostSetTimerScreen
-          dayName={DEMO_DAY_NAME}
+          dayName={dayName}
           now={now}
           onEvent={onEvent}
           onOverview={onOverview}
@@ -240,7 +251,7 @@ function SessionBody({
         />
       );
     case 'editing-weight':
-      return <EditWeightsScreen dayName={DEMO_DAY_NAME} onEvent={onEvent} state={state} />;
+      return <EditWeightsScreen dayName={dayName} onEvent={onEvent} state={state} />;
     case 'done':
       return (
         <SessionDoneScreen
