@@ -1,12 +1,14 @@
 import { openDatabaseSync, type SQLiteDatabase } from 'expo-sqlite';
 
+import { STARTER_PLAN } from './seed-plan';
+
 // The local database — the source of truth (decision #1: local-first; Supabase syncs
-// later, Phase 6). Schema follows docs/data-model.md; only the tables the session loop
-// needs exist yet — plan tables arrive with the plan builder.
+// later, Phase 6). Schema follows docs/data-model.md: the session loop's tables, the
+// per-exercise progress, and (v4) the plan tables the builder edits.
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 3;
+const VERSION = 4;
 
 let db: SQLiteDatabase | null = null;
 
@@ -90,7 +92,82 @@ function migrate(database: SQLiteDatabase) {
         ALTER TABLE exercise_progress ADD COLUMN held_at_top INTEGER NOT NULL DEFAULT 0;
       `);
     }
+    if (from < 4) {
+      database.execSync(`
+        -- The plan template (data-model §2 Plan → PlanDay → PlanExercise). Per-exercise
+        -- columns that are NULL inherit the plan default. One plan is active at a time.
+        CREATE TABLE plans (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          source TEXT NOT NULL DEFAULT 'built',
+          progression_default TEXT NOT NULL DEFAULT 'steady',
+          is_active INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE TABLE plan_days (
+          id TEXT PRIMARY KEY,
+          plan_id TEXT NOT NULL REFERENCES plans(id),
+          day_order INTEGER NOT NULL,
+          name TEXT NOT NULL
+        );
+        CREATE INDEX idx_plan_days_plan ON plan_days(plan_id);
+        CREATE TABLE plan_exercises (
+          id TEXT PRIMARY KEY,
+          plan_day_id TEXT NOT NULL REFERENCES plan_days(id),
+          exercise_id TEXT NOT NULL,
+          exercise_order INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          sets INTEGER NOT NULL,
+          reps INTEGER NOT NULL,
+          start_weight REAL NOT NULL,
+          unit TEXT NOT NULL DEFAULT 'lb',
+          rest_seconds INTEGER NOT NULL DEFAULT 90,
+          auto_start_timer INTEGER NOT NULL DEFAULT 1,
+          strategy TEXT
+        );
+        CREATE INDEX idx_plan_exercises_day ON plan_exercises(plan_day_id);
+      `);
+      seedStarterPlan(database, Date.now());
+    }
     database.execSync(`PRAGMA user_version = ${VERSION}`);
+  });
+}
+
+/** The starter plan (seed-plan.ts) becomes the active plan, so an app with no plan of
+ *  its own still starts a workout — the demo day, now as rows the builder can edit. */
+function seedStarterPlan(database: SQLiteDatabase, now: number) {
+  database.runSync(
+    `INSERT INTO plans (id, name, source, progression_default, is_active, created_at, updated_at)
+     VALUES (?, ?, 'preset', 'steady', 1, ?, ?)`,
+    [STARTER_PLAN.id, STARTER_PLAN.name, now, now],
+  );
+  STARTER_PLAN.days.forEach((day, dayOrder) => {
+    database.runSync('INSERT INTO plan_days (id, plan_id, day_order, name) VALUES (?, ?, ?, ?)', [
+      day.id,
+      STARTER_PLAN.id,
+      dayOrder,
+      day.name,
+    ]);
+    day.exercises.forEach((ex, order) => {
+      database.runSync(
+        `INSERT INTO plan_exercises (id, plan_day_id, exercise_id, exercise_order, name, sets, reps, start_weight, rest_seconds, auto_start_timer, strategy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          `${day.id}-${ex.exerciseId}`,
+          day.id,
+          ex.exerciseId,
+          order,
+          ex.name,
+          ex.sets,
+          ex.reps,
+          ex.startWeight,
+          ex.restSeconds,
+          ex.autoStartTimer ? 1 : 0,
+          ex.strategy,
+        ],
+      );
+    });
   });
 }
 
