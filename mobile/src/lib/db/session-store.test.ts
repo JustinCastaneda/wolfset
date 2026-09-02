@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { reduce, startSession } from '@/features/set-loop/machine';
-import { workoutRows } from './session-store';
+import { migrateSnapshot, workoutRows } from './session-store';
 import type { SessionExercise } from '@/features/set-loop/types';
 
 const squat: SessionExercise = {
@@ -51,5 +51,26 @@ describe('workoutRows — machine state becomes history rows', () => {
     let s = startSession('plan', [{ ...squat, prescribedSets: 3 }]);
     s = reduce(s, { type: 'setLogged', reps: 5, at: 5_000 });
     expect(JSON.parse(JSON.stringify(s))).toEqual(s);
+  });
+});
+
+describe('migrateSnapshot — old saves never brick resume', () => {
+  it('fills the By Feel fields missing from pre-#32 snapshots', () => {
+    const old = startSession('plan', [squat]) as Record<string, unknown>;
+    delete old.pendingRatings;
+    delete old.feelRatings;
+    const migrated = migrateSnapshot(JSON.parse(JSON.stringify(old)));
+    expect(migrated.pendingRatings).toEqual([]);
+    expect(migrated.feelRatings).toEqual({});
+  });
+
+  it('passes a current snapshot through unchanged', () => {
+    const s = reduce(startSession('plan', [squat]), { type: 'setLogged', reps: 5, at: 1 });
+    expect(migrateSnapshot(JSON.parse(JSON.stringify(s)))).toEqual(s);
+  });
+
+  it('rejects garbage so the corrupt-drop path can clear it', () => {
+    expect(() => migrateSnapshot(null)).toThrow();
+    expect(() => migrateSnapshot({ nonsense: true })).toThrow();
   });
 });
