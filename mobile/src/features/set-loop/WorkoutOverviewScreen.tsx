@@ -73,38 +73,46 @@ export function WorkoutOverviewScreen({
             const logged = state.sets.filter((s) => s.exerciseIndex === i).length;
             const doneEx = ex.prescribedSets !== null && logged >= ex.prescribedSets;
             const current = i === state.exerciseIndex && !allDone;
-            const inProgress = current && logged > 0;
-            // Left indicator (permutations mock, 2026-09-02): check when done; dots for
-            // in-progress ≤4 sets; wheel for >4; plain number otherwise.
+            // Any exercise with logged sets keeps its progress visible — jumping around
+            // must never hide what's left (Justin, 2026-09-02, partial-progress mock).
+            const started = logged > 0 && !doneEx;
+            // Left indicator (permutations mock): check when done; dots for started
+            // ≤4-set lifts; wheel for >4; plain number otherwise.
             const indicator = doneEx ? (
               <View style={styles.checkBadge}>
                 <Check color={color.text.onButton} size={16} />
               </View>
-            ) : inProgress && ex.prescribedSets !== null && ex.prescribedSets <= 4 ? (
+            ) : started && ex.prescribedSets !== null && ex.prescribedSets <= 4 ? (
               <SetDots done={logged} total={ex.prescribedSets} />
-            ) : inProgress ? (
+            ) : started ? (
               <ProgressWheel progress={ex.prescribedSets ? logged / ex.prescribedSets : 0} />
             ) : (
               <Text style={styles.rowNumber}>{i + 1}</Text>
             );
-            // Subtext shows live status: sets logged, the rest countdown mid-timer,
-            // and Current Set / Up Next in brand.
-            const caption = inProgress ? (
-              <Text style={styles.rowCaption}>
-                {logged} of {ex.prescribedSets} Sets •{' '}
-                {remaining !== null && remaining > 0 && `${formatClock(remaining)} • `}
-                <Text style={styles.upNext}>Current Set</Text>
-              </Text>
-            ) : (
-              <Text style={styles.rowCaption}>
-                Defaults •{' '}
-                {current ? (
-                  <Text style={styles.upNext}>Up Next</Text>
-                ) : (
-                  `${formatClock(ex.restSeconds)} Rest`
-                )}
-              </Text>
-            );
+            // Captions: the current row carries Current Set (and the live countdown);
+            // other started rows read "X of N Sets • Defaults • rest" per the mock.
+            const caption =
+              started && current ? (
+                <Text style={styles.rowCaption}>
+                  {logged} of {ex.prescribedSets} Sets •{' '}
+                  {remaining !== null && remaining > 0 && `${formatClock(remaining)} • `}
+                  <Text style={styles.upNext}>Current Set</Text>
+                </Text>
+              ) : started ? (
+                <Text style={styles.rowCaption}>
+                  {logged} of {ex.prescribedSets} Sets • Defaults • {formatClock(ex.restSeconds)}{' '}
+                  Rest
+                </Text>
+              ) : (
+                <Text style={styles.rowCaption}>
+                  Defaults •{' '}
+                  {current ? (
+                    <Text style={styles.upNext}>Up Next</Text>
+                  ) : (
+                    `${formatClock(ex.restSeconds)} Rest`
+                  )}
+                </Text>
+              );
             return (
               <Pressable
                 accessibilityRole="button"
