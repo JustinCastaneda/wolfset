@@ -18,6 +18,21 @@ const DEFAULT_RX: Omit<Prescription, 'sets' | 'reps'> = {
   smallestStep: 5,
 };
 
+/** The working prescription for a lift — plan defaults until the plan builder exists.
+ *  Shared with the grid's live preview so what it shows is what settle will do. */
+export function prescriptionFor(ex: SessionState['exercises'][number]): Prescription {
+  const base = { ...DEFAULT_RX, sets: ex.prescribedSets ?? 0, reps: ex.targetReps };
+  if (ex.strategy !== 'by-feel') return base;
+  return {
+    ...base,
+    progression: {
+      strategy: 'by-feel',
+      repRangeMin: ex.targetReps,
+      repRangeMax: ex.targetReps + 3,
+    },
+  };
+}
+
 export type SettledExercise = {
   exerciseId: string;
   name: string;
@@ -40,18 +55,7 @@ export function settleSession(
 ): SettledExercise[] {
   return state.exercises.map((ex, i) => {
     const byFeel = ex.strategy === 'by-feel';
-    const rx: Prescription = byFeel
-      ? {
-          ...DEFAULT_RX,
-          sets: ex.prescribedSets ?? 0,
-          reps: ex.targetReps,
-          progression: {
-            strategy: 'by-feel',
-            repRangeMin: ex.targetReps,
-            repRangeMax: ex.targetReps + 3,
-          },
-        }
-      : { ...DEFAULT_RX, sets: ex.prescribedSets ?? 0, reps: ex.targetReps };
+    const rx = prescriptionFor(ex);
     const logged = state.sets.filter((s) => s.exerciseIndex === i).map((s) => ({ reps: s.reps }));
     const outcome = ex.prescribedSets === null ? 'hit' : scoreExercise(rx, logged);
     const stored = prior[ex.exerciseId];

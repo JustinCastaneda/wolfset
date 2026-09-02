@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
+import { applyByFeel } from '@/features/progression/by-feel';
+import { scoreExercise } from '@/features/progression/scoring';
 import { Button } from '@/components/Button';
 import { TopBar } from '@/components/TopBar';
+import { loadAllProgress, type StoredProgress } from '@/lib/db/progress-store';
 import { color, type } from '@/theme/tokens';
+import { prescriptionFor } from './settle-session';
 import type { Dispatch } from './session-ui';
 import type { FeelRating, SessionState } from './types';
 
@@ -14,6 +18,20 @@ import type { FeelRating, SessionState } from './types';
 // repeats the progression.
 
 const SKIP_MS = 8_000;
+
+// Each quadrant carries a color (engine section 384:11049: yellow · red · green · red)
+// used for the poke dot, the prediction line, and nothing else.
+const QUADRANT = {
+  'clean-high': { tint: color.warning, blurb: 'Difficult, but your form held' },
+  'bad-high': { tint: color.brand, blurb: 'Too heavy — form broke down' },
+  'clean-low': { tint: color.success, blurb: 'Strong, with room to spare' },
+  'bad-low': { tint: color.brand, blurb: 'Form broke with reps in the tank' },
+} as const;
+
+function quadrantOf(rating: FeelRating) {
+  const high = rating.reserve === '0' || rating.reserve === '1';
+  return `${rating.form === 'clean' ? 'clean' : 'bad'}-${high ? 'high' : 'low'}` as const;
+}
 
 export function ByFeelGridScreen({
   state,
@@ -30,6 +48,12 @@ export function ByFeelGridScreen({
   const [rating, setRating] = useState<FeelRating | null>(null);
   const [poke, setPoke] = useState<{ x: number; y: number } | null>(null);
   const [size, setSize] = useState({ w: 1, h: 1 });
+  // Prior progress feeds the live prediction (impure read → effect, never render).
+  const [prior, setPrior] = useState<Record<string, StoredProgress> | null>(null);
+  useEffect(() => {
+    const id = setTimeout(() => setPrior(loadAllProgress()), 0);
+    return () => clearTimeout(id);
+  }, []);
 
   // The 8s skip — cancelled the moment a poke lands.
   useEffect(() => {
@@ -51,6 +75,40 @@ export function ByFeelGridScreen({
     setRating({ form: x < size.w / 2 ? 'clean' : 'bad', reserve: bands[band] });
     setPoke({ x, y });
   };
+
+  // The card previews what Log Feel will actually do — same engine, same rules as
+  // settle — colored by the quadrant. Before a poke it stays gray with the skip note.
+  const quadrant = rating ? QUADRANT[quadrantOf(rating)] : null;
+  const preview = (() => {
+    if (!rating) return { reps: ex.targetReps, weight: ex.weight };
+    const rx = prescriptionFor(ex);
+    const logged = state.sets
+      .filter((s) => s.exerciseIndex === exerciseIndex)
+      .map((s) => ({ reps: s.reps }));
+    const outcome = scoreExercise(rx, logged) === 'hit' ? 'hit' : 'failed';
+    const stored = prior?.[ex.exerciseId];
+    const { progress } = applyByFeel(
+      {
+        currentWeight: ex.weight,
+        currentReps: ex.targetReps,
+        consecutiveFailures: stored?.consecutiveFailures ?? 0,
+        lastOutcome: stored?.lastOutcome ?? null,
+      },
+      { outcome, rating },
+      stored
+        ? {
+            outcome: stored.lastOutcome ?? 'hit',
+            rating:
+              stored.lastReserve && stored.lastForm
+                ? { reserve: stored.lastReserve, form: stored.lastForm }
+                : null,
+            heldAtTop: stored.heldAtTop,
+          }
+        : null,
+      rx,
+    );
+    return { reps: progress.currentReps, weight: progress.currentWeight };
+  })();
 
   return (
     <View style={styles.root}>
@@ -85,31 +143,37 @@ export function ByFeelGridScreen({
               <Text style={styles.axis}>Nothing Left</Text>
               <Text style={styles.axis}>Plenty Left</Text>
             </View>
-            {poke && (
+            {poke && quadrant && (
               <View
                 pointerEvents="none"
-                style={[styles.pokeDot, { left: poke.x - 12, top: poke.y - 12 }]}
+                style={[
+                  styles.pokeDot,
+                  { left: poke.x - 12, top: poke.y - 12, backgroundColor: quadrant.tint },
+                ]}
               />
             )}
           </Pressable>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardBody}>Skipping will repeat this set</Text>
+          <Text style={styles.cardBody}>
+            {quadrant ? quadrant.blurb : 'Skipping will repeat this set'}
+          </Text>
           {/* "Next session" not the lift name — insulated against long names (Justin). */}
-          <Text style={styles.cardStrong}>
-            Next session is {ex.weight} x {ex.targetReps}
+          <Text style={[styles.cardStrong, quadrant && { color: quadrant.tint }]}>
+            Next session is {preview.weight} x {preview.reps}
           </Text>
         </View>
       </View>
 
       <Text style={styles.hint}>Skips after 8s • A skip repeats progression</Text>
       <View style={styles.bottomBar}>
+        {/* Grays until a poke lands; then color arrives (frames 384:10881 → 380:10489). */}
         <Button
           disabled={!rating}
           onPress={() => rating && onEvent({ type: 'feelRated', exerciseIndex, rating })}
           title="Log Feel"
-          variant="secondary"
+          variant={rating ? 'solid' : 'secondary'}
         />
       </View>
     </View>
@@ -173,7 +237,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: color.brand,
   },
   card: {
     marginHorizontal: 24,
@@ -183,7 +246,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cardBody: { ...type.body, color: color.text.primary },
-  cardStrong: { ...type.h3Bold, color: color.text.primary },
+  cardStrong: { ...type.h3Bold, color: color.text.secondary },
   hint: {
     ...type.bodyLight,
     color: color.text.secondary,
