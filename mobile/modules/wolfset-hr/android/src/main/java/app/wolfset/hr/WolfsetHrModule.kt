@@ -62,8 +62,8 @@ class WolfsetHrModule : Module() {
             )
         }
 
-        Function("startRest") { endsAtMs: Double, recoveredBelowBpm: Double ->
-            RestTimerService.start(context, endsAtMs.toLong(), recoveredBelowBpm)
+        Function("startRest") { endsAtMs: Double ->
+            RestTimerService.start(context, endsAtMs.toLong())
         }
 
         Function("endRest") {

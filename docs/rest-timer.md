@@ -15,10 +15,14 @@ a health-type foreground service that:
 - holds a partial wake lock for the length of the rest (plus a 10 s margin);
 - shows a live countdown in the notification shade (drawn by the system, no ticking);
 - at the end, buzzes, **dings** and posts **"Rest over"**, and sends `onRestEnded { at, endsAt }`
-  to JS — the machine ends the rest there, with the native time, so the recorded rest is exact;
-- watches the heart-rate bus: the first sample under the recovered threshold (120 bpm,
-  `features/hr/recovered.ts`) buzzes and dings once and posts **"Recovered"** — the gate's
-  verdict, delivered while JS sleeps.
+  to JS — the machine ends the rest there, with the native time, so the recorded rest is exact.
+
+That is the only alert. Recovering early is *shown* — green ring, Continue solid, on the
+phone and the watch — never announced: the first hardware run dinged the instant a set was
+logged because the heart rate was already under the threshold, which was noise. **We only
+ding when the full timer is done; the user makes the call on whether they're recovered**
+(Justin, 2026-09-03). A "Recovered" buzz + ding + notification existed in #46–#48 and was
+removed.
 
 **The ding** is a bundled bell (`modules/wolfset-hr/android/src/main/res/raw/rest_ding.wav`,
 a synthesized C6 with a short decay) played by the service on the **alarm stream**, not by
@@ -49,5 +53,4 @@ foreground-service type (build plan, Store submission).
 ## Trying it without a workout
 
 Design Kit → **Rest timer — native, 20 s → Arm 20 s**, then lock the phone. The shade shows
-the countdown; at zero the phone buzzes and "Rest over" appears. Inject **110 bpm** while it
-runs for the "Recovered" buzz.
+the countdown; at zero the phone buzzes, dings and "Rest over" appears.

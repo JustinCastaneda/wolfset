@@ -54,9 +54,9 @@ declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
   hasRestPermissions(): boolean;
   /** Ask for them; resolves true when all granted. */
   requestRestPermissions(): Promise<boolean>;
-  /** Arm the doze-proof rest timer: wake lock, countdown notification, buzz at `endsAtMs`,
-   *  and a one-time buzz when a sample drops below `recoveredBelowBpm`. */
-  startRest(endsAtMs: number, recoveredBelowBpm: number): void;
+  /** Arm the doze-proof rest timer: wake lock, countdown notification, buzz and ding at
+   *  `endsAtMs` — the only alert; recovering early is shown, never announced. */
+  startRest(endsAtMs: number): void;
   /** Disarm it — the rest ended (timer, Continue, workout over, screen left). */
   endRest(): void;
 }

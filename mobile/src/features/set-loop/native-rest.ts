@@ -1,12 +1,12 @@
 import { WolfsetHr, type RestEnded } from '@modules/wolfset-hr';
-import { DEFAULT_THRESHOLDS } from '@/features/hr/recovered';
 import type { Phase } from './types';
 
 // The doze-proof rest timer's JS face. The machine keeps the truth (absolute timestamps),
 // so when the screen is on nothing here is needed; when the phone is in a pocket Android
 // throttles JS and the native service (RestTimerService) holds the rest instead: countdown
-// in the shade, a buzz at the end, a buzz when the watch says recovered. Its "rest over"
-// comes back as an event and the machine advances there — native never moves the loop.
+// in the shade, a buzz and a ding at the end — the only alert; recovering early shows on
+// the ring and never sounds (Justin, 2026-09-03). Its "rest over" comes back as an event
+// and the machine advances there — native never moves the loop.
 // Without the module (iOS, tests) or without permissions, the on-screen timer alone runs.
 
 /** Pure: when a rest ends, in wall-clock ms; null outside a rest. */
@@ -33,7 +33,7 @@ export async function ensureRestPermissions(): Promise<boolean> {
 }
 
 export function armRestTimer(endsAtMs: number) {
-  WolfsetHr?.startRest(endsAtMs, DEFAULT_THRESHOLDS.recoveredBelowBpm);
+  WolfsetHr?.startRest(endsAtMs);
 }
 
 export function disarmRestTimer() {

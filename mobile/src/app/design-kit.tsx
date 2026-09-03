@@ -131,7 +131,7 @@ export default function DesignKit() {
       </View>
 
       {/* The native rest timer on its own: arm a short rest, lock the screen, wait for the
-          buzz. Injecting 110 bpm above while it runs shows the "Recovered" alert. */}
+          buzz and the ding at zero — the only alert. */}
       <Text style={styles.section}>Rest timer — native, 20 s</Text>
       <View style={styles.chipRow}>
         <Button
