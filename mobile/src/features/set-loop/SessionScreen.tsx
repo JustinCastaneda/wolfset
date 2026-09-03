@@ -108,9 +108,9 @@ function SessionRunner({ boot }: { boot: Boot }) {
     return () => clearInterval(id);
   }, [resting]);
 
-  // Live heart rate for the whole session (the peak happens mid-set). While resting, the
-  // placeholder rule's verdict becomes the machine's `recovered` flag; a lost signal never
-  // flips it back — stale data must not change the gate (spike pipe requirement 1).
+  // Live heart rate for the whole session. While resting, the recovered rule's verdict
+  // becomes the machine's `recovered` flag; a lost signal never flips it back — stale data
+  // must not change the gate (spike pipe requirement 1).
   const hr = useHeartRate();
   const recoveredNow = state.phase.name === 'resting' ? state.phase.recovered : null;
   useEffect(() => {

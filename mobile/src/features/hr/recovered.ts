@@ -1,31 +1,37 @@
-// ⚠️ PLACEHOLDER — the "recovered" rule is Phase 0's open exit criterion B (decisions.md):
-// the real threshold comes from Justin's felt-ready readings, not from this file. Until
-// then the spike's placeholder stands in so the mechanism runs end to end: recovered when
-// BPM falls to 65% of the session peak, floored at 110 bpm. Known weakness: a session
-// whose peak never clears ~170 is "recovered" at any BPM ≤ 110, so early in a workout the
-// ring may go green on the first sample. The gate only colors the ring and arms Continue
-// (handoff brief §01: the HR gate never advances the loop by itself), so a wrong rule
-// costs a color, never a set.
+// The "recovered" rule — Phase 0 exit criterion B, decided by Justin on 2026-09-02 after
+// the first hardware run: absolute heart-rate bands, the way Fitbit zones read.
+//
+//   green   < 120 bpm   recovered — "a vigorous walk; by then you've recovered"
+//   yellow  120–140     approaching
+//   red     > 140       still working
+//
+// Peaks land around 165 for most people and all of this shifts with age, so these are
+// defaults for a future setting (Profile), and later the app may learn them from when
+// the user actually taps Continue. Nothing here advances the loop by itself: the rule
+// colors the ring and arms Continue (handoff brief §01).
 
-export const RECOVERED_FLOOR_BPM = 110;
-export const RECOVERED_FRACTION_OF_PEAK = 0.65;
-/** Within this many bpm above the threshold the ring turns yellow ("approaching"). */
-export const APPROACHING_BAND_BPM = 10;
+export type HrThresholds = {
+  /** Below this the lifter is recovered. */
+  recoveredBelowBpm: number;
+  /** At or below this the lifter is close; above it, still working. */
+  approachingUpToBpm: number;
+};
 
-export function recoveredThreshold(peakBpm: number): number {
-  return Math.max(RECOVERED_FLOOR_BPM, peakBpm * RECOVERED_FRACTION_OF_PEAK);
-}
-
-export function isRecovered(bpm: number, peakBpm: number): boolean {
-  return bpm <= recoveredThreshold(peakBpm);
-}
+export const DEFAULT_THRESHOLDS: HrThresholds = {
+  recoveredBelowBpm: 120,
+  approachingUpToBpm: 140,
+};
 
 export type HrZone = 'resting' | 'approaching' | 'ready';
 
-/** The ring color from a fresh reading (the timer frames 25:292 / 10:10447 / 25:257). */
-export function hrZone(bpm: number, peakBpm: number): HrZone {
-  const threshold = recoveredThreshold(peakBpm);
-  if (bpm <= threshold) return 'ready';
-  if (bpm <= threshold + APPROACHING_BAND_BPM) return 'approaching';
+export function isRecovered(bpm: number, t: HrThresholds = DEFAULT_THRESHOLDS): boolean {
+  return bpm < t.recoveredBelowBpm;
+}
+
+/** The ring color from a fresh reading (timer frames 25:292 red · 10:10447 yellow ·
+ *  25:257 green). */
+export function hrZone(bpm: number, t: HrThresholds = DEFAULT_THRESHOLDS): HrZone {
+  if (bpm < t.recoveredBelowBpm) return 'ready';
+  if (bpm <= t.approachingUpToBpm) return 'approaching';
   return 'resting';
 }

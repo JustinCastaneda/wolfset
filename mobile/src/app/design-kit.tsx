@@ -41,7 +41,7 @@ export default function DesignKit() {
         Heart rate — inject a sample {WolfsetHr ? '' : '(native module not in this build)'}
       </Text>
       <View style={styles.chipRow}>
-        {[150, 125, 95].map((bpm) => (
+        {[150, 130, 110].map((bpm) => (
           <Button
             disabled={!WolfsetHr}
             key={bpm}
