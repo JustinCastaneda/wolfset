@@ -55,14 +55,20 @@ export function clearSnapshot() {
   getDb().runSync('DELETE FROM session_snapshot WHERE id = 1');
 }
 
-/** A finished session becomes history: one workouts row + its sets, snapshot gone. */
-export function finalizeSession(state: SessionState, startedAt: number, endedAt: number) {
+/** A finished session becomes history: one workouts row (tagged with the plan day it
+ *  ran, data-model §2 Workout.planDayId) + its sets, snapshot gone. */
+export function finalizeSession(
+  state: SessionState,
+  startedAt: number,
+  endedAt: number,
+  planDayId: string | null = null,
+) {
   const rows = workoutRows(state, startedAt, endedAt);
   const db = getDb();
   db.withTransactionSync(() => {
     db.runSync(
-      `INSERT INTO workouts (id, kind, status, started_at, ended_at, duration_sec, total_volume, set_count, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO workouts (id, kind, status, started_at, ended_at, duration_sec, total_volume, set_count, created_at, plan_day_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         rows.workout.id,
         rows.workout.kind,
@@ -73,6 +79,7 @@ export function finalizeSession(state: SessionState, startedAt: number, endedAt:
         rows.workout.totalVolume,
         rows.workout.setCount,
         endedAt,
+        planDayId,
       ],
     );
     for (const set of rows.sets) {

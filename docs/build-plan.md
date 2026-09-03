@@ -466,8 +466,9 @@ Order:
 - [x] Getting Started **(= Create New MesoCycle — one build)** — Name this Plan · How You Get
       Stronger (#37); Search Exercise · Add Exercise Details · Day Summary, Save Day activates
       the plan (2026-09-02). Still open: illustrations (#10), filter drawer, Plan Summary
+- [x] Plan Summary (multi-day, suggested week) — days rotate on finish (`plans.next_day_order`,
+      migration v6); Save Plan activates (2026-09-02)
 - [ ] Progression Override · Pacing Override
-- [ ] Plan Summary (multi-day, suggested week)
 - [ ] Onboarding — Setup → Equipment → Goals → Select a Plan (all skippable)
 - [ ] Search Exercise / Add Exercise
 - [ ] Edit Set — reached from a logged row, not from the timer

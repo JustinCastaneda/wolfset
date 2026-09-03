@@ -124,9 +124,10 @@ function Details({
       return;
     }
     addPlanExercise(day.dayId, input);
-    // Search → Details collapse into the day: back from Day Summary is the builder's
-    // previous step, not the lift just added.
-    router.dismissTo({ pathname: '/plan/day/[dayId]', params: { dayId: day.dayId } });
+    // Search → Details collapse: the stack becomes Plan Summary → Day Summary, so back
+    // from the day is the plan, never the lift just added.
+    router.dismissTo({ pathname: '/plan/[planId]', params: { planId: day.planId } });
+    router.push({ pathname: '/plan/day/[dayId]', params: { dayId: day.dayId } });
   };
 
   return (
