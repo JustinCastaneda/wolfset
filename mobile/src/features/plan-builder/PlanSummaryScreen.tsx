@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, ChevronRight, Plus, X } from 'lucide-react-native';
+import { ArrowLeft, Plus, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -109,7 +109,9 @@ export function PlanSummaryScreen() {
             const letter = week[i];
             return (
               <View key={name} style={[styles.tile, letter !== null && styles.tileActive]}>
-                <Text style={styles.tileDay}>{name}</Text>
+                <Text numberOfLines={1} style={styles.tileDay}>
+                  {name}
+                </Text>
                 <Text style={[styles.tileLetter, letter === null && styles.tileRest]}>
                   {letter ?? '•'}
                 </Text>
@@ -132,7 +134,8 @@ export function PlanSummaryScreen() {
   );
 }
 
-// Figma 123:2571 "Row": letter (h3 medium) · Day N + lift names · chevron; plus the ✕.
+// Figma 123:2571 "Row": letter (h3 medium) · Day N + lift names; the ✕ takes the
+// chevron's place, as on the Day Summary mock — the row itself is the way in.
 function DayRow({
   day,
   index,
@@ -161,7 +164,6 @@ function DayRow({
             {day.exerciseNames.length > 0 ? day.exerciseNames.join(' • ') : 'No exercises yet'}
           </Text>
         </View>
-        <ChevronRight color={color.text.primary} size={24} />
       </Pressable>
       <Pressable
         accessibilityLabel={`Remove ${day.name}`}
@@ -207,9 +209,12 @@ const styles = StyleSheet.create({
   week: { paddingHorizontal: 24, paddingTop: 16, gap: 8 },
   weekLabel: { ...type.label, color: color.text.secondary },
   weekRow: { flexDirection: 'row', gap: 8 },
+  // Seven across at 412 leaves ~45 each: the frame's p12 would squeeze "Mon" to two
+  // lines on a real phone, so the sides go to 4 and the vertical keeps the frame's 12.
   tile: {
     flex: 1,
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
     gap: 10,
     alignItems: 'center',
     borderRadius: 12,

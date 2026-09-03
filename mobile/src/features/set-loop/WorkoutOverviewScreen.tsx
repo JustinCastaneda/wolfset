@@ -53,7 +53,8 @@ export function WorkoutOverviewScreen({
         <View style={styles.titleBlock}>
           <Text style={styles.h1}>{dayName}</Text>
           <Text style={styles.subtitle}>
-            {state.exercises.length} Workouts • {volume.toLocaleString('en-US')} Lbs
+            {state.exercises.length} {state.exercises.length === 1 ? 'Workout' : 'Workouts'} •{' '}
+            {volume.toLocaleString('en-US')} Lbs
           </Text>
         </View>
 
