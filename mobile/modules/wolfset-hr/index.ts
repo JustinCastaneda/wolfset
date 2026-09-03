@@ -1,8 +1,8 @@
 import { requireOptionalNativeModule, type NativeModule } from 'expo-modules-core';
 
 // The JS face of the native seam (CLAUDE.md: one Kotlin module on the phone). Today it
-// carries heart-rate samples from the watch, the session's start/stop of the watch's
-// stream, and the doze-proof rest timer.
+// carries heart-rate samples and taps from the watch, the session's start/stop of the
+// watch's stream, the session's view for the watch screen, and the doze-proof rest timer.
 // Optional because it only exists on Android with the watch pipeline compiled in — on
 // iOS, in tests, or in a build without it, `WolfsetHr` is null and the app runs without
 // a signal.
@@ -26,9 +26,14 @@ export type HrSample = {
  *  event for an earlier rest can never end the current one. */
 export type RestEnded = { at: number; endsAt: number };
 
+/** A tap on the watch, as it arrives (docs/hr-protocol.md): `logSet` carries the reps;
+ *  `continue` carries nothing (reps is 0). The session turns it into a machine event. */
+export type WatchAction = { type: string; reps: number };
+
 type WolfsetHrEvents = {
   onHrSample: (sample: HrSample) => void;
   onRestEnded: (event: RestEnded) => void;
+  onWatchAction: (action: WatchAction) => void;
 };
 
 declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
@@ -41,6 +46,9 @@ declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
   startWatchStream(): Promise<number>;
   /** Tell every connected watch to stop. Same result shape as start. */
   stopWatchStream(): Promise<number>;
+  /** Show the session on the watch: its view as JSON (features/set-loop/watch-view.ts),
+   *  published as a Data Layer item so a watch that wakes late still reads the latest. */
+  publishWatchView(viewJson: string): void;
   /** Whether the rest timer's foreground service may run (sensor + notification
    *  permissions on Android 13/14+). */
   hasRestPermissions(): boolean;

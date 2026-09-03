@@ -35,11 +35,11 @@
             </intent-filter>
         </activity>
 
-        <!-- The phone's remote control: Play services starts this on every message from the
-             phone (path prefix must match docs/hr-protocol.md), so Start Workout on the
-             phone starts the stream here without a tap on the watch. -->
+        <!-- Everything the phone sends: Play services starts this on every control message
+             (Start Workout starts the stream here without a tap) and on every change to the
+             session item (which set, which rest — the screens). Paths per docs/hr-protocol.md. -->
         <service
-            android:name=".ControlListenerService"
+            android:name=".PhoneListenerService"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
@@ -47,6 +47,13 @@
                     android:scheme="wear"
                     android:host="*"
                     android:pathPrefix="/wolfset" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/wolfset/session" />
             </intent-filter>
         </service>
 

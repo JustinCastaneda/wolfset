@@ -4,30 +4,25 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.wear.ambient.AmbientLifecycleObserver
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
+import app.wolfset.wear.ui.WatchApp
+import app.wolfset.wear.ui.WolfsetTheme
+import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 /**
- * The watch app's first screen: live BPM and a Start/Stop for the stream. ⚠️ Not the
- * designed watch UI (Figma 123:3945 — set screen, timer, actions) — that is Phase 7's
- * next step; this PR is the pipe. Stays visible in ambient (dimmed) like a workout app.
+ * The watch app's one activity: the designed screens (Figma 123:3945) over the phone's
+ * session, drawn by WatchApp. Opened by the phone when a workout starts
+ * (PhoneListenerService) or from the ongoing-activity chip; stays visible in ambient
+ * (dimmed) like a workout app. Taps go straight to the phone (PhoneActions); the phone
+ * answers by publishing the next view.
  */
 class MainActivity : ComponentActivity() {
 
@@ -55,17 +50,56 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(ambientObserver)
-        setContent { MaterialTheme { StreamScreen(onToggle = ::toggleStream) } }
+        setContent {
+            WolfsetTheme {
+                WatchApp(
+                    onToggleStream = ::toggleStream,
+                    onLog = { reps -> PhoneActions.logSet(this, reps) },
+                    onContinue = { PhoneActions.continueRest(this) },
+                )
+            }
+        }
+        if (!applyDebugView(intent)) loadSessionView()
         autoStartIfAsked(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        applyDebugView(intent)
         autoStartIfAsked(intent)
     }
 
+    /** The phone's session may have been published while this process was dead, or before
+     *  the listener ran: read the item as it stands now, once, on open. */
+    private fun loadSessionView() {
+        lifecycleScope.launch {
+            val items = runCatching { Wearable.getDataClient(this@MainActivity).dataItems.await() }
+                .getOrElse {
+                    Log.w(TAG, "could not read the session item", it)
+                    return@launch
+                }
+            try {
+                val item = items.firstOrNull { it.uri.path == HrProtocol.PATH_SESSION }
+                val view = item?.let {
+                    SessionView.fromJson(DataMapItem.fromDataItem(it.freeze()).dataMap.getString(HrProtocol.KEY_VIEW))
+                }
+                WatchState.update { it.copy(session = view) }
+            } finally {
+                items.release()
+            }
+        }
+    }
+
+    /** Dev only: a session view pushed over ADB, for screenshots without a phone. */
+    private fun applyDebugView(intent: Intent?): Boolean {
+        val json = intent?.getStringExtra(EXTRA_DEBUG_VIEW) ?: return false
+        intent.removeExtra(EXTRA_DEBUG_VIEW)
+        WatchState.update { it.copy(session = SessionView.fromJson(json)) }
+        return true
+    }
+
     /** The phone asked for the stream but the service could not start silently
-     *  (ControlListenerService): ask for the permissions here, then start. */
+     *  (PhoneListenerService): ask for the permissions here, then start. */
     private fun autoStartIfAsked(intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_AUTO_START, false) != true) return
         intent.removeExtra(EXTRA_AUTO_START)
@@ -88,45 +122,11 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        private const val TAG = "WolfsetHr"
         const val READ_HEART_RATE = "android.permission.health.READ_HEART_RATE"
-        /** Set by ControlListenerService: the phone wants the stream — ask, then start. */
+        /** Set by PhoneListenerService: the phone wants the stream — ask, then start. */
         const val EXTRA_AUTO_START = "app.wolfset.wear.AUTO_START"
-    }
-}
-
-// Brand red for the live number; ambient wants low-emission pixels, so it dims to gray.
-private val Brand = Color(0xFFF04245)
-private val Dim = Color(0xFFA5A09D)
-
-@Composable
-private fun StreamScreen(onToggle: (Boolean) -> Unit) {
-    val state by WatchState.snapshot.collectAsStateWithLifecycle()
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = if (state.bpm > 0) "${state.bpm.toInt()}" else "––",
-            fontSize = 44.sp,
-            color = if (state.isAmbient) Dim else Brand,
-        )
-        Text("bpm", fontSize = 12.sp, color = Dim)
-        Text(
-            state.status +
-                (if (state.streaming && state.connectedNodes == 0) " · no phone" else "") +
-                (if (state.sendFailures > 0) " · ${state.sendFailures} failed" else ""),
-            fontSize = 10.sp,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-        if (!state.isAmbient) {
-            Button(
-                onClick = { onToggle(state.streaming) },
-                modifier = Modifier.padding(top = 8.dp),
-            ) {
-                Text(if (state.streaming) "Stop" else "Start", fontSize = 12.sp)
-            }
-        }
+        /** Dev only: `adb shell am start ... --es app.wolfset.wear.DEBUG_VIEW '<json>'`. */
+        const val EXTRA_DEBUG_VIEW = "app.wolfset.wear.DEBUG_VIEW"
     }
 }

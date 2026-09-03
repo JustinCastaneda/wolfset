@@ -1,5 +1,5 @@
 import { ListTree, Settings2, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,12 +16,19 @@ import { TopBar } from '@/components/TopBar';
 import { WeightReadout } from '@/components/WeightReadout';
 import { color, palette, type } from '@/theme/tokens';
 import { WolfsetHr } from '@modules/wolfset-hr';
-import { startWatch, stopWatch, type WatchReach } from '@/features/hr/watch-control';
+import {
+  onWatchAction,
+  showOnWatch,
+  startWatch,
+  stopWatch,
+  type WatchReach,
+} from '@/features/hr/watch-control';
 import {
   armRestTimer,
   disarmRestTimer,
   ensureRestPermissions,
 } from '@/features/set-loop/native-rest';
+import type { WatchView } from '@/features/set-loop/watch-view';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
 // the phone next to Figma and compare. Renders nothing outside dev — Metro strips the
@@ -30,6 +37,8 @@ import {
 export default function DesignKit() {
   const insets = useSafeAreaInsets();
   const [watchReach, setWatchReach] = useState<WatchReach | null>(null);
+  const [watchTap, setWatchTap] = useState<string | null>(null);
+  useEffect(() => onWatchAction((action) => setWatchTap(`${action.type} ${action.reps}`)), []);
   if (!__DEV__) return null;
   return (
     <ScrollView
@@ -78,6 +87,45 @@ export default function DesignKit() {
           onPress={() => void stopWatch().then(setWatchReach)}
           size="small"
           title="Stop watch"
+          variant="secondary"
+        />
+      </View>
+
+      {/* Phone → watch → phone: put a sample set or rest on the watch — what the session
+          publishes on every change — then tap Log or Continue there; the tap shows up here.
+          The whole wrist loop, without a workout. */}
+      <Text style={styles.section}>
+        Watch — show a set{watchTap ? ` · last tap: ${watchTap}` : ''}
+      </Text>
+      <View style={styles.chipRow}>
+        <Button
+          disabled={!WolfsetHr}
+          onPress={() => showOnWatch(JSON.stringify(KIT_SET))}
+          size="small"
+          title="Set 135×5"
+          variant="secondary"
+        />
+        <Button
+          disabled={!WolfsetHr}
+          onPress={() =>
+            showOnWatch(
+              JSON.stringify({
+                ...KIT_SET,
+                screen: 'rest',
+                setsDone: 1,
+                restEndsAt: Date.now() + 90_000,
+              }),
+            )
+          }
+          size="small"
+          title="Rest 90 s"
+          variant="secondary"
+        />
+        <Button
+          disabled={!WolfsetHr}
+          onPress={() => showOnWatch(JSON.stringify({ screen: 'none' }))}
+          size="small"
+          title="Clear"
           variant="secondary"
         />
       </View>
@@ -265,6 +313,23 @@ function RadioCardDemo() {
     </View>
   );
 }
+
+/** The set the kit shows on the watch — the first set of a 5×5 Squat. */
+const KIT_SET: WatchView = {
+  screen: 'set',
+  exerciseNo: 1,
+  exercise: 'Squat',
+  setsDone: 0,
+  setsTotal: 5,
+  weight: 135,
+  unit: 'Lbs',
+  reps: 5,
+  restEndsAt: 0,
+  restSeconds: 90,
+  recovered: false,
+  recoveredBelowBpm: 120,
+  approachingUpToBpm: 140,
+};
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg.base },

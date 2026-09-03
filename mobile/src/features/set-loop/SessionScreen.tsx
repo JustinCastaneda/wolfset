@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
-import { useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useHeartRate, type HeartRate } from '@/features/hr/useHeartRate';
-import { startWatch, stopWatch } from '@/features/hr/watch-control';
+import { onWatchAction, showOnWatch, startWatch, stopWatch } from '@/features/hr/watch-control';
 import {
   armRestTimer,
   disarmRestTimer,
@@ -28,6 +28,7 @@ import { ByFeelGridScreen } from './ByFeelGridScreen';
 import { dayProgress } from './session-ui';
 import { reduce, restRemaining, startSession } from './machine';
 import type { SessionState } from './types';
+import { watchActionToEvent, watchView } from './watch-view';
 
 // The session container: one useReducer over the tested machine, one screen per phase
 // (handoff brief §01). The route file only mounts this.
@@ -39,8 +40,11 @@ import type { SessionState } from './types';
 // The watch's heart rate feeds the machine through `recoveredChanged` — an input that
 // colors the ring and arms Continue, never a transition (brief §01). The session also
 // drives the watch: mounting starts its stream, finishing (or leaving) stops it, so the
-// watch is never tapped (decision 2026-09-03). Each rest is also handed to the native
-// rest timer, which holds it through screen-off and buzzes at the end (native-rest.ts).
+// watch is never tapped to stream (decision 2026-09-03). The watch mirrors the loop: every
+// state change publishes its view (watch-view.ts) and a Log or Continue tapped on the
+// wrist arrives as the same event the phone's button sends. Each rest is also handed to
+// the native rest timer, which holds it through screen-off and buzzes at the end
+// (native-rest.ts).
 
 type Boot = { state: SessionState; startedAt: number; dayName: string; dayId: string };
 
@@ -106,12 +110,12 @@ function SessionRunner({ boot }: { boot: Boot }) {
   }, []);
 
   // Every timestamped event also moves the clock, so screens never read time in render.
-  const send: typeof dispatch = (event) => {
+  const send = useCallback<typeof dispatch>((event) => {
     if ('at' in event) {
       setClock((c) => ({ startedAt: c.startedAt || event.at, now: event.at }));
     }
     dispatch(event);
-  };
+  }, []);
 
   const resting = state.phase.name === 'resting';
   useEffect(() => {
@@ -132,6 +136,25 @@ function SessionRunner({ boot }: { boot: Boot }) {
       void stopWatch();
     };
   }, []);
+  // The watch's screen follows the loop. Published as a string so identical states cost
+  // nothing; leaving the session clears it; a tap on the watch is dispatched like a tap
+  // here. The poke grid is phone-only, so while it is up the watch shows nothing.
+  const pendingRating = state.pendingRatings[0];
+  const viewJson = JSON.stringify(
+    pendingRating === undefined ? watchView(state) : { screen: 'none' },
+  );
+  useEffect(() => {
+    showOnWatch(viewJson);
+  }, [viewJson]);
+  useEffect(() => () => showOnWatch(JSON.stringify({ screen: 'none' })), []);
+  useEffect(
+    () =>
+      onWatchAction((action) => {
+        const event = watchActionToEvent(action, Date.now());
+        if (event) send(event);
+      }),
+    [send],
+  );
 
   // The doze-proof rest timer. Permission is asked once, at the first workout; a refusal
   // leaves the on-screen timer alone. Every rest arms the native timer with its end and
@@ -161,7 +184,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
         }
       }),
     // endsAt names the current rest; a new rest resubscribes with its own.
-    [endsAt],
+    [endsAt, send],
   );
   const recoveredNow = state.phase.name === 'resting' ? state.phase.recovered : null;
   useEffect(() => {
@@ -222,7 +245,6 @@ function SessionRunner({ boot }: { boot: Boot }) {
   };
 
   const { done, total } = dayProgress(state);
-  const pendingRating = state.pendingRatings[0];
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
