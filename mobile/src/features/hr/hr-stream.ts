@@ -14,7 +14,7 @@ export type HrStreamState = {
   at: number | null;
   /** Highest seq accepted; anything at or below it is old news. */
   maxSeq: number;
-  /** Session peak — what the placeholder recovered rule measures against. */
+  /** Session peak — shown nowhere yet; Session Done's avg/peak stats will want it. */
   peak: number;
   received: number;
 };

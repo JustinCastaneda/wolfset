@@ -15,6 +15,7 @@ import { hrZone, isRecovered, type HrZone } from './recovered';
 // workout (the peak happens mid-set, not mid-rest), keeps the stream rules pure, and ticks
 // once a second so a quiet pipe turns into "unknown" on time. Without the module (iOS,
 // tests, a build without the watch pipeline) it reports no signal and nothing else changes.
+// The verdict comes from the recovered rule (recovered.ts) on the fresh reading alone.
 
 export type HeartRate = {
   /** Fresh reading, or null when there is no signal or it went stale. */
@@ -22,7 +23,7 @@ export type HeartRate = {
   /** True once a signal existed and then went quiet — "watch signal lost". */
   lost: boolean;
   peak: number;
-  /** The placeholder gate; null while there is no fresh reading. */
+  /** The recovered rule's verdict; null while there is no fresh reading. */
   recovered: boolean | null;
   zone: HrZone | null;
   available: boolean;
@@ -63,8 +64,8 @@ export function useHeartRate(): HeartRate {
     bpm,
     lost: stream.received > 0 && now !== 0 && isStale(stream, now),
     peak: stream.peak,
-    recovered: bpm === null ? null : isRecovered(bpm, stream.peak),
-    zone: bpm === null ? null : hrZone(bpm, stream.peak),
+    recovered: bpm === null ? null : isRecovered(bpm),
+    zone: bpm === null ? null : hrZone(bpm),
     available: WolfsetHr !== null,
   };
 }

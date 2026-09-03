@@ -20,6 +20,7 @@ source for what's still undecided; entries here resolve or supersede rows there.
 | 2026-09-01 | 10 | **Pressed states + icons locked** | Button press fills (the file lacked them — Justin): **Solid pressed → red/200**, **Secondary pressed → neutral/700** (now `color.press.*` tokens; 👤 Figma matrix to be updated to match). Icon set (#10): **`lucide-react-native` everywhere for UI chrome** — Justin designs with lucide via his shadcn library; the custom WolfSet set (`436:4844`) covers domain icons (exercises/equipment/muscles). Input's error border stays `color.error` (≠ brand) — accepted. |
 | 2026-09-02 | — | **CTAs act only on the context they live in** | Justin's design principle, set while killing a stacked "Finish Workout" on the set screen: a CTA never acts on its parent context ("kill the parent"). The set screen logs sets; ending the *workout* lives on the workout view (`384:11481`), reached by going up via the tree icon. Freestyle mirrors it per the file: set/rest screens offer **End Exercise** (their context) + Add Set; the freestyle summary offers **End Workout** + Add Exercise (`90:1379`, `90:1304`). Session-enders always double-confirm via a bottom sheet (sheet itself undesigned). Encoded in the conventions skill. |
 | 2026-09-02 | — | **HR pipeline ships with the placeholder recovered rule, coloring only** | The real "recovered" threshold (Phase 0 criterion B) still needs Justin's felt-ready readings. Until then the spike's placeholder (≤ 65% of session peak, floor 110 bpm) drives the ring color and arms Continue; it never advances the loop (brief §01), so a wrong rule costs a color, not a set. A lost watch signal (no sample for 6 s) shows "Watch signal lost" and never flips the gate. |
+| 2026-09-02 | B | **"Recovered" = absolute heart-rate bands: green < 120 bpm · yellow 120–140 · red > 140** | Justin, after the first hardware run: 120 is a vigorous walk, so by then you've recovered; peaks sit ~165 for most people. Mirrors Fitbit's zones. Replaces the spike's peak-relative placeholder. These are defaults: they shift with age, so they become a Profile setting later, and the app may eventually learn them from when the user taps Continue. The rule still only colors the ring and arms Continue (brief §01). |
 
 ## Still open (see build-plan.md for full table)
 
@@ -29,5 +30,5 @@ source for what's still undecided; entries here resolve or supersede rows there.
 - #9 Separate watch design system?
 - #10 Icon set — is `lucide-react-native` sufficient?
 - #12 First preset 5×5 — programmed by whom, when?
-- ⚠️ **"Recovered" threshold rule** — Phase 0 exit criterion B. The 168/145/green values in
-  designs are illustrative, not a rule. The gate cannot ship without this.
+- ~~"Recovered" threshold rule~~ — ✅ decided 2026-09-02 (absolute bands, see the log). Age-based
+  setting and learning-from-Continue are future work.

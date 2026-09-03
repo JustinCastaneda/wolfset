@@ -521,8 +521,9 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       goes Solid when recovered (2026-09-02). **Proven on hardware the same day** (Pixel Watch 4 →
       Pixel 10 Pro, live number on the timer). Protocol: `docs/hr-protocol.md`. Watch UI is a
       placeholder screen — the designed watch screens are the items below
-- [ ] ⚠️ 🤝 **The recovered rule** — placeholder (65% of peak, floor 110) ships coloring the
-      ring only; Justin collects felt-ready BPMs; then the rule and its tests
+- [x] 🤝 **The recovered rule** — green < 120 · yellow to 140 · red above (Justin, 2026-09-02);
+      one value in `features/hr/recovered.ts`, a Profile setting later. The ring/Continue
+      still never advance the loop
 - [ ] 🤖 Phone → watch: start/stop the stream with the session (today: Start on the watch)
 - [ ] 🤖 Doze-proof rest timer in the native module (foreground service)
 

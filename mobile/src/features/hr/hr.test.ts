@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { HrSample } from '@modules/wolfset-hr';
 import { EMPTY_STREAM, currentBpm, ingest, isStale } from './hr-stream';
-import { hrZone, isRecovered, recoveredThreshold } from './recovered';
+import { DEFAULT_THRESHOLDS, hrZone, isRecovered } from './recovered';
 
 const sample = (seq: number, bpm: number): HrSample => ({
   seq,
@@ -44,20 +44,24 @@ describe('the heart-rate stream (spike pipe requirements)', () => {
   });
 });
 
-describe('the placeholder recovered rule (⚠️ not the product rule)', () => {
-  it('threshold is 65% of peak, never below 110', () => {
-    expect(recoveredThreshold(180)).toBe(117);
-    expect(recoveredThreshold(140)).toBe(110);
+describe('the recovered rule (Justin, 2026-09-02): green < 120 · yellow to 140 · red above', () => {
+  it('recovered strictly below 120', () => {
+    expect(isRecovered(119)).toBe(true);
+    expect(isRecovered(120)).toBe(false);
   });
 
-  it('recovered at or below the threshold', () => {
-    expect(isRecovered(117, 180)).toBe(true);
-    expect(isRecovered(118, 180)).toBe(false);
+  it('zones: ready below 120, approaching through 140, resting above', () => {
+    expect(hrZone(53)).toBe('ready');
+    expect(hrZone(119)).toBe('ready');
+    expect(hrZone(120)).toBe('approaching');
+    expect(hrZone(140)).toBe('approaching');
+    expect(hrZone(141)).toBe('resting');
+    expect(hrZone(165)).toBe('resting');
   });
 
-  it('zones: ready at the threshold, approaching within 10 above, resting beyond', () => {
-    expect(hrZone(117, 180)).toBe('ready');
-    expect(hrZone(125, 180)).toBe('approaching');
-    expect(hrZone(128, 180)).toBe('resting');
+  it('the thresholds are a value, so a setting can replace them later', () => {
+    const older = { ...DEFAULT_THRESHOLDS, recoveredBelowBpm: 110, approachingUpToBpm: 130 };
+    expect(hrZone(115, older)).toBe('approaching');
+    expect(isRecovered(115, older)).toBe(false);
   });
 });
