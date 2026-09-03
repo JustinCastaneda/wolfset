@@ -8,10 +8,18 @@ import { Button } from '@/components/Button';
 import { ButtonGroup } from '@/components/ButtonGroup';
 import { Chip } from '@/components/Chip';
 import { ListItem } from '@/components/ListItem';
+import { NumberSheet } from '@/components/NumberSheet';
 import { TopBar } from '@/components/TopBar';
 import { getExercise, type Exercise } from '@/lib/db/exercise-store';
 import { lastWorkoutFor, type LastWorkout } from '@/lib/db/history-store';
-import { addPlanExercise, loadDay, type BuilderDay } from '@/lib/db/plan-store';
+import {
+  addPlanExercise,
+  loadDay,
+  loadPlanExercise,
+  updatePlanExercise,
+  type BuilderDay,
+  type StoredPlanExercise,
+} from '@/lib/db/plan-store';
 import { color, type } from '@/theme/tokens';
 import {
   CEILING_OPTIONS,
@@ -27,17 +35,24 @@ import {
 
 // Add Exercise Details (Figma 123:1092 Reps First; 380:8897 Steady; 380:10087 By Feel):
 // the lift's chips, the weight stepper with last-workout context, the Button Groups
-// (Reps First adds "Max Reps before Weight Increase"), and Add to Day.
+// (Reps First adds "Max Reps before Weight Increase"), and Add to Day. Reached again
+// from a Day Summary row with `planExerciseId`: same screen, prefilled, Save Changes.
+// Tapping the big weight number is Custom — the Number Sheet (Justin, 2026-09-02).
 // ⚠️ Progression / Pacing overrides (114:3989, 384:11190) are later screens; their rows
 // read the plan default and don't open anything yet, so they carry no chevron.
 
 export function AddExerciseDetailsScreen() {
   const insets = useSafeAreaInsets();
-  const { dayId, exerciseId } = useLocalSearchParams<{ dayId: string; exerciseId: string }>();
+  const { dayId, exerciseId, planExerciseId } = useLocalSearchParams<{
+    dayId: string;
+    exerciseId: string;
+    planExerciseId?: string;
+  }>();
   const [loaded, setLoaded] = useState<{
     day: BuilderDay;
     exercise: Exercise;
     last: LastWorkout | null;
+    existing: StoredPlanExercise | null;
   } | null>(null);
   useEffect(() => {
     const id = setTimeout(() => {
@@ -47,15 +62,16 @@ export function AddExerciseDetailsScreen() {
         router.back();
         return;
       }
-      setLoaded({ day, exercise, last: lastWorkoutFor(exercise.id) });
+      const existing = planExerciseId ? loadPlanExercise(planExerciseId) : null;
+      setLoaded({ day, exercise, last: lastWorkoutFor(exercise.id), existing });
     }, 0);
     return () => clearTimeout(id);
-  }, [dayId, exerciseId]);
+  }, [dayId, exerciseId, planExerciseId]);
 
   if (!loaded) return <View style={[styles.root, { paddingTop: insets.top }]} />;
   return (
     <Details
-      key={loaded.exercise.id}
+      key={loaded.existing?.id ?? loaded.exercise.id}
       {...loaded}
       insetsBottom={insets.bottom}
       insetsTop={insets.top}
@@ -67,12 +83,14 @@ function Details({
   day,
   exercise,
   last,
+  existing,
   insetsTop,
   insetsBottom,
 }: {
   day: BuilderDay;
   exercise: Exercise;
   last: LastWorkout | null;
+  existing: StoredPlanExercise | null;
   insetsTop: number;
   insetsBottom: number;
 }) {
@@ -82,22 +100,30 @@ function Details({
     last ? { weight: last.weight, reps: last.reps, targetReps: defaults.reps } : null,
     exercise.loadType,
   );
-  const [weight, setWeight] = useState(suggested);
-  const [sets, setSets] = useState(defaults.sets);
-  const [reps, setReps] = useState(defaults.reps);
-  const [ceiling, setCeiling] = useState(defaults.repCeiling);
+  const [weight, setWeight] = useState(existing?.startWeight ?? suggested);
+  const [sets, setSets] = useState(existing?.sets ?? defaults.sets);
+  const [reps, setReps] = useState(existing?.reps ?? defaults.reps);
+  const [ceiling, setCeiling] = useState(existing?.repCeiling ?? defaults.repCeiling);
+  const [typingWeight, setTypingWeight] = useState(false);
   const repsFirst = strategy === 'reps-first';
+  const editing = existing !== null;
 
-  const onAdd = () => {
-    addPlanExercise(day.dayId, {
+  const onSave = () => {
+    const input = {
       exerciseId: exercise.id,
       name: exercise.name,
       sets,
       reps,
       startWeight: weight,
-      restSeconds: DEFAULT_REST_SECONDS,
+      restSeconds: existing?.restSeconds ?? DEFAULT_REST_SECONDS,
       repCeiling: repsFirst ? ceiling : null,
-    });
+    };
+    if (existing) {
+      updatePlanExercise(existing.id, input);
+      router.back();
+      return;
+    }
+    addPlanExercise(day.dayId, input);
     // Search → Details collapse into the day: back from Day Summary is the builder's
     // previous step, not the lift just added.
     router.dismissTo({ pathname: '/plan/day/[dayId]', params: { dayId: day.dayId } });
@@ -108,7 +134,7 @@ function Details({
       <TopBar
         left={<ArrowLeft color={color.text.primary} size={24} />}
         onPressLeft={() => router.back()}
-        title={`${day.dayName} • Add Exercise`}
+        title={`${day.dayName} • ${editing ? 'Edit Exercise' : 'Add Exercise'}`}
       />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
@@ -131,7 +157,13 @@ function Details({
             </Text>
             <View style={styles.stepper}>
               <StepKey label="-5" onPress={() => setWeight((w) => Math.max(0, w - 5))} />
-              <Text style={styles.weightValue}>{weight}</Text>
+              <Pressable
+                accessibilityHint="Type a weight"
+                accessibilityRole="button"
+                onPress={() => setTypingWeight(true)}
+              >
+                <Text style={styles.weightValue}>{weight}</Text>
+              </Pressable>
               <StepKey label="+5" onPress={() => setWeight((w) => w + 5)} />
             </View>
           </View>
@@ -190,8 +222,21 @@ function Details({
         </View>
       </ScrollView>
       <View style={styles.bottomBar}>
-        <Button onPress={onAdd} title="Add to Day" />
+        <Button onPress={onSave} title={editing ? 'Save Changes' : 'Add to Day'} />
       </View>
+      <NumberSheet
+        initial={weight}
+        label={isPerHand(exercise.loadType) ? 'Weight • Per Hand' : 'Weight'}
+        max={2000}
+        min={0}
+        mode="decimal"
+        onCancel={() => setTypingWeight(false)}
+        onSet={(w) => {
+          setTypingWeight(false);
+          setWeight(w);
+        }}
+        visible={typingWeight}
+      />
     </View>
   );
 }
