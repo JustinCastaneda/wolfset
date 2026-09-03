@@ -46,7 +46,8 @@ class MainActivity : ComponentActivity() {
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
             val ok = grants[Manifest.permission.BODY_SENSORS] == true &&
-                grants[Manifest.permission.ACTIVITY_RECOGNITION] == true
+                grants[Manifest.permission.ACTIVITY_RECOGNITION] == true &&
+                grants[READ_HEART_RATE] != false
             if (ok) HrStreamService.start(this)
         }
 
@@ -63,12 +64,16 @@ class MainActivity : ComponentActivity() {
             val wanted = buildList {
                 add(Manifest.permission.BODY_SENSORS)
                 add(Manifest.permission.ACTIVITY_RECOGNITION)
+                // Wear OS 6 heart-rate permission (see the manifest); older watches ignore it.
+                add(READ_HEART_RATE)
                 if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
             }
             permissionLauncher.launch(wanted.toTypedArray())
         }
     }
 }
+
+private const val READ_HEART_RATE = "android.permission.health.READ_HEART_RATE"
 
 // Brand red for the live number; ambient wants low-emission pixels, so it dims to gray.
 private val Brand = Color(0xFFF04245)

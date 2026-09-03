@@ -4,6 +4,10 @@
     <uses-feature android:name="android.hardware.type.watch" />
 
     <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <!-- Wear OS 6 (Android 16) moved heart rate under Health Connect: Health Services
+         refuses to start an exercise without this one (seen on the Pixel Watch 4,
+         2026-09-02: "Missing permissions: [android.permission.health.READ_HEART_RATE]"). -->
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <!-- ExerciseClient (an active workout session) needs this on top of BODY_SENSORS. -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

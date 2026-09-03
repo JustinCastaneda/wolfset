@@ -41,3 +41,12 @@ The phone stamps `phoneRecvMs` on arrival.
 ## Timing to expect
 
 Interactive watch ≈ 3.5 s beat-to-render; ambient ≈ 6–8 s (5 s batch floor + transport).
+
+## Watch permissions (learned on hardware, 2026-09-02)
+
+Wear OS 6 (Android 16) moved heart rate under Health Connect. Health Services refuses to
+start an exercise without **`android.permission.health.READ_HEART_RATE`** — the error is a
+`SecurityException: Missing permissions` in the watch log, and the watch screen says
+"Could not start". The watch app declares and requests it alongside `BODY_SENSORS` and
+`ACTIVITY_RECOGNITION`; older watches ignore the extra one. The Phase 0 spike predates this
+OS update and would fail the same way on a current Pixel Watch 4.
