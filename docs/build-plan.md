@@ -533,10 +533,15 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       end, buzz + "Recovered" on the first sample under the threshold; "rest over" comes back
       to JS and the machine advances there. `docs/rest-timer.md` (2026-09-03)
 
-- [ ] 🤝 Separate watch token set, or ported primitives?
+- [x] 🤖 **The watch mirrors the loop** — the phone publishes its view of the session
+      (`/wolfset/session` item, `features/set-loop/watch-view.ts`), the watch draws the
+      designed **Set** (`123:3615`) and **Timer** (`123:3825/3861/3878`) screens — pips, ring,
+      Geom, the phone's tokens, Material 3 `EdgeButton` for Continue — and Log / Continue
+      on the wrist come back as the phone's own machine events (`/wolfset/action`).
+      Start Workout on the phone now opens the watch screen. `docs/hr-protocol.md` (2026-09-03)
+- [ ] 🤝 Separate watch token set, or ported primitives? — until decided the watch borrows
+      the phone's colours and type (`wear/.../ui/WolfsetTheme.kt`)
 - [ ] 🤖 Watch Tile — cardio above, Next Workout below, reads today off the phone
-- [ ] 🤖 Set screen — 5 pips on the rail
-- [ ] 🤖 Timer — watch HR states (168 / 142 / 122)
 - [ ] 🤖 Actions panel (swipe left) — Skip Set / Change / End
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
 - [ ] 🤖 Change Workout — A marked Current, B with a Do B button

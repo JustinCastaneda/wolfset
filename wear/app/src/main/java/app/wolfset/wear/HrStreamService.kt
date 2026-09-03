@@ -153,7 +153,7 @@ class HrStreamService : Service() {
             .put("bm", if (snapshot.batching5s) 1 else 0)
             .toString().toByteArray()
 
-        WatchState.update { it.copy(bpm = sample.value, samples = seq) }
+        WatchState.update { it.copy(bpm = sample.value, bpmAt = wallMs, samples = seq) }
 
         val targets = nodes
         scope.launch {

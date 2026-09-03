@@ -10,9 +10,9 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-/** The bridge face of the native seam: heart-rate samples arrive in JS as events, the
- *  session starts and stops the watch's stream through it (WatchControl), and it arms the
- *  doze-proof rest timer (RestTimerService). */
+/** The bridge face of the native seam: heart-rate samples and watch taps arrive in JS as
+ *  events, the session starts and stops the watch's stream and shows itself on the wrist
+ *  through it (WatchControl), and it arms the doze-proof rest timer (RestTimerService). */
 class WolfsetHrModule : Module() {
 
     private val busListener = HrBus.Listener { name, payload -> sendEvent(name, payload) }
@@ -20,7 +20,7 @@ class WolfsetHrModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("WolfsetHr")
 
-        Events(HrBus.EVENT_SAMPLE, HrBus.EVENT_REST_ENDED)
+        Events(HrBus.EVENT_SAMPLE, HrBus.EVENT_REST_ENDED, HrBus.EVENT_WATCH_ACTION)
 
         OnCreate { HrBus.addListener(busListener) }
 
@@ -37,6 +37,11 @@ class WolfsetHrModule : Module() {
 
         AsyncFunction("stopWatchStream") { promise: Promise ->
             WatchControl.send(context, WatchControl.COMMAND_STOP, promise)
+        }
+
+        // What the watch shows: the session's view as JSON (features/set-loop/watch-view.ts).
+        Function("publishWatchView") { viewJson: String ->
+            WatchControl.publishView(context, viewJson)
         }
 
         // The rest timer. Android 14+ lets a health-type foreground service run only with a

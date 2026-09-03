@@ -37,10 +37,11 @@ The phone stamps `phoneRecvMs` on arrival.
 The phone's session sends `start` when the workout screen mounts and `stop` when the
 session finishes or the screen is left — the user never taps the watch (2026-09-03).
 
-On the watch, `ControlListenerService` handles it:
+On the watch, `PhoneListenerService` handles it:
 
 - `start` with the sensor permissions already granted → the foreground service starts
-  silently; the watchface shows the ongoing-activity chip. Already streaming → ignored.
+  and the watch screen opens on the session (2026-09-03); the watchface shows the
+  ongoing-activity chip. Already streaming → the screen opens, nothing else.
 - `start` without the permissions, or when the OS refuses a background service start →
   the watch screen opens, asks, then starts (MainActivity's auto-start extra).
 - `stop` → the service stops. The service also stops itself after **3 hours** as a
@@ -50,6 +51,42 @@ The phone's `startWatchStream()` / `stopWatchStream()` resolve with the number o
 watches that took the message (0 = none connected) and reject only when the phone has no
 Wearable support at all. The app treats both as "no signal" — the timer falls back to
 time alone.
+
+## Session item (phone → watch)
+
+The watch mirrors the loop (Figma `123:3945`, 2026-09-03). The phone's session publishes
+its view as a **Data Layer item** at path **`/wolfset/session`** — one string field, `view`,
+holding JSON — whenever the machine's state changes. An item rather than a message because
+it persists: a watch that opens late reads the latest (`MainActivity` on open), and the Data
+Layer only delivers changes, so republishing the same view costs nothing. Built by
+`features/set-loop/watch-view.ts` (tested, pure).
+
+| Field | Type | Meaning |
+|---|---|---|
+| `screen` | `set` / `rest` / `none` | Which watch screen. `none` clears the watch (session done, screen left, poke grid up on the phone). |
+| `exerciseNo` | int | 1-based position of the exercise — the "01" in "01 • Squat". |
+| `exercise` | string | Exercise name. |
+| `setsDone`, `setsTotal` | int | This exercise's sets — the pips across the top. |
+| `weight`, `unit`, `reps` | number, `Lbs`, int | The set to log; `reps` is the target the watch counts down from. |
+| `restEndsAt` | int | Wall-clock ms (phone clock) when the rest ends; the watch counts down on its own clock. 0 outside a rest. |
+| `restSeconds` | int | Length of the rest, for the ring's fraction. |
+| `recovered` | bool | The gate's verdict for this rest: turns the watch's Continue solid. |
+| `recoveredBelowBpm`, `approachingUpToBpm` | number | The thresholds, so the watch colours its ring from its own fresh reading (same rule as `features/hr/recovered.ts`). |
+
+The watch is a display: it never decides anything about the workout.
+
+## Action message (watch → phone)
+
+`MessageClient` message, path **`/wolfset/action`**, JSON body `{ "type": ..., "reps": n }`:
+
+- `logSet` with `reps` — the Log button on the watch's set screen;
+- `continue` — the Continue button on the watch's timer.
+
+The phone's session turns each into the same machine event its own button sends
+(`watchActionToEvent`), so a late or repeated tap is a no-op by the machine's guards: a
+`logSet` during a rest and a `continue` while logging both change nothing. The watch waits
+up to 4 s for the next view before re-enabling its buttons; the phone answers by publishing
+the new session item, which is what moves the watch screen on.
 
 ## Expectations on the receiver (from `docs/spike-findings.md`)
 
