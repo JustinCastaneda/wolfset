@@ -8,6 +8,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -26,8 +30,10 @@ import androidx.core.app.ServiceCompat
  * keeps the truth — absolute timestamps, so it is never wrong when awake — but Android
  * throttles JS once the screen is off and the phone is in a pocket, which is exactly when
  * a rest runs. This foreground service holds a wake lock for the length of the rest, shows
- * a live countdown in the notification shade, and at the end buzzes and posts "Rest over"
- * so the phone need not be looked at. It also watches the heart-rate bus: the first sample
+ * a live countdown in the notification shade, and at the end buzzes, dings and posts
+ * "Rest over" so the phone need not be looked at. The ding plays on the alarm stream —
+ * audible through headphones with the phone on vibrate, the way a timer app sounds
+ * (Justin, 2026-09-03: Stronglifts and Fitbod do this and it is what a lifter expects). It also watches the heart-rate bus: the first sample
  * under the recovered threshold buzzes once ("Recovered") — the gate's verdict, delivered
  * while JS sleeps. Neither alert moves the session by itself: the end of the rest is sent
  * to JS (`onRestEnded`) and the machine advances there (brief §01).
@@ -42,6 +48,7 @@ class RestTimerService : Service() {
     private var endsAtMs = 0L
     private var recoveredBelowBpm = Double.NaN
     private var recoveredShown = false
+    private var player: MediaPlayer? = null
 
     private val endRunnable = Runnable { onTimerEnd() }
     private val hrListener = HrBus.Listener { name, payload ->
@@ -56,10 +63,15 @@ class RestTimerService : Service() {
                 description = "The countdown while you rest between sets"
             },
         )
+        // The alert channel is silent: the ding is ours (alarm stream), not the ringer's,
+        // so it sounds on a phone set to vibrate. A channel's sound is fixed at creation,
+        // hence the versioned id; the first version is removed on upgrade.
+        nm.deleteNotificationChannel(CHANNEL_ALERT_V1)
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL_ALERT, "Rest alerts", NotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Rest over, and recovered"
                 enableVibration(true)
+                setSound(null, null)
             },
         )
         HrBus.addListener(hrListener)
@@ -106,6 +118,7 @@ class RestTimerService : Service() {
         Log.i(TAG, "rest over")
         alert(NOTIF_ALERT, "Rest over", "Next set", CHANNEL_ALERT)
         vibrate()
+        ding()
         HrBus.restEnded(at, endsAtMs)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -117,6 +130,7 @@ class RestTimerService : Service() {
         Log.i(TAG, "recovered at ${bpm.toInt()} bpm")
         alert(NOTIF_ALERT, "Recovered", "${bpm.toInt()} bpm — Continue when you're ready", CHANNEL_ALERT)
         vibrate()
+        ding()
         notificationManager().notify(NOTIF_TIMER, timerNotification("Recovered · ${bpm.toInt()} bpm"))
     }
 
@@ -163,6 +177,35 @@ class RestTimerService : Service() {
         runCatching { vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 350, 150, 350), -1)) }
     }
 
+    /** The bell (res/raw/rest_ding.wav) on the alarm stream: through headphones, over a
+     *  vibrate-mode ringer, ducking a podcast for under a second rather than pausing it. */
+    private fun ding() {
+        val audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val attrs = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(attrs)
+            .build()
+        runCatching {
+            player?.release()
+            audio.requestAudioFocus(focus)
+            player = MediaPlayer.create(this, R.raw.rest_ding, attrs, audio.generateAudioSessionId()).apply {
+                setOnCompletionListener {
+                    it.release()
+                    player = null
+                    audio.abandonAudioFocusRequest(focus)
+                }
+                start()
+            }
+            Log.i(TAG, "ding")
+        }.onFailure {
+            Log.w(TAG, "ding failed", it)
+            audio.abandonAudioFocusRequest(focus)
+        }
+    }
+
     private fun openApp(): PendingIntent? {
         val launch = packageManager.getLaunchIntentForPackage(packageName) ?: return null
         return PendingIntent.getActivity(
@@ -178,6 +221,7 @@ class RestTimerService : Service() {
         HrBus.removeListener(hrListener)
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
+        // A ding already playing finishes on its own; the player frees itself on completion.
         super.onDestroy()
     }
 
@@ -186,7 +230,8 @@ class RestTimerService : Service() {
     companion object {
         private const val TAG = "WolfsetHr"
         private const val CHANNEL_TIMER = "wolfset-rest"
-        private const val CHANNEL_ALERT = "wolfset-rest-alerts"
+        private const val CHANNEL_ALERT_V1 = "wolfset-rest-alerts"
+        private const val CHANNEL_ALERT = "wolfset-rest-alerts-v2"
         private const val NOTIF_TIMER = 2
         private const val NOTIF_ALERT = 3
         private const val EXTRA_ENDS_AT = "endsAt"
