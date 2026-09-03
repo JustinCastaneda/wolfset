@@ -50,3 +50,10 @@ start an exercise without **`android.permission.health.READ_HEART_RATE`** — th
 "Could not start". The watch app declares and requests it alongside `BODY_SENSORS` and
 `ACTIVITY_RECOGNITION`; older watches ignore the extra one. The Phase 0 spike predates this
 OS update and would fail the same way on a current Pixel Watch 4.
+
+## First hardware run (2026-09-02)
+
+Pixel Watch 4 (Wear OS 6) → Pixel 10 Pro, both on the merged #41 + #42 builds, installed
+over wireless ADB. The watch streamed with the 5-second override accepted; the phone's Post
+Set Timer showed the live number within the first rest — 52 → 53 bpm over nine seconds, the
+same number the watch displayed at that moment. Pictures: `docs/pr-shots/hr-hardware-run/`.
