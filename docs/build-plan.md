@@ -518,7 +518,8 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       `/wolfset/hr` messages) → `mobile/modules/wolfset-hr` (the one native module: Data Layer
       listener → JS events) → `features/hr` (stream rules: staleness, out-of-order, bursts;
       placeholder recovered rule) → live BPM and ring color on the Post Set Timer, Continue
-      goes Solid when recovered (2026-09-02). Protocol: `docs/hr-protocol.md`. Watch UI is a
+      goes Solid when recovered (2026-09-02). **Proven on hardware the same day** (Pixel Watch 4 →
+      Pixel 10 Pro, live number on the timer). Protocol: `docs/hr-protocol.md`. Watch UI is a
       placeholder screen — the designed watch screens are the items below
 - [ ] ⚠️ 🤝 **The recovered rule** — placeholder (65% of peak, floor 110) ships coloring the
       ring only; Justin collects felt-ready BPMs; then the rule and its tests
