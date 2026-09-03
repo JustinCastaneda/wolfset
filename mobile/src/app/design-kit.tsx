@@ -15,7 +15,7 @@ import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
 import { WeightReadout } from '@/components/WeightReadout';
 import { color, palette, type } from '@/theme/tokens';
-import { WolfsetHr } from '../../modules/wolfset-hr';
+import { WolfsetHr } from '@modules/wolfset-hr';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
 // the phone next to Figma and compare. Renders nothing outside dev — Metro strips the

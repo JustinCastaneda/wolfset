@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import type { HrSample } from '../../../modules/wolfset-hr';
+import type { HrSample } from '@modules/wolfset-hr';
 import { EMPTY_STREAM, currentBpm, ingest, isStale } from './hr-stream';
 import { hrZone, isRecovered, recoveredThreshold } from './recovered';
 

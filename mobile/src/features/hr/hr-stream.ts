@@ -1,4 +1,4 @@
-import type { HrSample } from '../../../modules/wolfset-hr';
+import type { HrSample } from '@modules/wolfset-hr';
 
 // The heart-rate stream as the app sees it, with the three rules the spike measured
 // (docs/spike-findings.md, "pipe requirements"): drop out-of-order samples, treat a quiet

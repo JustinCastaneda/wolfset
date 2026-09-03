@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 
-import { WolfsetHr, type HrSample } from '../../../modules/wolfset-hr';
-import { EMPTY_STREAM, currentBpm, ingest, isStale, type HrStreamState } from './hr-stream';
+import { WolfsetHr, type HrSample } from '@modules/wolfset-hr';
+import {
+  EMPTY_STREAM,
+  STALE_AFTER_MS,
+  currentBpm,
+  ingest,
+  isStale,
+  type HrStreamState,
+} from './hr-stream';
 import { hrZone, isRecovered, type HrZone } from './recovered';
 
 // The live heart rate for a session: subscribes to the native module for the whole
@@ -28,12 +35,15 @@ export function useHeartRate(): HeartRate {
   useEffect(() => {
     const native = WolfsetHr;
     if (!native) return;
-    // Catch up on a sample that landed before React was listening.
+    // Catch up on a sample that landed before React was listening — only if it is still
+    // fresh, so yesterday's last beat never reads as "signal lost" today.
     const seed = setTimeout(() => {
       const latest = native.getLatestSample();
       const t = Date.now();
       setNow(t);
-      if (latest) setStream((s) => ingest(s, latest, latest.phoneRecvMs || t));
+      if (latest && t - latest.phoneRecvMs <= STALE_AFTER_MS) {
+        setStream((s) => ingest(s, latest, latest.phoneRecvMs));
+      }
     }, 0);
     const sub = native.addListener('onHrSample', (sample: HrSample) => {
       const t = Date.now();
