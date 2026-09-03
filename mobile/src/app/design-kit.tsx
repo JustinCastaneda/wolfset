@@ -17,6 +17,11 @@ import { WeightReadout } from '@/components/WeightReadout';
 import { color, palette, type } from '@/theme/tokens';
 import { WolfsetHr } from '@modules/wolfset-hr';
 import { startWatch, stopWatch, type WatchReach } from '@/features/hr/watch-control';
+import {
+  armRestTimer,
+  disarmRestTimer,
+  ensureRestPermissions,
+} from '@/features/set-loop/native-rest';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
 // the phone next to Figma and compare. Renders nothing outside dev — Metro strips the
@@ -73,6 +78,30 @@ export default function DesignKit() {
           onPress={() => void stopWatch().then(setWatchReach)}
           size="small"
           title="Stop watch"
+          variant="secondary"
+        />
+      </View>
+
+      {/* The native rest timer on its own: arm a short rest, lock the screen, wait for the
+          buzz. Injecting 110 bpm above while it runs shows the "Recovered" alert. */}
+      <Text style={styles.section}>Rest timer — native, 20 s</Text>
+      <View style={styles.chipRow}>
+        <Button
+          disabled={!WolfsetHr}
+          onPress={() =>
+            void ensureRestPermissions().then((ok) => {
+              if (ok) armRestTimer(Date.now() + 20_000);
+            })
+          }
+          size="small"
+          title="Arm 20 s"
+          variant="secondary"
+        />
+        <Button
+          disabled={!WolfsetHr}
+          onPress={disarmRestTimer}
+          size="small"
+          title="Disarm"
           variant="secondary"
         />
       </View>

@@ -1,8 +1,8 @@
 import { requireOptionalNativeModule, type NativeModule } from 'expo-modules-core';
 
 // The JS face of the native seam (CLAUDE.md: one Kotlin module on the phone). Today it
-// carries heart-rate samples from the watch and the session's start/stop of the watch's
-// stream; the doze-proof rest timer joins it later.
+// carries heart-rate samples from the watch, the session's start/stop of the watch's
+// stream, and the doze-proof rest timer.
 // Optional because it only exists on Android with the watch pipeline compiled in — on
 // iOS, in tests, or in a build without it, `WolfsetHr` is null and the app runs without
 // a signal.
@@ -22,8 +22,13 @@ export type HrSample = {
   bm: number;
 };
 
+/** The native rest timer ran out. `endsAt` names the rest it belonged to, so a late
+ *  event for an earlier rest can never end the current one. */
+export type RestEnded = { at: number; endsAt: number };
+
 type WolfsetHrEvents = {
   onHrSample: (sample: HrSample) => void;
+  onRestEnded: (event: RestEnded) => void;
 };
 
 declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
@@ -36,6 +41,16 @@ declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
   startWatchStream(): Promise<number>;
   /** Tell every connected watch to stop. Same result shape as start. */
   stopWatchStream(): Promise<number>;
+  /** Whether the rest timer's foreground service may run (sensor + notification
+   *  permissions on Android 13/14+). */
+  hasRestPermissions(): boolean;
+  /** Ask for them; resolves true when all granted. */
+  requestRestPermissions(): Promise<boolean>;
+  /** Arm the doze-proof rest timer: wake lock, countdown notification, buzz at `endsAtMs`,
+   *  and a one-time buzz when a sample drops below `recoveredBelowBpm`. */
+  startRest(endsAtMs: number, recoveredBelowBpm: number): void;
+  /** Disarm it — the rest ended (timer, Continue, workout over, screen left). */
+  endRest(): void;
 }
 
 export const WolfsetHr = requireOptionalNativeModule<WolfsetHrNativeModule>('WolfsetHr');

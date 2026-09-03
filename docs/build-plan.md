@@ -528,7 +528,10 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       finishing or leaving sends `stop` (`/wolfset/control`, `docs/hr-protocol.md`); the
       watch starts silently when its permissions are granted, else opens its screen to ask.
       3-hour backstop on the watch for a lost `stop` (2026-09-03)
-- [ ] 🤖 Doze-proof rest timer in the native module (foreground service)
+- [x] 🤖 **Doze-proof rest timer in the native module** — a health-type foreground service
+      holds each rest through screen-off: countdown in the shade, buzz + "Rest over" at the
+      end, buzz + "Recovered" on the first sample under the threshold; "rest over" comes back
+      to JS and the machine advances there. `docs/rest-timer.md` (2026-09-03)
 
 - [ ] 🤝 Separate watch token set, or ported primitives?
 - [ ] 🤖 Watch Tile — cardio above, Next Workout below, reads today off the phone
