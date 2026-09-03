@@ -8,7 +8,6 @@ import { Button } from '@/components/Button';
 import { ReorderableRows } from '@/components/ReorderableRows';
 import { TopBar } from '@/components/TopBar';
 import {
-  activatePlan,
   loadDay,
   removePlanExercise,
   reorderPlanExercises,
@@ -28,9 +27,8 @@ import { moveItem } from './reorder';
 
 // Day Summary (Figma 123:1944) in its edit state (Justin's mock, 2026-09-02): every row
 // has a ✕ that removes the lift, the rest of the row reopens it for editing, and the
-// grip drags it into a new order. Add Workout, the three stat tiles, and Save Day.
-// Until Plan Summary (123:2530) exists, Save Day is the end of the builder: the plan
-// becomes the active one and Start Workout runs this day.
+// grip drags it into a new order. Add Workout, the three stat tiles, and Save Day, which
+// returns to Plan Summary (123:2530) — Save Plan there is what makes the plan active.
 
 const ROW_HEIGHT = 80;
 
@@ -114,10 +112,9 @@ export function DaySummaryScreen() {
       <View style={styles.bottomBar}>
         <Button
           disabled={lifts.length === 0}
-          onPress={() => {
-            activatePlan(day.planId, Date.now());
-            router.dismissAll();
-          }}
+          onPress={() =>
+            router.dismissTo({ pathname: '/plan/[planId]', params: { planId: day.planId } })
+          }
           title="Save Day"
         />
       </View>

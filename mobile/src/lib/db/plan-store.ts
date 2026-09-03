@@ -3,8 +3,8 @@ import { newId } from './ids';
 import type { SessionExercise } from '@/features/set-loop/types';
 
 // Reads and writes the plan tables (data-model §2: Plan → PlanDay → PlanExercise). The
-// session boots from here; the plan builder writes here. Until mesocycles track which
-// day is next, the active plan's first day is the day.
+// session boots from here; the plan builder writes here. The active plan's days rotate:
+// `next_day_order` says which one Start Workout runs, and finishing a workout advances it.
 
 export type ProgressionStrategy = 'steady' | 'reps-first' | 'by-feel';
 
@@ -33,12 +33,20 @@ const EXERCISE_COLUMNS = `pe.exercise_id, pe.name, pe.sets, pe.reps, pe.start_we
 
 export function loadActiveDay(): ActiveDay | null {
   const db = getDb();
-  const day = db.getFirstSync<{ id: string; name: string; plan_name: string }>(
-    `SELECT d.id, d.name, p.name AS plan_name
-     FROM plan_days d JOIN plans p ON p.id = d.plan_id
-     WHERE p.is_active = 1
-     ORDER BY d.day_order ASC LIMIT 1`,
-  );
+  // The plan's next day (rotation), falling back to its first if the pointer is stale
+  // (a day removed after it was pointed at).
+  const day =
+    db.getFirstSync<{ id: string; name: string; plan_name: string }>(
+      `SELECT d.id, d.name, p.name AS plan_name
+       FROM plan_days d JOIN plans p ON p.id = d.plan_id
+       WHERE p.is_active = 1 AND d.day_order = p.next_day_order LIMIT 1`,
+    ) ??
+    db.getFirstSync<{ id: string; name: string; plan_name: string }>(
+      `SELECT d.id, d.name, p.name AS plan_name
+       FROM plan_days d JOIN plans p ON p.id = d.plan_id
+       WHERE p.is_active = 1
+       ORDER BY d.day_order ASC LIMIT 1`,
+    );
   if (!day) return null;
   const rows = db.getAllSync<PlanExerciseRow>(
     `SELECT ${EXERCISE_COLUMNS}
@@ -301,4 +309,140 @@ export function reorderPlanExercises(dayId: string, orderedIds: string[]) {
       ]);
     });
   });
+}
+
+// --- The plan as a whole (Plan Summary, day rotation) ---------------------------------
+
+export type PlanDaySummary = {
+  id: string;
+  order: number;
+  name: string;
+  exerciseNames: string[];
+};
+
+export type BuilderPlan = {
+  id: string;
+  name: string;
+  strategy: ProgressionStrategy;
+  isActive: boolean;
+  nextDayOrder: number;
+  days: PlanDaySummary[];
+};
+
+export function loadPlan(planId: string): BuilderPlan | null {
+  const db = getDb();
+  const p = db.getFirstSync<{
+    id: string;
+    name: string;
+    progression_default: string;
+    is_active: number;
+    next_day_order: number;
+  }>('SELECT id, name, progression_default, is_active, next_day_order FROM plans WHERE id = ?', [
+    planId,
+  ]);
+  if (!p) return null;
+  const days = db.getAllSync<{ id: string; day_order: number; name: string }>(
+    'SELECT id, day_order, name FROM plan_days WHERE plan_id = ? ORDER BY day_order ASC',
+    [planId],
+  );
+  return {
+    id: p.id,
+    name: p.name,
+    strategy: p.progression_default as ProgressionStrategy,
+    isActive: p.is_active === 1,
+    nextDayOrder: p.next_day_order,
+    days: days.map((d) => ({
+      id: d.id,
+      order: d.day_order,
+      name: d.name,
+      exerciseNames: db
+        .getAllSync<{ name: string }>(
+          'SELECT name FROM plan_exercises WHERE plan_day_id = ? ORDER BY exercise_order ASC',
+          [d.id],
+        )
+        .map((r) => r.name),
+    })),
+  };
+}
+
+/** Add Day (Figma 123:2530): "Day N" at the end. */
+export function addPlanDay(planId: string): string {
+  const db = getDb();
+  const n = db.getFirstSync<{ n: number }>(
+    'SELECT count(*) AS n FROM plan_days WHERE plan_id = ?',
+    [planId],
+  );
+  const order = n?.n ?? 0;
+  const id = newId();
+  db.runSync('INSERT INTO plan_days (id, plan_id, day_order, name) VALUES (?, ?, ?, ?)', [
+    id,
+    planId,
+    order,
+    `Day ${order + 1}`,
+  ]);
+  return id;
+}
+
+/** A day's ✕: the day and its lifts go, later days close the gap and are renamed. */
+export function removePlanDay(dayId: string) {
+  const db = getDb();
+  const row = db.getFirstSync<{ plan_id: string; day_order: number }>(
+    'SELECT plan_id, day_order FROM plan_days WHERE id = ?',
+    [dayId],
+  );
+  if (!row) return;
+  db.withTransactionSync(() => {
+    db.runSync('DELETE FROM plan_exercises WHERE plan_day_id = ?', [dayId]);
+    db.runSync('DELETE FROM plan_days WHERE id = ?', [dayId]);
+    db.runSync(
+      'UPDATE plan_days SET day_order = day_order - 1 WHERE plan_id = ? AND day_order > ?',
+      [row.plan_id, row.day_order],
+    );
+    renameDaysByOrder(row.plan_id);
+    db.runSync(
+      'UPDATE plans SET next_day_order = 0 WHERE id = ? AND next_day_order >= (SELECT count(*) FROM plan_days WHERE plan_id = ?)',
+      [row.plan_id, row.plan_id],
+    );
+  });
+}
+
+/** Drag-reorder days; "Day N" follows the new order. */
+export function reorderPlanDays(planId: string, orderedIds: string[]) {
+  const db = getDb();
+  db.withTransactionSync(() => {
+    orderedIds.forEach((id, i) => {
+      db.runSync('UPDATE plan_days SET day_order = ? WHERE id = ? AND plan_id = ?', [
+        i,
+        id,
+        planId,
+      ]);
+    });
+    renameDaysByOrder(planId);
+  });
+}
+
+function renameDaysByOrder(planId: string) {
+  const db = getDb();
+  const days = db.getAllSync<{ id: string; day_order: number }>(
+    'SELECT id, day_order FROM plan_days WHERE plan_id = ?',
+    [planId],
+  );
+  for (const d of days) {
+    db.runSync('UPDATE plan_days SET name = ? WHERE id = ?', [`Day ${d.day_order + 1}`, d.id]);
+  }
+}
+
+/** A finished workout moves the plan to its next day (wrapping). */
+export function advanceNextDay(dayId: string) {
+  const db = getDb();
+  const row = db.getFirstSync<{ plan_id: string; day_order: number; n: number }>(
+    `SELECT d.plan_id, d.day_order, (SELECT count(*) FROM plan_days WHERE plan_id = d.plan_id) AS n
+     FROM plan_days d WHERE d.id = ?`,
+    [dayId],
+  );
+  if (!row || row.n === 0) return;
+  db.runSync('UPDATE plans SET next_day_order = ? WHERE id = ?', [
+    (row.day_order + 1) % row.n,
+    row.plan_id,
+  ]);
 }

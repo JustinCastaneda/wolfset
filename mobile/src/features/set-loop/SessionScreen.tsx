@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
-import { loadActiveDay } from '@/lib/db/plan-store';
+import { advanceNextDay, loadActiveDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
 import { acceptDeload, settleSession, type SettledExercise } from './settle-session';
 import { color } from '@/theme/tokens';
@@ -28,7 +28,7 @@ import type { SessionState } from './types';
 //
 // Rest is time-only for now; the HR gate plugs into `recoveredChanged` in Phase 7.
 
-type Boot = { state: SessionState; startedAt: number; dayName: string };
+type Boot = { state: SessionState; startedAt: number; dayName: string; dayId: string };
 
 export function SessionScreen() {
   // The snapshot and plan reads are impure, so they happen in an effect, never in render.
@@ -44,7 +44,7 @@ export function SessionScreen() {
       }
       const saved = loadSnapshot();
       if (saved && saved.state.phase.name !== 'done') {
-        setBoot({ ...saved, dayName: day.dayName });
+        setBoot({ ...saved, dayName: day.dayName, dayId: day.dayId });
         return;
       }
       // A fresh session starts from the stored progress: yesterday's hits moved
@@ -59,7 +59,12 @@ export function SessionScreen() {
             ? (progress[ex.exerciseId]?.currentReps ?? ex.targetReps)
             : ex.targetReps,
       }));
-      setBoot({ state: startSession('plan', exercises), startedAt: 0, dayName: day.dayName });
+      setBoot({
+        state: startSession('plan', exercises),
+        startedAt: 0,
+        dayName: day.dayName,
+        dayId: day.dayId,
+      });
     }, 0);
     return () => clearTimeout(id);
   }, []);
@@ -124,11 +129,13 @@ function SessionRunner({ boot }: { boot: Boot }) {
       const now = Date.now();
       const settled = settleSession(state, loadAllProgress());
       for (const lift of settled) saveProgress(lift.exerciseId, lift.progress, now);
-      finalizeSession(state, clock.startedAt, now);
+      finalizeSession(state, clock.startedAt, now, boot.dayId);
+      // Multi-day plans rotate: the next Start Workout runs the following day.
+      advanceNextDay(boot.dayId);
       setSummary(settled);
     }, 0);
     return () => clearTimeout(id);
-  }, [state, sessionOver, clock.startedAt]);
+  }, [state, sessionOver, clock.startedAt, boot.dayId]);
 
   // The plateau question's two answers (decisions 11b — the app asked).
   const answerPlateau = (exerciseId: string, deload: boolean) => {
