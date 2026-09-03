@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useHeartRate, type HeartRate } from '@/features/hr/useHeartRate';
+import { startWatch, stopWatch } from '@/features/hr/watch-control';
 import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { advanceNextDay, loadActiveDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
@@ -28,7 +29,9 @@ import type { SessionState } from './types';
 // its timestamps are absolute. Finishing turns the snapshot into history rows.
 //
 // The watch's heart rate feeds the machine through `recoveredChanged` — an input that
-// colors the ring and arms Continue, never a transition (brief §01).
+// colors the ring and arms Continue, never a transition (brief §01). The session also
+// drives the watch: mounting starts its stream, finishing (or leaving) stops it, so the
+// watch is never tapped (decision 2026-09-03).
 
 type Boot = { state: SessionState; startedAt: number; dayName: string; dayId: string };
 
@@ -112,6 +115,14 @@ function SessionRunner({ boot }: { boot: Boot }) {
   // becomes the machine's `recovered` flag; a lost signal never flips it back — stale data
   // must not change the gate (spike pipe requirement 1).
   const hr = useHeartRate();
+  // The watch streams exactly while this session is on screen: start on mount (a resumed
+  // session starts it again — harmless, the watch ignores a second start), stop on unmount.
+  useEffect(() => {
+    void startWatch();
+    return () => {
+      void stopWatch();
+    };
+  }, []);
   const recoveredNow = state.phase.name === 'resting' ? state.phase.recovered : null;
   useEffect(() => {
     if (!resting || hr.recovered === null || hr.recovered === recoveredNow) return;
@@ -135,6 +146,8 @@ function SessionRunner({ boot }: { boot: Boot }) {
       saveSnapshot(state, clock.startedAt, Date.now());
       return;
     }
+    // The workout is over while the summary is read — the watch can rest now.
+    void stopWatch();
     // Deferred so no state is set synchronously inside an effect (compiler rule).
     // settleSession is deterministic and a done session never changes, so this runs once.
     const id = setTimeout(() => {

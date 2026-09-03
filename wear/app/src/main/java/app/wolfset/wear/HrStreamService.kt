@@ -95,6 +95,15 @@ class HrStreamService : Service() {
         scope.launch { startExercise() }
         WatchState.update { it.copy(streaming = true, status = "Starting") }
 
+        // Backstop for a phone-driven stream whose "stop" never arrives (app killed, phone
+        // out of range, session abandoned): no workout lasts this long, so end it and free
+        // the sensor rather than stream all night. The phone restarts it on resume.
+        scope.launch {
+            delay(MAX_STREAM_MS)
+            Log.w(TAG, "stream hit the ${MAX_STREAM_MS / 60_000} min backstop; stopping")
+            stopSelf()
+        }
+
         // Refresh the connected phone list periodically rather than per sample.
         scope.launch {
             while (true) {
@@ -201,6 +210,7 @@ class HrStreamService : Service() {
     companion object {
         private const val TAG = "WolfsetHr"
         private const val NOTIFICATION_ID = 1
+        private const val MAX_STREAM_MS = 3L * 60 * 60 * 1000
 
         fun start(context: Context) {
             context.startForegroundService(Intent(context, HrStreamService::class.java))
