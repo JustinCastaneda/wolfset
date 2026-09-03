@@ -10,6 +10,8 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 object HrBus {
     const val EVENT_SAMPLE = "onHrSample"
+    /** The native rest timer ran out: `{ at, endsAt }` — endsAt identifies which rest. */
+    const val EVENT_REST_ENDED = "onRestEnded"
 
     fun interface Listener {
         fun onEvent(name: String, payload: Bundle)
@@ -36,5 +38,13 @@ object HrBus {
         }
         latest = sample
         listeners.forEach { it.onEvent(EVENT_SAMPLE, Bundle(sample)) }
+    }
+
+    fun restEnded(at: Long, endsAt: Long) {
+        val payload = Bundle().apply {
+            putLong("at", at)
+            putLong("endsAt", endsAt)
+        }
+        listeners.forEach { it.onEvent(EVENT_REST_ENDED, Bundle(payload)) }
     }
 }

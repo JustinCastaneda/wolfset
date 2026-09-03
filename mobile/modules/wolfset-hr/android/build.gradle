@@ -20,4 +20,6 @@ android {
 dependencies {
   // The Wearable Data Layer: WearableListenerService + MessageEvent.
   implementation 'com.google.android.gms:play-services-wearable:19.0.0'
+  // ServiceCompat.startForeground with a type, NotificationCompat.CATEGORY_WORKOUT.
+  implementation 'androidx.core:core-ktx:1.13.1'
 }

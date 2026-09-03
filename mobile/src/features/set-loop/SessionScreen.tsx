@@ -5,6 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useHeartRate, type HeartRate } from '@/features/hr/useHeartRate';
 import { startWatch, stopWatch } from '@/features/hr/watch-control';
+import {
+  armRestTimer,
+  disarmRestTimer,
+  ensureRestPermissions,
+  onNativeRestEnded,
+  restEndedMatches,
+  restEndsAt,
+} from './native-rest';
 import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { advanceNextDay, loadActiveDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
@@ -31,7 +39,8 @@ import type { SessionState } from './types';
 // The watch's heart rate feeds the machine through `recoveredChanged` — an input that
 // colors the ring and arms Continue, never a transition (brief §01). The session also
 // drives the watch: mounting starts its stream, finishing (or leaving) stops it, so the
-// watch is never tapped (decision 2026-09-03).
+// watch is never tapped (decision 2026-09-03). Each rest is also handed to the native
+// rest timer, which holds it through screen-off and buzzes at the end (native-rest.ts).
 
 type Boot = { state: SessionState; startedAt: number; dayName: string; dayId: string };
 
@@ -123,6 +132,37 @@ function SessionRunner({ boot }: { boot: Boot }) {
       void stopWatch();
     };
   }, []);
+
+  // The doze-proof rest timer. Permission is asked once, at the first workout; a refusal
+  // leaves the on-screen timer alone. Every rest arms the native timer with its end and
+  // disarms it however the rest ends. Its "rest over" is the same event the on-screen
+  // clock sends — the machine advances, native never does.
+  const [nativeRest, setNativeRest] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void ensureRestPermissions().then((ok) => {
+      if (alive) setNativeRest(ok);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const endsAt = restEndsAt(state.phase);
+  useEffect(() => {
+    if (!nativeRest || endsAt === null) return;
+    armRestTimer(endsAt);
+    return () => disarmRestTimer();
+  }, [nativeRest, endsAt]);
+  useEffect(
+    () =>
+      onNativeRestEnded((event) => {
+        if (restEndedMatches(event, endsAt)) {
+          send({ type: 'restEnded', reason: 'timer', at: event.at });
+        }
+      }),
+    // endsAt names the current rest; a new rest resubscribes with its own.
+    [endsAt],
+  );
   const recoveredNow = state.phase.name === 'resting' ? state.phase.recovered : null;
   useEffect(() => {
     if (!resting || hr.recovered === null || hr.recovered === recoveredNow) return;

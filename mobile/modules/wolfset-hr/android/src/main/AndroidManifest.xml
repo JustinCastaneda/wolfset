@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The rest timer: a health-type foreground service (the type Android reserves for
+         fitness timers), which on Android 14+ also needs a runtime sensor permission —
+         activity recognition is the lightest. Vibrate + notify when the rest is over. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application>
+        <!-- Holds the rest between sets while the screen is off (docs/rest-timer.md). -->
+        <service
+            android:name="app.wolfset.hr.RestTimerService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+
         <!-- Play services starts this on every watch message, whatever state the app is in —
              samples land while the phone is in a pocket. Path prefix must match
              docs/hr-protocol.md. -->

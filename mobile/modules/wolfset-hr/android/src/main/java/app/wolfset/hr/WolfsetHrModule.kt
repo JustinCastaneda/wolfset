@@ -1,12 +1,18 @@
 package app.wolfset.hr
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.core.content.ContextCompat
+import expo.modules.interfaces.permissions.PermissionsStatus
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-/** The bridge face of the native seam: heart-rate samples arrive in JS as events, and the
- *  session starts and stops the watch's stream through it (WatchControl). */
+/** The bridge face of the native seam: heart-rate samples arrive in JS as events, the
+ *  session starts and stops the watch's stream through it (WatchControl), and it arms the
+ *  doze-proof rest timer (RestTimerService). */
 class WolfsetHrModule : Module() {
 
     private val busListener = HrBus.Listener { name, payload -> sendEvent(name, payload) }
@@ -14,7 +20,7 @@ class WolfsetHrModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("WolfsetHr")
 
-        Events(HrBus.EVENT_SAMPLE)
+        Events(HrBus.EVENT_SAMPLE, HrBus.EVENT_REST_ENDED)
 
         OnCreate { HrBus.addListener(busListener) }
 
@@ -31,6 +37,32 @@ class WolfsetHrModule : Module() {
 
         AsyncFunction("stopWatchStream") { promise: Promise ->
             WatchControl.send(context, WatchControl.COMMAND_STOP, promise)
+        }
+
+        // The rest timer. Android 14+ lets a health-type foreground service run only with a
+        // runtime sensor permission granted (activity recognition is the lightest), and
+        // Android 13+ shows its notifications only with notification permission. Ask once
+        // at the start of a workout; a refusal leaves the on-screen JS timer, nothing worse.
+        Function("hasRestPermissions") { hasRestPermissions() }
+
+        AsyncFunction("requestRestPermissions") { promise: Promise ->
+            val permissions = appContext.permissions
+            if (permissions == null || REST_PERMISSIONS.isEmpty()) {
+                promise.resolve(hasRestPermissions())
+                return@AsyncFunction
+            }
+            permissions.askForPermissions(
+                { result -> promise.resolve(result.values.all { it.status == PermissionsStatus.GRANTED }) },
+                *REST_PERMISSIONS.toTypedArray(),
+            )
+        }
+
+        Function("startRest") { endsAtMs: Double, recoveredBelowBpm: Double ->
+            RestTimerService.start(context, endsAtMs.toLong(), recoveredBelowBpm)
+        }
+
+        Function("endRest") {
+            RestTimerService.stop(context)
         }
 
         // Dev only: the same path a watch message takes, so the JS layer can be exercised
@@ -50,6 +82,15 @@ class WolfsetHrModule : Module() {
 
     private val context
         get() = appContext.reactContext ?: throw IllegalStateException("React context is gone")
+
+    private fun hasRestPermissions(): Boolean = REST_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private val REST_PERMISSIONS: List<String> = buildList {
+        if (Build.VERSION.SDK_INT >= 34) add(Manifest.permission.ACTIVITY_RECOGNITION)
+        if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     private fun toMap(b: Bundle): Map<String, Any?> = mapOf(
         "seq" to b.getLong("seq"),
