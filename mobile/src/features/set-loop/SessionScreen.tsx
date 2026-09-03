@@ -3,6 +3,7 @@ import { useEffect, useReducer, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useHeartRate, type HeartRate } from '@/features/hr/useHeartRate';
 import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { advanceNextDay, loadActiveDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
@@ -26,7 +27,8 @@ import type { SessionState } from './types';
 // so a killed app resumes exactly where it stood — including a running rest, because
 // its timestamps are absolute. Finishing turns the snapshot into history rows.
 //
-// Rest is time-only for now; the HR gate plugs into `recoveredChanged` in Phase 7.
+// The watch's heart rate feeds the machine through `recoveredChanged` — an input that
+// colors the ring and arms Continue, never a transition (brief §01).
 
 type Boot = { state: SessionState; startedAt: number; dayName: string; dayId: string };
 
@@ -105,6 +107,16 @@ function SessionRunner({ boot }: { boot: Boot }) {
     const id = setInterval(() => setClock((c) => ({ ...c, now: Date.now() })), 250);
     return () => clearInterval(id);
   }, [resting]);
+
+  // Live heart rate for the whole session (the peak happens mid-set). While resting, the
+  // placeholder rule's verdict becomes the machine's `recovered` flag; a lost signal never
+  // flips it back — stale data must not change the gate (spike pipe requirement 1).
+  const hr = useHeartRate();
+  const recoveredNow = state.phase.name === 'resting' ? state.phase.recovered : null;
+  useEffect(() => {
+    if (!resting || hr.recovered === null || hr.recovered === recoveredNow) return;
+    dispatch({ type: 'recoveredChanged', recovered: hr.recovered });
+  }, [resting, hr.recovered, recoveredNow]);
 
   const remaining = clock.now === 0 ? null : restRemaining(state, clock.now);
   useEffect(() => {
@@ -189,6 +201,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
       ) : (
         <SessionBody
           dayName={dayName}
+          hr={hr}
           now={clock.now}
           onEvent={send}
           onLeave={() => router.back()}
@@ -217,6 +230,7 @@ function SessionRunner({ boot }: { boot: Boot }) {
 function SessionBody({
   state,
   dayName,
+  hr,
   now,
   startedAt,
   summary,
@@ -227,6 +241,7 @@ function SessionBody({
 }: {
   state: SessionState;
   dayName: string;
+  hr: HeartRate;
   now: number;
   startedAt: number;
   summary: SettledExercise[] | null;
@@ -252,6 +267,7 @@ function SessionBody({
       return (
         <PostSetTimerScreen
           dayName={dayName}
+          hr={hr}
           now={now}
           onEvent={onEvent}
           onOverview={onOverview}

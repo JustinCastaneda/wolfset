@@ -5,15 +5,17 @@ import { Button } from '@/components/Button';
 import { SegmentedProgress } from '@/components/SegmentedProgress';
 import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
+import type { HeartRate } from '@/features/hr/useHeartRate';
 import { color, type } from '@/theme/tokens';
 import { restRemaining } from './machine';
 import { exerciseProgress, formatClock, loopTitle, type Dispatch } from './session-ui';
 import type { SessionState } from './types';
 
-// Post Set Timer (Figma 25:292): the ring with the countdown inside, the HR line, a
-// coaching caption, Continue as a full-width Secondary button. Ring length is time.
-// Ring color is the HR zone — until the watch lands (Phase 7) the zone runs on time:
-// first half resting, second half approaching, recovered green arrives with real HR.
+// Post Set Timer (Figma 25:292 red · 10:10447 yellow · 25:257 green): the ring with the
+// countdown inside, the HR line, a coaching caption, Continue. Ring length is time; ring
+// color is the HR zone from the watch. Recovered (green, "Let it rip") turns Continue
+// Solid — the gate arms the button, it never presses it (brief §01). With no watch signal
+// the zone falls back to time: first half resting, second half approaching.
 
 export function PostSetTimerScreen({
   state,
@@ -21,17 +23,28 @@ export function PostSetTimerScreen({
   now,
   onEvent,
   onOverview,
+  hr,
 }: {
   state: SessionState;
   dayName: string;
   now: number;
   onEvent: Dispatch;
   onOverview: () => void;
+  hr: HeartRate;
 }) {
   if (state.phase.name !== 'resting') return null;
   const remaining = restRemaining(state, now) ?? 0;
   const fraction = state.phase.restSeconds > 0 ? remaining / state.phase.restSeconds : 0;
-  const zone = state.phase.recovered ? 'ready' : fraction > 0.5 ? 'resting' : 'approaching';
+  const zone = state.phase.recovered
+    ? 'ready'
+    : (hr.zone ?? (fraction > 0.5 ? 'resting' : 'approaching'));
+  const caption = hr.lost
+    ? 'Watch signal lost'
+    : zone === 'ready'
+      ? 'Let it rip'
+      : zone === 'resting'
+        ? 'Take it easy'
+        : 'Go with what feels right';
   const { done, total } = exerciseProgress(state);
 
   return (
@@ -52,14 +65,13 @@ export function PostSetTimerScreen({
             <View style={styles.hrRow}>
               <HeartPulse color={color.timer[zone]} size={32} />
               <Text style={[styles.bpm, { color: color.timer[zone] }]}>
-                –– <Text style={styles.bpmUnit}>bpm</Text>
+                {hr.bpm === null ? '––' : Math.round(hr.bpm)}{' '}
+                <Text style={styles.bpmUnit}>bpm</Text>
               </Text>
             </View>
           </View>
         </TimerRing>
-        <Text style={styles.caption}>
-          {zone === 'resting' ? 'Take it easy' : 'Go with what feels right'}
-        </Text>
+        <Text style={styles.caption}>{caption}</Text>
       </View>
 
       <View style={styles.bottomBar}>
@@ -67,7 +79,7 @@ export function PostSetTimerScreen({
           onPress={() => onEvent({ type: 'restEnded', reason: 'continue', at: Date.now() })}
           rightIcon={<ArrowBigRight color={color.text.onButton} size={24} />}
           title="Continue"
-          variant="secondary"
+          variant={state.phase.recovered ? 'solid' : 'secondary'}
         />
       </View>
     </View>

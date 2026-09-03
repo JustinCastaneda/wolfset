@@ -62,6 +62,9 @@
     "preset": "jest-expo",
     "testMatch": [
       "**/src/**/*.test.ts"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^@modules/(.*)$": "<rootDir>/modules/$1"
+    }
   }
 }

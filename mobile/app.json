@@ -23,6 +23,7 @@
       "icon": "./assets/expo.icon"
     },
     "plugins": [
+      "./plugins/withSharedDebugKeystore",
       "expo-router",
       [
         "expo-font",

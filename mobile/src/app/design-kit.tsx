@@ -15,6 +15,7 @@ import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
 import { WeightReadout } from '@/components/WeightReadout';
 import { color, palette, type } from '@/theme/tokens';
+import { WolfsetHr } from '@modules/wolfset-hr';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
 // the phone next to Figma and compare. Renders nothing outside dev — Metro strips the
@@ -32,6 +33,25 @@ export default function DesignKit() {
       ]}
     >
       <Text style={styles.h1}>Design Kit</Text>
+
+      {/* Dev seam for the watch pipeline: pushes a sample through the same native path a
+          watch message takes, so the timer's HR states can be exercised without a watch.
+          A session left open underneath (push this route from the timer) receives it. */}
+      <Text style={styles.section}>
+        Heart rate — inject a sample {WolfsetHr ? '' : '(native module not in this build)'}
+      </Text>
+      <View style={styles.chipRow}>
+        {[150, 125, 95].map((bpm) => (
+          <Button
+            disabled={!WolfsetHr}
+            key={bpm}
+            onPress={() => WolfsetHr?.debugInjectSample(bpm)}
+            size="small"
+            title={`${bpm} bpm`}
+            variant="secondary"
+          />
+        ))}
+      </View>
 
       <Text style={styles.section}>Button — Solid · Outline · Ghost · Secondary</Text>
       {(['solid', 'outline', 'ghost', 'secondary'] as const).map((variant) => (

@@ -514,6 +514,17 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 
 *Phase 0 proved the mechanism. Watch frames: `node-id=123-3945`.*
 
+- [x] 🤖 **The pipe, for real** — `wear/` (Kotlin: ExerciseClient + 5 s batching override,
+      `/wolfset/hr` messages) → `mobile/modules/wolfset-hr` (the one native module: Data Layer
+      listener → JS events) → `features/hr` (stream rules: staleness, out-of-order, bursts;
+      placeholder recovered rule) → live BPM and ring color on the Post Set Timer, Continue
+      goes Solid when recovered (2026-09-02). Protocol: `docs/hr-protocol.md`. Watch UI is a
+      placeholder screen — the designed watch screens are the items below
+- [ ] ⚠️ 🤝 **The recovered rule** — placeholder (65% of peak, floor 110) ships coloring the
+      ring only; Justin collects felt-ready BPMs; then the rule and its tests
+- [ ] 🤖 Phone → watch: start/stop the stream with the session (today: Start on the watch)
+- [ ] 🤖 Doze-proof rest timer in the native module (foreground service)
+
 - [ ] 🤝 Separate watch token set, or ported primitives?
 - [ ] 🤖 Watch Tile — cardio above, Next Workout below, reads today off the phone
 - [ ] 🤖 Set screen — 5 pips on the rail

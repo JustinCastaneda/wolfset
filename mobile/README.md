@@ -26,6 +26,7 @@ src/
                 a route file wires params and composes, it does not hold logic
   components/   presentational, reusable. Phase 3 fills this from the design system
   features/     feature-scoped logic + screens (e.g. features/set-loop/)
+modules/        the one native module (Kotlin): modules/wolfset-hr — imported as @modules/*
   lib/          cross-cutting non-UI: storage, native module wrappers, formatting
 ```
 
