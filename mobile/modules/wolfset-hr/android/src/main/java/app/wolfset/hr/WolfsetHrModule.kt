@@ -1,10 +1,12 @@
 package app.wolfset.hr
 
 import android.os.Bundle
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-/** The bridge face of the native seam: heart-rate samples arrive in JS as events. */
+/** The bridge face of the native seam: heart-rate samples arrive in JS as events, and the
+ *  session starts and stops the watch's stream through it (WatchControl). */
 class WolfsetHrModule : Module() {
 
     private val busListener = HrBus.Listener { name, payload -> sendEvent(name, payload) }
@@ -22,6 +24,15 @@ class WolfsetHrModule : Module() {
             HrBus.latest?.let { toMap(it) }
         }
 
+        // Phone → watch. Resolve with the number of watches reached (0 = none connected).
+        AsyncFunction("startWatchStream") { promise: Promise ->
+            WatchControl.send(context, WatchControl.COMMAND_START, promise)
+        }
+
+        AsyncFunction("stopWatchStream") { promise: Promise ->
+            WatchControl.send(context, WatchControl.COMMAND_STOP, promise)
+        }
+
         // Dev only: the same path a watch message takes, so the JS layer can be exercised
         // on an emulator with no watch attached.
         Function("debugInjectSample") { bpm: Double ->
@@ -36,6 +47,9 @@ class WolfsetHrModule : Module() {
             )
         }
     }
+
+    private val context
+        get() = appContext.reactContext ?: throw IllegalStateException("React context is gone")
 
     private fun toMap(b: Bundle): Map<String, Any?> = mapOf(
         "seq" to b.getLong("seq"),

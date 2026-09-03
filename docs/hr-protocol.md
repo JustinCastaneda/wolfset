@@ -1,4 +1,4 @@
-# Watch → phone heart-rate protocol
+# Watch ↔ phone heart-rate protocol
 
 The watch app (`wear/`) and the phone's native module (`mobile/modules/wolfset-hr`) agree on
 this by hand — there is no shared library. Change it in both places and here.
@@ -30,6 +30,26 @@ apksigner verify --print-certs mobile/android/app/build/outputs/apk/debug/app-de
 | `bm` | 0 / 1 | 1 when the `HEART_RATE_5_SECONDS` batching override is active — without it, delivery stalls in ambient until the wrist is raised. |
 
 The phone stamps `phoneRecvMs` on arrival.
+
+## Control message (phone → watch)
+
+`MessageClient` message, path **`/wolfset/control`**, plain-text body `start` or `stop`.
+The phone's session sends `start` when the workout screen mounts and `stop` when the
+session finishes or the screen is left — the user never taps the watch (2026-09-03).
+
+On the watch, `ControlListenerService` handles it:
+
+- `start` with the sensor permissions already granted → the foreground service starts
+  silently; the watchface shows the ongoing-activity chip. Already streaming → ignored.
+- `start` without the permissions, or when the OS refuses a background service start →
+  the watch screen opens, asks, then starts (MainActivity's auto-start extra).
+- `stop` → the service stops. The service also stops itself after **3 hours** as a
+  backstop for a `stop` that never arrives (phone app killed, session abandoned).
+
+The phone's `startWatchStream()` / `stopWatchStream()` resolve with the number of connected
+watches that took the message (0 = none connected) and reject only when the phone has no
+Wearable support at all. The app treats both as "no signal" — the timer falls back to
+time alone.
 
 ## Expectations on the receiver (from `docs/spike-findings.md`)
 

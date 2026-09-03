@@ -1,6 +1,7 @@
 package app.wolfset.wear
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -55,6 +56,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(ambientObserver)
         setContent { MaterialTheme { StreamScreen(onToggle = ::toggleStream) } }
+        autoStartIfAsked(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        autoStartIfAsked(intent)
+    }
+
+    /** The phone asked for the stream but the service could not start silently
+     *  (ControlListenerService): ask for the permissions here, then start. */
+    private fun autoStartIfAsked(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_AUTO_START, false) != true) return
+        intent.removeExtra(EXTRA_AUTO_START)
+        if (!WatchState.snapshot.value.streaming) toggleStream(streaming = false)
     }
 
     private fun toggleStream(streaming: Boolean) {
@@ -71,9 +86,13 @@ class MainActivity : ComponentActivity() {
             permissionLauncher.launch(wanted.toTypedArray())
         }
     }
-}
 
-private const val READ_HEART_RATE = "android.permission.health.READ_HEART_RATE"
+    companion object {
+        const val READ_HEART_RATE = "android.permission.health.READ_HEART_RATE"
+        /** Set by ControlListenerService: the phone wants the stream — ask, then start. */
+        const val EXTRA_AUTO_START = "app.wolfset.wear.AUTO_START"
+    }
+}
 
 // Brand red for the live number; ambient wants low-emission pixels, so it dims to gray.
 private val Brand = Color(0xFFF04245)

@@ -16,6 +16,7 @@ import { TopBar } from '@/components/TopBar';
 import { WeightReadout } from '@/components/WeightReadout';
 import { color, palette, type } from '@/theme/tokens';
 import { WolfsetHr } from '@modules/wolfset-hr';
+import { startWatch, stopWatch, type WatchReach } from '@/features/hr/watch-control';
 
 // The Design Kit (plan 3d): every component and variant on one screen, so Justin can hold
 // the phone next to Figma and compare. Renders nothing outside dev — Metro strips the
@@ -23,6 +24,7 @@ import { WolfsetHr } from '@modules/wolfset-hr';
 
 export default function DesignKit() {
   const insets = useSafeAreaInsets();
+  const [watchReach, setWatchReach] = useState<WatchReach | null>(null);
   if (!__DEV__) return null;
   return (
     <ScrollView
@@ -51,6 +53,28 @@ export default function DesignKit() {
             variant="secondary"
           />
         ))}
+      </View>
+
+      {/* Phone → watch: the same calls the session makes on mount and on finish. Handy for
+          a hardware check without running a workout. */}
+      <Text style={styles.section}>
+        Watch — start / stop the stream{watchReach ? ` (${watchReach})` : ''}
+      </Text>
+      <View style={styles.chipRow}>
+        <Button
+          disabled={!WolfsetHr}
+          onPress={() => void startWatch().then(setWatchReach)}
+          size="small"
+          title="Start watch"
+          variant="secondary"
+        />
+        <Button
+          disabled={!WolfsetHr}
+          onPress={() => void stopWatch().then(setWatchReach)}
+          size="small"
+          title="Stop watch"
+          variant="secondary"
+        />
       </View>
 
       <Text style={styles.section}>Button — Solid · Outline · Ghost · Secondary</Text>

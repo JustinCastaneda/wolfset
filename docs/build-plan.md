@@ -524,7 +524,10 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [x] 🤝 **The recovered rule** — green < 120 · yellow to 140 · red above (Justin, 2026-09-02);
       one value in `features/hr/recovered.ts`, a Profile setting later. The ring/Continue
       still never advance the loop
-- [ ] 🤖 Phone → watch: start/stop the stream with the session (today: Start on the watch)
+- [x] 🤖 **Phone → watch: the session drives the stream** — Start Workout sends `start`,
+      finishing or leaving sends `stop` (`/wolfset/control`, `docs/hr-protocol.md`); the
+      watch starts silently when its permissions are granted, else opens its screen to ask.
+      3-hour backstop on the watch for a lost `stop` (2026-09-03)
 - [ ] 🤖 Doze-proof rest timer in the native module (foreground service)
 
 - [ ] 🤝 Separate watch token set, or ported primitives?
