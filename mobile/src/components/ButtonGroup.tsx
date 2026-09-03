@@ -1,17 +1,14 @@
 import { Pencil } from 'lucide-react-native';
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Button } from './Button';
-import { Keypad, type KeypadKey } from './Keypad';
+import { NumberSheet } from './NumberSheet';
 import { color, type } from '@/theme/tokens';
 
 // Figma: Button Group component set 373:7703 — a label over a row of equal keys
 // (State=True 373:7654 brand fill / False 373:7655 raised), the last one a pencil for a
 // custom number. A custom value takes the pencil's slot, brand-filled, "32 ✎"
-// (Override Applied, 123:1654). ⚠️ The custom-entry sheet itself is undesigned — the
-// Keypad and a Set button in a bottom sheet until Justin draws it.
+// (Override Applied, 123:1654). The pencil opens the Number Sheet.
 
 type ButtonGroupProps = {
   label: string;
@@ -39,10 +36,11 @@ export function ButtonGroup({ label, options, value, onChange, max = 99 }: Butto
           <Pencil color={color.text.onButton} size={24} />
         </Key>
       </View>
-      <CustomSheet
+      <NumberSheet
         initial={value}
         label={label}
         max={max}
+        mode="integer"
         onCancel={() => setEditing(false)}
         onSet={(n) => {
           setEditing(false);
@@ -81,50 +79,6 @@ function Key({
   );
 }
 
-function CustomSheet({
-  visible,
-  label,
-  initial,
-  max,
-  onSet,
-  onCancel,
-}: {
-  visible: boolean;
-  label: string;
-  initial: number;
-  max: number;
-  onSet: (n: number) => void;
-  onCancel: () => void;
-}) {
-  const insets = useSafeAreaInsets();
-  const [draft, setDraft] = useState('');
-  const onKey = (k: KeypadKey) => {
-    if (k === 'delete') return setDraft((d) => d.slice(0, -1));
-    if (k === '.') return; // whole numbers only here
-    setDraft((d) => (d + k).replace(/^0+(?=\d)/, '').slice(0, 3));
-  };
-  const n = draft === '' ? NaN : Number(draft);
-  const valid = Number.isInteger(n) && n >= 1 && n <= max;
-  return (
-    <Modal animationType="slide" onRequestClose={onCancel} transparent visible={visible}>
-      <Pressable accessibilityLabel="Cancel" onPress={onCancel} style={styles.scrim} />
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 24 }]}>
-        <Text style={styles.sheetTitle}>{label}</Text>
-        <Text style={styles.sheetValue}>{draft === '' ? initial : draft}</Text>
-        <Keypad onKey={onKey} />
-        <View style={styles.sheetActions}>
-          <View style={styles.grow}>
-            <Button onPress={onCancel} title="Cancel" variant="secondary" />
-          </View>
-          <View style={styles.grow}>
-            <Button disabled={!valid} onPress={() => valid && onSet(n)} title="Set" />
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { alignSelf: 'stretch', gap: 8 },
   // Figma 373:7621: Button type, secondary text.
@@ -146,16 +100,4 @@ const styles = StyleSheet.create({
   keySelected: { backgroundColor: color.brand },
   keyPressed: { backgroundColor: color.press.raised },
   keyLabel: { ...type.button, color: color.text.onButton },
-  scrim: { flex: 1 },
-  sheet: {
-    backgroundColor: color.bg.base,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 24,
-    gap: 16,
-  },
-  sheetTitle: { ...type.title, color: color.text.primary, paddingHorizontal: 24 },
-  sheetValue: { ...type.displayL, color: color.text.primary, textAlign: 'center' },
-  sheetActions: { flexDirection: 'row', gap: 16, paddingHorizontal: 24 },
-  grow: { flex: 1 },
 });

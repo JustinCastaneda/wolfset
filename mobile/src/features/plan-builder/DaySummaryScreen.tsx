@@ -1,12 +1,20 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Plus } from 'lucide-react-native';
+import { ArrowLeft, Plus, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
+import { ReorderableRows } from '@/components/ReorderableRows';
 import { TopBar } from '@/components/TopBar';
-import { activatePlan, loadDay, type BuilderDay, type DayExercise } from '@/lib/db/plan-store';
+import {
+  activatePlan,
+  loadDay,
+  removePlanExercise,
+  reorderPlanExercises,
+  type BuilderDay,
+  type DayExercise,
+} from '@/lib/db/plan-store';
 import { color, type } from '@/theme/tokens';
 import {
   daySubtitle,
@@ -16,16 +24,22 @@ import {
   rowCaption,
   totalSets,
 } from './day-summary';
+import { moveItem } from './reorder';
 
-// Day Summary (Figma 123:1944): the day's lifts, Add Workout, the three stat tiles, and
-// Save Day. Until Plan Summary (123:2530) exists, Save Day is the end of the builder:
-// the plan becomes the active one and Start Workout runs this day.
+// Day Summary (Figma 123:1944) in its edit state (Justin's mock, 2026-09-02): every row
+// has a ✕ that removes the lift, the rest of the row reopens it for editing, and the
+// grip drags it into a new order. Add Workout, the three stat tiles, and Save Day.
+// Until Plan Summary (123:2530) exists, Save Day is the end of the builder: the plan
+// becomes the active one and Start Workout runs this day.
+
+const ROW_HEIGHT = 80;
 
 export function DaySummaryScreen() {
   const insets = useSafeAreaInsets();
   const { dayId } = useLocalSearchParams<{ dayId: string }>();
   const [day, setDay] = useState<BuilderDay | null>(null);
-  // Re-read on focus: Add to Day lands back here with one more row.
+  const [dragging, setDragging] = useState(false);
+  // Re-read on focus: Add to Day / Save Changes land back here with the rows changed.
   useFocusEffect(
     useCallback(() => {
       const id = setTimeout(() => setDay(dayId ? loadDay(dayId) : null), 0);
@@ -35,6 +49,25 @@ export function DaySummaryScreen() {
 
   if (!day) return <View style={[styles.root, { paddingTop: insets.top }]} />;
   const lifts = day.exercises;
+  const dayIdSafe = day.dayId;
+
+  const remove = (id: string) => {
+    removePlanExercise(id);
+    setDay(loadDay(dayIdSafe));
+  };
+  const move = (from: number, to: number) => {
+    const next = moveItem(lifts, from, to);
+    reorderPlanExercises(
+      dayIdSafe,
+      next.map((e) => e.id),
+    );
+    setDay({ ...day, exercises: next });
+  };
+  const edit = (e: DayExercise) =>
+    router.push({
+      pathname: '/plan/day/[dayId]/add/[exerciseId]',
+      params: { dayId: dayIdSafe, exerciseId: e.exerciseId, planExerciseId: e.id },
+    });
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -43,22 +76,27 @@ export function DaySummaryScreen() {
         onPressLeft={() => router.back()}
         title={`${day.planName} • ${day.dayName}`}
       />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} scrollEnabled={!dragging}>
         <View style={styles.titleBlock}>
           <Text style={styles.h1}>{day.dayName}</Text>
           <Text style={styles.subtitle}>{daySubtitle(day.planStrategy, lifts)}</Text>
         </View>
 
-        <View>
-          {lifts.map((e, i) => (
-            <LiftRow index={i + 1} key={e.id} lift={e} />
-          ))}
-        </View>
+        <ReorderableRows
+          items={lifts}
+          keyOf={(e) => e.id}
+          onDragging={setDragging}
+          onMove={move}
+          renderRow={(e, i) => (
+            <LiftRow index={i + 1} lift={e} onPress={() => edit(e)} onRemove={() => remove(e.id)} />
+          )}
+          rowHeight={ROW_HEIGHT}
+        />
 
         <View style={styles.addWrap}>
           <Button
             onPress={() =>
-              router.push({ pathname: '/plan/day/[dayId]/search', params: { dayId: day.dayId } })
+              router.push({ pathname: '/plan/day/[dayId]/search', params: { dayId: dayIdSafe } })
             }
             rightIcon={<Plus color={color.text.onButton} size={24} />}
             size="small"
@@ -87,27 +125,53 @@ export function DaySummaryScreen() {
   );
 }
 
-// Figma 123:1952 "Line-Item": number · name + caption · weight and sets×reps.
-function LiftRow({ index, lift }: { index: number; lift: DayExercise }) {
+// Figma 123:1952 "Line-Item" + the mock's ✕: number · name + caption · weight and
+// sets×reps · remove. The row body opens the lift; only the ✕ removes it.
+function LiftRow({
+  index,
+  lift,
+  onPress,
+  onRemove,
+}: {
+  index: number;
+  lift: DayExercise;
+  onPress: () => void;
+  onRemove: () => void;
+}) {
   const caption = rowCaption(lift);
   return (
     <View style={styles.row}>
-      <View style={styles.rowLeft}>
+      <Pressable
+        accessibilityHint="Opens this lift to edit it"
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [styles.rowBody, pressed && styles.rowPressed]}
+      >
         <Text style={styles.rowIndex}>{index}</Text>
         <View style={styles.rowText}>
-          <Text style={styles.rowTitle}>{lift.name}</Text>
-          <Text style={styles.rowCaption}>
+          <Text numberOfLines={1} style={styles.rowTitle}>
+            {lift.name}
+          </Text>
+          <Text numberOfLines={1} style={styles.rowCaption}>
             {caption.override && <Text style={styles.rowOverride}>{caption.override} • </Text>}
             {caption.rest}
           </Text>
         </View>
-      </View>
-      <View style={styles.rowRight}>
-        <Text style={styles.rowWeight}>{lift.startWeight}</Text>
-        <Text style={styles.rowSets}>
-          {lift.sets}x{lift.reps}
-        </Text>
-      </View>
+        <View style={styles.rowRight}>
+          <Text style={styles.rowWeight}>{lift.startWeight}</Text>
+          <Text style={styles.rowSets}>
+            {lift.sets}x{lift.reps}
+          </Text>
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityLabel={`Remove ${lift.name}`}
+        accessibilityRole="button"
+        onPress={onRemove}
+        style={({ pressed }) => [styles.remove, pressed && styles.rowPressed]}
+      >
+        <X color={color.text.primary} size={24} />
+      </Pressable>
     </View>
   );
 }
@@ -128,23 +192,32 @@ const styles = StyleSheet.create({
   titleBlock: { paddingHorizontal: 24, paddingVertical: 4, gap: 8 },
   h1: { ...type.h1, color: color.text.primary },
   subtitle: { fontFamily: 'Geom', fontSize: 20, fontWeight: '400', color: color.text.secondary },
-  row: {
+  row: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingRight: 12 },
+  rowBody: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
     gap: 16,
+    paddingVertical: 16,
+    paddingRight: 8,
+    borderRadius: 8,
   },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 16, flexShrink: 1 },
+  rowPressed: { backgroundColor: color.bg.raised },
   rowIndex: { ...type.title, color: color.text.secondary, width: 16, textAlign: 'center' },
-  rowText: { gap: 4, flexShrink: 1 },
+  rowText: { gap: 4, flex: 1 },
   rowTitle: { ...type.title, color: color.text.primary },
   rowCaption: { ...type.caption, color: color.text.secondary },
   rowOverride: { color: color.brand },
   rowRight: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
   rowWeight: { ...type.titleValue, color: color.text.primary },
   rowSets: { ...type.label, color: color.text.secondary, minWidth: 32 },
+  remove: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
   addWrap: { paddingHorizontal: 24 },
   tiles: { flexDirection: 'row', gap: 8, paddingHorizontal: 24, paddingTop: 16 },
   tile: {

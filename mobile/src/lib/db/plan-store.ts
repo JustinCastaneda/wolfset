@@ -229,3 +229,76 @@ export function activatePlan(planId: string, now: number) {
     db.runSync('UPDATE plans SET is_active = 1, updated_at = ? WHERE id = ?', [now, planId]);
   });
 }
+
+// --- Editing a day before it's saved -------------------------------------------------
+
+export type StoredPlanExercise = NewPlanExercise & { id: string; dayId: string };
+
+export function loadPlanExercise(id: string): StoredPlanExercise | null {
+  const r = getDb().getFirstSync<{
+    id: string;
+    plan_day_id: string;
+    exercise_id: string;
+    name: string;
+    sets: number;
+    reps: number;
+    start_weight: number;
+    rest_seconds: number;
+    rep_ceiling: number | null;
+  }>(
+    'SELECT id, plan_day_id, exercise_id, name, sets, reps, start_weight, rest_seconds, rep_ceiling FROM plan_exercises WHERE id = ?',
+    [id],
+  );
+  if (!r) return null;
+  return {
+    id: r.id,
+    dayId: r.plan_day_id,
+    exerciseId: r.exercise_id,
+    name: r.name,
+    sets: r.sets,
+    reps: r.reps,
+    startWeight: r.start_weight,
+    restSeconds: r.rest_seconds,
+    repCeiling: r.rep_ceiling,
+  };
+}
+
+/** Tapping a Day Summary row reopens the lift; Save Changes writes it back in place. */
+export function updatePlanExercise(id: string, input: NewPlanExercise) {
+  getDb().runSync(
+    `UPDATE plan_exercises SET sets = ?, reps = ?, start_weight = ?, rest_seconds = ?, rep_ceiling = ?
+     WHERE id = ?`,
+    [input.sets, input.reps, input.startWeight, input.restSeconds, input.repCeiling, id],
+  );
+}
+
+/** The row's ✕: gone, and the rows after it close the gap. */
+export function removePlanExercise(id: string) {
+  const db = getDb();
+  const row = db.getFirstSync<{ plan_day_id: string; exercise_order: number }>(
+    'SELECT plan_day_id, exercise_order FROM plan_exercises WHERE id = ?',
+    [id],
+  );
+  if (!row) return;
+  db.withTransactionSync(() => {
+    db.runSync('DELETE FROM plan_exercises WHERE id = ?', [id]);
+    db.runSync(
+      'UPDATE plan_exercises SET exercise_order = exercise_order - 1 WHERE plan_day_id = ? AND exercise_order > ?',
+      [row.plan_day_id, row.exercise_order],
+    );
+  });
+}
+
+/** Drag-reorder: the day's rows in their new order (every id of the day, once). */
+export function reorderPlanExercises(dayId: string, orderedIds: string[]) {
+  const db = getDb();
+  db.withTransactionSync(() => {
+    orderedIds.forEach((id, i) => {
+      db.runSync('UPDATE plan_exercises SET exercise_order = ? WHERE id = ? AND plan_day_id = ?', [
+        i,
+        id,
+        dayId,
+      ]);
+    });
+  });
+}
