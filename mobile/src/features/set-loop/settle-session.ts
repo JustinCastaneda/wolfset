@@ -22,15 +22,27 @@ const DEFAULT_RX: Omit<Prescription, 'sets' | 'reps'> = {
  *  Shared with the grid's live preview so what it shows is what settle will do. */
 export function prescriptionFor(ex: SessionState['exercises'][number]): Prescription {
   const base = { ...DEFAULT_RX, sets: ex.prescribedSets ?? 0, reps: ex.targetReps };
-  if (ex.strategy !== 'by-feel') return base;
-  return {
-    ...base,
-    progression: {
-      strategy: 'by-feel',
-      repRangeMin: ex.targetReps,
-      repRangeMax: ex.targetReps + 3,
-    },
-  };
+  if (ex.strategy === 'by-feel') {
+    return {
+      ...base,
+      progression: {
+        strategy: 'by-feel',
+        repRangeMin: ex.targetReps,
+        repRangeMax: ex.targetReps + 3,
+      },
+    };
+  }
+  if (ex.strategy === 'reps-first') {
+    // The plan default climbs one rep per hit up to the lift's ceiling ("Climb from 8
+    // to 12 reps at the same weight, then add 5lbs" — card 101:994). The +3 step on
+    // the Progression Override screen is an override, not the default. 👤 confirm.
+    return {
+      ...base,
+      repCeiling: ex.repCeiling ?? DEFAULT_RX.repCeiling,
+      progression: { strategy: 'reps-first', repStep: 1 },
+    };
+  }
+  return base;
 }
 
 export type SettledExercise = {
@@ -124,7 +136,8 @@ export function settleSession(
         currentWeight: progress.currentWeight,
         consecutiveFailures: progress.consecutiveFailures,
         lastOutcome,
-        currentReps: byFeel ? progress.currentReps : null,
+        // Reps move for by-feel and reps-first lifts; steady lifts keep the plan's reps.
+        currentReps: byFeel || ex.strategy === 'reps-first' ? progress.currentReps : null,
         lastReserve:
           byFeel && outcome !== 'skipped'
             ? (rating?.reserve ?? null)

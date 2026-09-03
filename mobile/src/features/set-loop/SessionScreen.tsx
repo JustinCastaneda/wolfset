@@ -53,8 +53,9 @@ export function SessionScreen() {
       const exercises = day.exercises.map((ex) => ({
         ...ex,
         weight: progress[ex.exerciseId]?.currentWeight ?? ex.weight,
+        // By-feel and reps-first lifts carry a moving rep target; steady keeps the plan's.
         targetReps:
-          ex.strategy === 'by-feel'
+          ex.strategy === 'by-feel' || ex.strategy === 'reps-first'
             ? (progress[ex.exerciseId]?.currentReps ?? ex.targetReps)
             : ex.targetReps,
       }));

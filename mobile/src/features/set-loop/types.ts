@@ -15,9 +15,12 @@ export type SessionExercise = {
   weight: number;
   restSeconds: number;
   autoStartTimer: boolean;
-  /** How this lift progresses. Defaults to steady; by-feel lifts get the poke grid
-   *  when their sets finish (engine: Figma 384:11049). */
-  strategy?: 'steady' | 'by-feel';
+  /** How this lift progresses (the plan default, or a per-lift override). Defaults to
+   *  steady; by-feel lifts get the poke grid when their sets finish (engine: Figma
+   *  384:11049); reps-first lifts climb reps to `repCeiling` before adding weight. */
+  strategy?: 'steady' | 'reps-first' | 'by-feel';
+  /** Reps First only: "Max Reps before Weight Increase". Undefined = plan default (20). */
+  repCeiling?: number;
 };
 
 /** The poke on the By Feel grid (384:10881): x = form, y = reps left in the tank. */
