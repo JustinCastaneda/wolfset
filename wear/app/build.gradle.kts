@@ -54,4 +54,6 @@ dependencies {
     implementation("androidx.wear.compose:compose-foundation:1.6.2")
     implementation("androidx.compose.ui:ui:1.9.0")
     implementation("androidx.compose.foundation:foundation:1.9.0")
+
+    testImplementation("junit:junit:4.13.2")
 }

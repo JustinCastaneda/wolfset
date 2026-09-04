@@ -54,6 +54,9 @@ val Geom = FontFamily(
  * in Figma and scaled exactly once, here, so the layout keeps its proportions on any round
  * face.
  */
+/** The width the watch frames are drawn at (docs/figma-inventory.md §3). */
+const val FACE = 456f
+
 class Scale(private val factor: Float) {
     fun dp(frame: Float): Dp = (frame * factor).dp
     fun dp(frame: Int): Dp = dp(frame.toFloat())
@@ -93,7 +96,7 @@ val LocalType = compositionLocalOf { WatchType(Scale(1f)) }
 @Composable
 fun WolfsetTheme(content: @Composable () -> Unit) {
     val width = LocalConfiguration.current.screenWidthDp
-    val scale = remember(width) { Scale(width / 456f) }
+    val scale = remember(width) { Scale(width / FACE) }
     val type = remember(scale) { WatchType(scale) }
     val colors = ColorScheme(
         primary = WolfsetColor.Brand,

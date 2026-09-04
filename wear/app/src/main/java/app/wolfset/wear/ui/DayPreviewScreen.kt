@@ -2,6 +2,7 @@ package app.wolfset.wear.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -97,7 +98,15 @@ private fun LiftRow(no: Int, lift: SessionView.LiftView) {
     ) {
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(no.toString(), style = type.title, color = WolfsetColor.TextSecondary, maxLines = 1, modifier = Modifier.width(s.dp(36)))
-            Text(lift.name, style = type.title, color = WolfsetColor.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            BoxWithConstraints {
+                Text(
+                    fittedName(lift.name, type.title, maxWidth),
+                    style = type.title,
+                    color = WolfsetColor.TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(start = s.dp(8))) {
             Text(formatWeight(lift.weight), style = type.h3Bold, color = WolfsetColor.TextPrimary, maxLines = 1)
