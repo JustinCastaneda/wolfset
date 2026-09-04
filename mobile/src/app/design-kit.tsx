@@ -324,6 +324,7 @@ const KIT_SET: WatchView = {
   setNo: 1,
   dayDone: 0,
   dayTotal: 5,
+  canUnskip: false,
   weight: 135,
   unit: 'Lbs',
   reps: 5,

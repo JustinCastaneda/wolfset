@@ -69,6 +69,7 @@ Layer only delivers changes, so republishing the same view costs nothing. Built 
 | `setsDone`, `setsTotal` | int | This exercise's sets — the pips across the top. |
 | `setNo` | int | 1-based index of the set to log — the current pip. Past `setsDone` after a skip, which is also what changes the item so the watch learns the skip happened. |
 | `dayDone`, `dayTotal` | int | The day's sets, for End Workout's "Only 3 of 5 sets done." |
+| `canUnskip` | bool | This lift has a skipped set to go back to — the Actions panel shows Undo Skip. |
 | `weight`, `unit`, `reps` | number, `Lbs`, int | The set to log; `reps` is the target the watch counts down from. |
 | `restEndsAt` | int | Wall-clock ms (phone clock) when the rest ends; the watch counts down on its own clock. 0 outside a rest. |
 | `restSeconds` | int | Length of the rest, for the ring's fraction. |
@@ -94,8 +95,12 @@ soon as the phone publishes a different set.
 
 - `logSet` with `reps` — the Log button on the watch's set screen;
 - `continue` — the Continue button on the watch's timer;
-- `skipSet` — Skip Set on the Actions panel (swipe left of the set): the machine moves to
-  the next set without logging one;
+- `skipSet` — Skip Set on the Actions panel (swipe left of the set or the timer): the
+  machine moves to the next set without logging one; from the timer, the rest ends and
+  the set that was coming is the one skipped;
+- `unskipSet` — Undo Skip on the panel: back to this lift's first skipped set (sets are
+  interchangeable, so the next set becomes the count logged); a running rest keeps
+  running;
 - `endWorkout` — End on the watch's "End Workout?" screen. That screen *is* the double
   confirm, so the phone ends the session on it without asking again;
 - `finish` — Finish on Session Done. Not a machine event: the phone leaves the session

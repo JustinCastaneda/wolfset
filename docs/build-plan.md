@@ -543,8 +543,9 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [ ] 🤝 Separate watch token set, or ported primitives? — until decided the watch borrows
       the phone's colours and type (`wear/.../ui/WolfsetTheme.kt`)
 - [ ] 🤖 Watch Tile — cardio above, Next Workout below, reads today off the phone
-- [x] 🤖 **Actions panel (swipe left) — Skip Set / End** (`164:4103`, 2026-09-03). Skip Set is
-      a new machine event: the next set without a log, so the lift scores short. The
+- [x] 🤖 **Actions panel (swipe left) — Skip Set / Undo Skip / End** (`164:4103`, 2026-09-03),
+      off the set and the timer. Skip Set is a new machine event: the next set without a
+      log, so the lift scores short; Undo Skip goes back to it (no frame — same card). The
       Change Exercise card waits for Change Workout below (the frame's arrow points there
       and the phone cannot switch days yet)
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first

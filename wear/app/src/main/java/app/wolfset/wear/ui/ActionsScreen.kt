@@ -29,14 +29,24 @@ import androidx.wear.compose.material3.Text
 import app.wolfset.wear.R
 
 /**
- * The Actions panel (Figma 164:4103), a swipe left of the set screen: the icon cards
- * stacked down the face — Skip Set in the raised gray, End Workout outlined in brand —
- * with the page dots below. The frame's middle card, Change Exercise, leads to Change
- * Workout (164:4192), which the phone cannot do yet; it joins with that unit. End opens
- * the watch's own "End Workout?" (EndWorkoutScreen); Skip goes straight to the phone.
+ * The Actions panel (Figma 164:4103), a swipe left of the set screen and of the timer
+ * (Justin, 2026-09-03): the icon cards stacked down the face — Skip Set in the raised
+ * gray, Undo Skip in the middle while this lift has a skipped set to go back to, End
+ * Workout outlined in brand — with the page dots below. From the timer, Skip ends the
+ * rest and skips the set that was coming. The frame's middle card, Change Exercise,
+ * leads to Change Workout (164:4192), which the phone cannot do yet; it joins with that
+ * unit. End opens the watch's own "End Workout?" (EndWorkoutScreen); the others go
+ * straight to the phone.
  */
 @Composable
-fun ActionsScreen(ambient: Boolean, enabled: Boolean, onSkipSet: () -> Unit, onEndWorkout: () -> Unit) {
+fun ActionsScreen(
+    ambient: Boolean,
+    enabled: Boolean,
+    canUnskip: Boolean,
+    onSkipSet: () -> Unit,
+    onUndoSkip: () -> Unit,
+    onEndWorkout: () -> Unit,
+) {
     val s = LocalScale.current
     val brand = if (ambient) WolfsetColor.Muted else WolfsetColor.Brand
     Face(ambient) {
@@ -57,6 +67,20 @@ fun ActionsScreen(ambient: Boolean, enabled: Boolean, onSkipSet: () -> Unit, onE
                 enabled = enabled && !ambient,
                 onClick = onSkipSet,
             )
+            if (canUnskip) {
+                ActionCard(
+                    shape = RoundedCornerShape(s.dp(12)),
+                    fill = WolfsetColor.Raised,
+                    pressedFill = WolfsetColor.Border,
+                    border = null,
+                    icon = R.drawable.ic_undo_2,
+                    iconTint = if (ambient) WolfsetColor.Muted else WolfsetColor.TextSecondary,
+                    label = "Undo Skip",
+                    labelColour = WolfsetColor.TextPrimary,
+                    enabled = enabled && !ambient,
+                    onClick = onUndoSkip,
+                )
+            }
             ActionCard(
                 shape = RoundedCornerShape(topStart = s.dp(12), topEnd = s.dp(12), bottomStart = s.dp(96), bottomEnd = s.dp(96)),
                 fill = Color.Transparent,

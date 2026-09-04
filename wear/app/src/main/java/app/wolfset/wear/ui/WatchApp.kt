@@ -14,7 +14,8 @@ import kotlinx.coroutines.delay
 
 /**
  * One screen per thing the phone's session is doing (WatchState.session): the set to log
- * (with the Actions panel a swipe to its left), the rest, the summary, or nothing. The
+ * or the rest (each with the Actions panel a swipe to its left), the summary, or
+ * nothing. The
  * one piece of state the watch keeps for itself is whether "End Workout?" is up — it
  * drops the moment the phone publishes a different set. The clock ticks here — four
  * times a second while a rest counts down on a lit screen, once a second otherwise — so
@@ -27,6 +28,7 @@ fun WatchApp(
     onLog: (reps: Int) -> Unit,
     onContinue: () -> Unit,
     onSkipSet: () -> Unit,
+    onUndoSkip: () -> Unit,
     onEndWorkout: () -> Unit,
     onFinish: () -> Unit,
 ) {
@@ -46,11 +48,20 @@ fun WatchApp(
     when {
         session == null -> IdleScreen(state, bpm, state.isAmbient, onToggleStream)
         session.isDone -> DoneScreen(session, state.isAmbient, onFinish)
-        session.isRest -> TimerScreen(session, bpm, now, state.isAmbient, onContinue)
         confirmEnd -> EndWorkoutScreen(session, state.isAmbient, onCancel = { confirmEnd = false }, onEnd = onEndWorkout)
-        // Keyed on the set so a new one from the phone lands back on the set page.
+        // Keyed on the set so a new one from the phone lands back on the loop page.
         else -> key(session.exerciseNo, session.setNo) {
-            SetPager(session, state.isAmbient, onLog, onSkipSet, onEndWorkout = { confirmEnd = true })
+            LoopPager(
+                view = session,
+                bpm = bpm,
+                now = now,
+                ambient = state.isAmbient,
+                onLog = onLog,
+                onContinue = onContinue,
+                onSkipSet = onSkipSet,
+                onUndoSkip = onUndoSkip,
+                onEndWorkout = { confirmEnd = true },
+            )
         }
     }
 }
