@@ -117,15 +117,25 @@ export const color = {
 
 // Geom ships as one variable-weight file (root CLAUDE.md); RN selects the weight via
 // fontWeight. The family is registered under this name when the font loads (Phase 3d).
+//
+// Figma writes most line heights as 100% — a box exactly the font size. Geom's glyphs
+// are taller than that: its ascender and descender add up to 1.25× the size, and a "g"
+// hangs 0.19× below the baseline. Android draws text only inside its line box, so at
+// 100% every descender lost its tail ("Settings", "The Long Grind" — Justin, 2026-09-04).
+// The line box is therefore never smaller than the font's own 1.25 (Figma's "normal");
+// a style that asks for more (Button's 24 on 20) keeps its own.
+const GEOM_NATURAL_LINE_HEIGHT = 1.25;
+
 const geom = (size: number, weight: TextStyle['fontWeight'], lineHeight: number): TextStyle => ({
   fontFamily: 'Geom',
   fontSize: size,
   fontWeight: weight,
-  lineHeight,
+  lineHeight: Math.max(lineHeight, Math.ceil(size * GEOM_NATURAL_LINE_HEIGHT)),
 });
 
 /** The 14 type styles — Figma type Variables, verified complete 2026-08-31.
- *  Line heights are resolved to px (Figma's "100%" → equal to the font size). */
+ *  Line heights are the Figma values (100% → the font size), raised to the font's
+ *  natural line height where that is more (see `geom`). */
 export const type = {
   displayXl: geom(128, '900', 128),
   displayL: geom(96, '900', 108),

@@ -14,8 +14,8 @@ import kotlinx.coroutines.delay
 
 /**
  * One screen per thing the phone's session is doing (WatchState.session): the set to log
- * or the rest (each with the Actions panel a swipe to its left), the summary, or
- * nothing. The watch keeps two small things for itself: whether "End Workout?" is up,
+ * or the rest (each with the Actions panel a swipe to its left), the summary, or — with
+ * no session — the opening tiles (TileScreen), where Next Workout asks the phone to start. The watch keeps two small things for itself: whether "End Workout?" is up,
  * and where it is in Change It Up (the day list, then one day's preview) — both drop the
  * moment the phone publishes a different set or day. The clock ticks here — four times a
  * second while a rest counts down on a lit screen, once a second otherwise — so the
@@ -24,7 +24,7 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun WatchApp(
-    onToggleStream: (streaming: Boolean) -> Unit,
+    onStartWorkout: () -> Unit,
     onLog: (reps: Int) -> Unit,
     onContinue: () -> Unit,
     onSkipSet: () -> Unit,
@@ -53,7 +53,7 @@ fun WatchApp(
     val preview = previewOrder?.let { order -> session?.days?.firstOrNull { it.order == order } }
 
     when {
-        session == null -> IdleScreen(state, bpm, state.isAmbient, onToggleStream)
+        session == null -> TileScreen(state.isAmbient, onStartWorkout)
         session.isDone -> DoneScreen(session, state.isAmbient, onFinish)
         confirmEnd -> EndWorkoutScreen(session, state.isAmbient, onCancel = { confirmEnd = false }, onEnd = onEndWorkout)
         preview != null -> DayPreviewScreen(

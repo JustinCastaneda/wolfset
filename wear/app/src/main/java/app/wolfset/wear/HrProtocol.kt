@@ -31,4 +31,7 @@ object HrProtocol {
     const val ACTION_END_WORKOUT = "endWorkout"
     /** Finish on Session Done: the phone leaves the session and clears the watch. */
     const val ACTION_FINISH = "finish"
+    /** Next Workout on the Watch Tile (123:3440): the phone opens its session on the
+     *  plan's up-next day, and the session's view is what moves the watch on. */
+    const val ACTION_START_WORKOUT = "startWorkout"
 }

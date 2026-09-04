@@ -5,14 +5,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import app.wolfset.wear.SessionView
 import kotlinx.coroutines.delay
 
 /**
  * A tap sent to the phone waits for its answer — the next SessionView — before the
  * buttons come back, so a second tap cannot double up (the phone ignores it anyway).
  * Keyed on the view: a new view from the phone ends the wait; a phone that never answers
- * ends it after four seconds.
+ * ends it after four seconds. The tile screen has no view and keys on nothing — the
+ * session's arrival replaces the screen, which ends the wait just the same.
  */
 class PhoneWait(private val state: MutableState<Boolean>) {
     val waiting: Boolean get() = state.value
@@ -23,8 +23,8 @@ class PhoneWait(private val state: MutableState<Boolean>) {
 }
 
 @Composable
-fun rememberPhoneWait(view: SessionView): PhoneWait {
-    val state = remember(view) { mutableStateOf(false) }
+fun rememberPhoneWait(key: Any?): PhoneWait {
+    val state = remember(key) { mutableStateOf(false) }
     LaunchedEffect(state, state.value) {
         if (state.value) {
             delay(WAIT_FOR_PHONE_MS)

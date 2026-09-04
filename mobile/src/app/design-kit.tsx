@@ -242,6 +242,13 @@ export default function DesignKit() {
         captionAccent="Progression Override"
         title="Bulgarian Split Squat"
       />
+      <ListItem
+        caption="Press me: the chevron turns brand"
+        chevron
+        onPress={() => {}}
+        title="Equipment"
+      />
+      <ListItem caption="Goes nowhere yet" chevron title="Exercise Data" />
 
       <Text style={styles.section}>Input — default · filled · error · required + count</Text>
       <View style={styles.group}>

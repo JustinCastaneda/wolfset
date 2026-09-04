@@ -111,7 +111,14 @@ soon as the phone publishes a different set.
 - `endWorkout` — End on the watch's "End Workout?" screen. That screen *is* the double
   confirm, so the phone ends the session on it without asking again;
 - `finish` — Finish on Session Done. Not a machine event: the phone leaves the session
-  screen, exactly as its own Finish does, which clears the watch.
+  screen, exactly as its own Finish does, which clears the watch;
+- `startWorkout` — Next Workout on the Watch Tile (`123:3440`), the watch's opening screen
+  whenever there is no session. Not a machine event either: the phone opens its session
+  screen on the plan's up-next day (the hub's arrow), from whichever screen it is on, and
+  the session's first view is what moves the watch on. Ignored while the session screen is
+  already up, or with no plan day to run. The phone app has to be running — the Data
+  Layer wakes the native listener, not React — so a phone whose app was swiped away does
+  nothing, and the tile's button simply comes back after its 4 s wait.
 
 The phone's session turns each into the same machine event its own button sends
 (`watchActionToEvent`), so a late or repeated tap is a no-op by the machine's guards: a

@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
   },
   pressed: { backgroundColor: color.press.raised },
   icon: { width: 32, height: 32 },
-  // Figma leading "normal" on the 16px body ≈ 20px for the two-line label.
-  label: { ...type.body, lineHeight: 20, color: color.text.primary },
+  label: { ...type.body, color: color.text.primary },
   labelDisabled: { color: color.text.disabled },
 });
