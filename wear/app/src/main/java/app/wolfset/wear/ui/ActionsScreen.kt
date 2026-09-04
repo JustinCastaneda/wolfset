@@ -31,20 +31,23 @@ import app.wolfset.wear.R
 /**
  * The Actions panel (Figma 164:4103), a swipe left of the set screen and of the timer
  * (Justin, 2026-09-03): the icon cards stacked down the face — Skip Set in the raised
- * gray, Undo Skip in the middle while this lift has a skipped set to go back to, End
- * Workout outlined in brand — with the page dots below. From the timer, Skip ends the
- * rest and skips the set that was coming. The frame's middle card, Change Exercise,
- * leads to Change Workout (164:4192), which the phone cannot do yet; it joins with that
- * unit. End opens the watch's own "End Workout?" (EndWorkoutScreen); the others go
- * straight to the phone.
+ * gray, a middle card, End Workout outlined in brand — with the page dots below. From
+ * the timer, Skip ends the rest and skips the set that was coming. The middle card is
+ * the frame's Change Exercise while the workout is untouched (it leads to Change It Up,
+ * 164:4192, so it reads Change Workout), or Undo Skip while this lift has a skipped set
+ * to go back to — never both, since a skip is a touch. End opens the watch's own "End
+ * Workout?" (EndWorkoutScreen); Change opens Change It Up; the others go straight to the
+ * phone.
  */
 @Composable
 fun ActionsScreen(
     ambient: Boolean,
     enabled: Boolean,
     canUnskip: Boolean,
+    canChange: Boolean,
     onSkipSet: () -> Unit,
     onUndoSkip: () -> Unit,
+    onChangeWorkout: () -> Unit,
     onEndWorkout: () -> Unit,
 ) {
     val s = LocalScale.current
@@ -67,7 +70,20 @@ fun ActionsScreen(
                 enabled = enabled && !ambient,
                 onClick = onSkipSet,
             )
-            if (canUnskip) {
+            if (canChange) {
+                ActionCard(
+                    shape = RoundedCornerShape(s.dp(12)),
+                    fill = WolfsetColor.Raised,
+                    pressedFill = WolfsetColor.Border,
+                    border = null,
+                    icon = R.drawable.ic_replace,
+                    iconTint = if (ambient) WolfsetColor.Muted else WolfsetColor.TextSecondary,
+                    label = "Change Workout",
+                    labelColour = WolfsetColor.TextPrimary,
+                    enabled = enabled && !ambient,
+                    onClick = onChangeWorkout,
+                )
+            } else if (canUnskip) {
                 ActionCard(
                     shape = RoundedCornerShape(s.dp(12)),
                     fill = WolfsetColor.Raised,

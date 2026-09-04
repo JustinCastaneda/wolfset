@@ -231,7 +231,7 @@ motion. Until it lands, the watch notes below still apply.
 | Timer warning | Timer / Warning | `123:3861` |
 | Timer green | Timer / Green | `123:3878` |
 | Actions (swipe left) | Actions (Left) | `164:4103` |
-| Change Workout | Change Workout | `123:3251`, `164:4192` |
+| Change Workout | Change Workout | `123:3251`, `164:4192` — built 2026-09-03: `164:4192` is Change It Up (the list), `123:3251` the day preview. The panel's middle card reads *Change Workout*, not the frame's *Change Exercise*, since that is where it leads; 👤 rename or redraw |
 | End Workout? | End Workout Confirmation | `164:4371` |
 | Session Done | Summary | `164:4712` |
 

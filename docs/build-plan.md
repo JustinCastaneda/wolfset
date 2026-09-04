@@ -546,11 +546,13 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [x] 🤖 **Actions panel (swipe left) — Skip Set / Undo Skip / End** (`164:4103`, 2026-09-03),
       off the set and the timer. Skip Set is a new machine event: the next set without a
       log, so the lift scores short; Undo Skip goes back to it (no frame — same card). The
-      Change Exercise card waits for Change Workout below (the frame's arrow points there
-      and the phone cannot switch days yet)
+      middle card is Change Workout while the workout is untouched, Undo Skip after a skip
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
-- [ ] 🤖 Change Workout — A marked Current, B with a Do B button; then the Actions
-      panel's middle card
+- [x] 🤖 **Change Workout** (`164:4192` → `123:3251`, 2026-09-03) — the plan's days, the
+      running one marked Current, the others with the arrow button to a preview whose
+      Start Workout swaps the session to that day while it is untouched; the phone's
+      home got day chips (the hub's "Workout A / B") that point the rotation the same way.
+      Reached from the Actions panel's middle card
 - [x] 🤖 **End Workout** (`164:4371`, 2026-09-03) — the watch asks, so the phone ends the
       session on the tap; copy is the phone sheet's (failures, not misses)
 - [x] 🤖 **Session Done** (`164:4712`, 2026-09-03) — time, total weight, avg bpm (the phone's

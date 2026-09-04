@@ -1,5 +1,6 @@
 package app.wolfset.wear
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -23,6 +24,12 @@ data class SessionView(
     val dayTotal: Int,
     /** This lift has a skipped set to go back to — the panel shows Undo Skip. */
     val canUnskip: Boolean,
+    /** The plan day this session runs (0-based order) — "Current" on Change It Up. */
+    val dayOrder: Int,
+    /** Nothing done yet and the plan has another day — the panel shows Change Workout. */
+    val canChange: Boolean,
+    /** Every day the plan could run, for Change It Up (164:4192) and the preview (123:3251). */
+    val days: List<DayView>,
     val weight: Double,
     val unit: String,
     /** Target reps for the next set — what the reps square starts at. */
@@ -42,6 +49,11 @@ data class SessionView(
 ) {
     val isRest: Boolean get() = screen == SCREEN_REST
     val isDone: Boolean get() = screen == SCREEN_DONE
+
+    /** One plan day: its lifts as they would start, weights already progressed. */
+    data class DayView(val order: Int, val name: String, val lifts: List<LiftView>)
+
+    data class LiftView(val name: String, val weight: Double, val sets: Int, val reps: Int)
 
     companion object {
         const val SCREEN_SET = "set"
@@ -65,6 +77,9 @@ data class SessionView(
                 dayDone = o.optInt("dayDone", 0),
                 dayTotal = o.optInt("dayTotal", 0),
                 canUnskip = o.optBoolean("canUnskip", false),
+                dayOrder = o.optInt("dayOrder", 0),
+                canChange = o.optBoolean("canChange", false),
+                days = daysFrom(o.optJSONArray("days")),
                 weight = o.optDouble("weight", 0.0),
                 unit = o.optString("unit", "Lbs"),
                 reps = o.optInt("reps", 0),
@@ -79,6 +94,27 @@ data class SessionView(
                 avgBpm = o.optDouble("avgBpm", 0.0),
                 exercisesDone = o.optInt("exercisesDone", 0),
             )
+        }
+
+        private fun daysFrom(array: JSONArray?): List<DayView> {
+            if (array == null) return emptyList()
+            return (0 until array.length()).mapNotNull { i ->
+                val d = array.optJSONObject(i) ?: return@mapNotNull null
+                val lifts = d.optJSONArray("lifts") ?: JSONArray()
+                DayView(
+                    order = d.optInt("order", i),
+                    name = d.optString("name", ""),
+                    lifts = (0 until lifts.length()).mapNotNull { j ->
+                        val l = lifts.optJSONObject(j) ?: return@mapNotNull null
+                        LiftView(
+                            name = l.optString("name", ""),
+                            weight = l.optDouble("weight", 0.0),
+                            sets = l.optInt("sets", 0),
+                            reps = l.optInt("reps", 0),
+                        )
+                    },
+                )
+            }
         }
     }
 }

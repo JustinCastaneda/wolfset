@@ -31,6 +31,10 @@ object PhoneActions {
     fun unskipSet(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_UNSKIP_SET))
 
+    /** Start Workout on a day preview: run that plan day (by its order) instead. */
+    fun changeDay(context: Context, order: Int) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_CHANGE_DAY).put("day", order))
+
     fun endWorkout(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_END_WORKOUT))
 

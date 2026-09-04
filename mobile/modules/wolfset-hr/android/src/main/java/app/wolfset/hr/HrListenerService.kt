@@ -5,7 +5,8 @@ import com.google.android.gms.wearable.WearableListenerService
 import org.json.JSONObject
 
 /** Everything the watch sends enters here (docs/hr-protocol.md): heart-rate samples, and
- *  taps on the wrist — Log, Continue — which the session applies as its own button presses. */
+ *  taps on the wrist — Log, Continue, Change Workout… — which the session applies as its
+ *  own button presses. */
 class HrListenerService : WearableListenerService() {
 
     override fun onMessageReceived(event: MessageEvent) {
@@ -29,7 +30,11 @@ class HrListenerService : WearableListenerService() {
     }
 
     private fun onAction(json: JSONObject) {
-        HrBus.watchAction(type = json.optString("type"), reps = json.optInt("reps", 0))
+        HrBus.watchAction(
+            type = json.optString("type"),
+            reps = json.optInt("reps", 0),
+            day = json.optInt("day", -1),
+        )
     }
 
     companion object {

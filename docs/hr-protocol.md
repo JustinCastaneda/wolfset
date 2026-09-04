@@ -70,6 +70,9 @@ Layer only delivers changes, so republishing the same view costs nothing. Built 
 | `setNo` | int | 1-based index of the set to log — the current pip. Past `setsDone` after a skip, which is also what changes the item so the watch learns the skip happened. |
 | `dayDone`, `dayTotal` | int | The day's sets, for End Workout's "Only 3 of 5 sets done." |
 | `canUnskip` | bool | This lift has a skipped set to go back to — the Actions panel shows Undo Skip. |
+| `dayOrder` | int | The plan day this session runs (0-based order) — "Current" on Change It Up (`164:4192`). |
+| `canChange` | bool | The workout is untouched (nothing logged, skipped or jumped) and the plan has another day — the Actions panel shows Change Workout instead of Undo Skip. |
+| `days` | array | Every day of the plan, for Change It Up and the day preview (`123:3251`): `{ order, name, lifts: [{ name, weight, sets, reps }] }`, weights already progressed — what that day would start with. |
 | `weight`, `unit`, `reps` | number, `Lbs`, int | The set to log; `reps` is the target the watch counts down from. |
 | `restEndsAt` | int | Wall-clock ms (phone clock) when the rest ends; the watch counts down on its own clock. 0 outside a rest. |
 | `restSeconds` | int | Length of the rest, for the ring's fraction. |
@@ -91,7 +94,8 @@ soon as the phone publishes a different set.
 
 ## Action message (watch → phone)
 
-`MessageClient` message, path **`/wolfset/action`**, JSON body `{ "type": ..., "reps": n }`:
+`MessageClient` message, path **`/wolfset/action`**, JSON body `{ "type": ..., "reps": n, "day": n }`
+(`reps` is 0 and `day` is -1 unless the action says otherwise):
 
 - `logSet` with `reps` — the Log button on the watch's set screen;
 - `continue` — the Continue button on the watch's timer;
@@ -101,6 +105,9 @@ soon as the phone publishes a different set.
 - `unskipSet` — Undo Skip on the panel: back to this lift's first skipped set (sets are
   interchangeable, so the next set becomes the count logged); a running rest keeps
   running;
+- `changeDay` with `day` — Start Workout on a day preview: the phone swaps that plan day's
+  lifts in, from the top, and points the plan's rotation at it. Only while the workout is
+  untouched (the machine's guard); nothing logged is ever lost;
 - `endWorkout` — End on the watch's "End Workout?" screen. That screen *is* the double
   confirm, so the phone ends the session on it without asking again;
 - `finish` — Finish on Session Done. Not a machine event: the phone leaves the session

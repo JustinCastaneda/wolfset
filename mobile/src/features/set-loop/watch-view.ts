@@ -1,6 +1,8 @@
 import type { WatchAction } from '@modules/wolfset-hr';
 import { DEFAULT_THRESHOLDS } from '@/features/hr/recovered';
+import { isUntouched } from './machine';
 import { restEndsAt } from './native-rest';
+import type { PlanDayStart } from './plan-day';
 import { currentExercise, dayProgress, exerciseProgress, sessionTotals } from './session-ui';
 import type { SessionEvent, SessionState } from './types';
 
@@ -38,6 +40,13 @@ export type WatchView =
       dayTotal: number;
       /** This lift has a skipped set to go back to — the panel's Undo Skip card. */
       canUnskip: boolean;
+      /** The plan day the session is running (0-based order) — "Current" on Change It Up. */
+      dayOrder: number;
+      /** The workout is untouched and the plan has another day: the panel's Change
+       *  Workout card, leading to Change It Up (164:4192). */
+      canChange: boolean;
+      /** Every day the plan could run, for Change It Up and the day preview (123:3251). */
+      days: WatchDay[];
       weight: number;
       unit: 'Lbs';
       /** Target reps for the next set; the watch counts down from it like Log a Set. */
@@ -51,11 +60,22 @@ export type WatchView =
       approachingUpToBpm: number;
     };
 
+/** One plan day on the watch: its lifts as they would start (weights progressed). */
+export type WatchDay = {
+  order: number;
+  name: string;
+  lifts: { name: string; weight: number; sets: number; reps: number }[];
+};
+
 /** What the summary needs that the machine does not hold: the session clock and the
  *  heart-rate stream's average. */
 export type SessionClock = { startedAt: number; now: number; avgBpm: number | null };
 
-export function watchView(state: SessionState, clock: SessionClock): WatchView {
+/** The plan's days as the session boot saw them (plan-day.ts); the day at `dayOrder`
+ *  is the one running. */
+export type SessionDays = { dayOrder: number; days: PlanDayStart[] };
+
+export function watchView(state: SessionState, clock: SessionClock, plan: SessionDays): WatchView {
   const phase = state.phase;
   if (phase.name === 'done') {
     const logged = new Set(state.sets.map((s) => s.exerciseIndex));
@@ -82,6 +102,18 @@ export function watchView(state: SessionState, clock: SessionClock): WatchView {
     dayDone: day.done,
     dayTotal: day.total,
     canUnskip: state.setIndex > done - (phase.name === 'resting' ? 1 : 0),
+    dayOrder: plan.dayOrder,
+    canChange: isUntouched(state) && plan.days.length > 1,
+    days: plan.days.map((d) => ({
+      order: d.order,
+      name: d.name,
+      lifts: d.exercises.map((e) => ({
+        name: e.name,
+        weight: e.weight,
+        sets: e.prescribedSets ?? 0,
+        reps: e.targetReps,
+      })),
+    })),
     weight: ex.weight,
     unit: 'Lbs',
     reps: ex.targetReps,
@@ -95,7 +127,11 @@ export function watchView(state: SessionState, clock: SessionClock): WatchView {
 
 /** A watch tap as the machine event the phone's own button would send; null for
  *  anything unknown. The machine's guards make a late or repeated tap a no-op. */
-export function watchActionToEvent(action: WatchAction, at: number): SessionEvent | null {
+export function watchActionToEvent(
+  action: WatchAction,
+  at: number,
+  days: PlanDayStart[],
+): SessionEvent | null {
   switch (action.type) {
     case 'logSet':
       return action.reps >= 1 ? { type: 'setLogged', reps: action.reps, at } : null;
@@ -105,6 +141,11 @@ export function watchActionToEvent(action: WatchAction, at: number): SessionEven
       return { type: 'setSkipped', at };
     case 'unskipSet':
       return { type: 'setUnskipped' };
+    // Start Workout on the watch's day preview (123:3251): that day's lifts, from the top.
+    case 'changeDay': {
+      const day = days.find((d) => d.order === action.day);
+      return day ? { type: 'dayChanged', exercises: day.exercises } : null;
+    }
     // The watch already asked "End Workout?" (164:4371) — that is the double confirm.
     case 'endWorkout':
       return { type: 'workoutEnded', at };

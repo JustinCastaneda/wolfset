@@ -4,7 +4,8 @@ import type { SessionExercise } from '@/features/set-loop/types';
 
 // Reads and writes the plan tables (data-model §2: Plan → PlanDay → PlanExercise). The
 // session boots from here; the plan builder writes here. The active plan's days rotate:
-// `next_day_order` says which one Start Workout runs, and finishing a workout advances it.
+// `next_day_order` says which one Start Workout runs, finishing a workout advances it, and
+// Change It Up (home, or the watch) points it at a chosen day.
 
 export type ProgressionStrategy = 'steady' | 'reps-first' | 'by-feel';
 
@@ -31,36 +32,70 @@ export type PlanExerciseRow = {
 const EXERCISE_COLUMNS = `pe.exercise_id, pe.name, pe.sets, pe.reps, pe.start_weight, pe.rest_seconds,
   pe.auto_start_timer, COALESCE(pe.strategy, p.progression_default) AS strategy, pe.rep_ceiling`;
 
-export function loadActiveDay(): ActiveDay | null {
+/** One day of the active plan, as Start Workout would run it. `isNext` marks the day the
+ *  rotation points at — the one Start Workout runs, and "Current" on the watch's Change
+ *  It Up (164:4192). */
+export type ActivePlanDay = {
+  dayId: string;
+  order: number;
+  name: string;
+  isNext: boolean;
+  exercises: SessionExercise[];
+};
+
+export type ActivePlan = { planId: string; planName: string; days: ActivePlanDay[] };
+
+/** The active plan and every one of its days. Exactly one day is next: the rotation's,
+ *  or the first when the pointer is stale (a day removed after it was pointed at). */
+export function loadActivePlan(): ActivePlan | null {
   const db = getDb();
-  // The plan's next day (rotation), falling back to its first if the pointer is stale
-  // (a day removed after it was pointed at).
-  const day =
-    db.getFirstSync<{ id: string; name: string; plan_name: string }>(
-      `SELECT d.id, d.name, p.name AS plan_name
-       FROM plan_days d JOIN plans p ON p.id = d.plan_id
-       WHERE p.is_active = 1 AND d.day_order = p.next_day_order LIMIT 1`,
-    ) ??
-    db.getFirstSync<{ id: string; name: string; plan_name: string }>(
-      `SELECT d.id, d.name, p.name AS plan_name
-       FROM plan_days d JOIN plans p ON p.id = d.plan_id
-       WHERE p.is_active = 1
-       ORDER BY d.day_order ASC LIMIT 1`,
-    );
-  if (!day) return null;
-  const rows = db.getAllSync<PlanExerciseRow>(
-    `SELECT ${EXERCISE_COLUMNS}
-     FROM plan_exercises pe JOIN plan_days d ON d.id = pe.plan_day_id JOIN plans p ON p.id = d.plan_id
-     WHERE pe.plan_day_id = ? ORDER BY pe.exercise_order ASC`,
-    [day.id],
+  const plan = db.getFirstSync<{ id: string; name: string; next_day_order: number }>(
+    'SELECT id, name, next_day_order FROM plans WHERE is_active = 1 LIMIT 1',
   );
-  if (rows.length === 0) return null;
+  if (!plan) return null;
+  const days = db.getAllSync<{ id: string; day_order: number; name: string }>(
+    'SELECT id, day_order, name FROM plan_days WHERE plan_id = ? ORDER BY day_order ASC',
+    [plan.id],
+  );
+  if (days.length === 0) return null;
+  const nextOrder = days.some((d) => d.day_order === plan.next_day_order)
+    ? plan.next_day_order
+    : days[0].day_order;
   return {
-    planName: day.plan_name,
-    dayId: day.id,
-    dayName: day.name,
-    exercises: sessionExercisesFrom(rows),
+    planId: plan.id,
+    planName: plan.name,
+    days: days.map((d) => ({
+      dayId: d.id,
+      order: d.day_order,
+      name: d.name,
+      isNext: d.day_order === nextOrder,
+      exercises: sessionExercisesFrom(
+        db.getAllSync<PlanExerciseRow>(
+          `SELECT ${EXERCISE_COLUMNS}
+           FROM plan_exercises pe JOIN plan_days d ON d.id = pe.plan_day_id JOIN plans p ON p.id = d.plan_id
+           WHERE pe.plan_day_id = ? ORDER BY pe.exercise_order ASC`,
+          [d.id],
+        ),
+      ),
+    })),
   };
+}
+
+/** The day Start Workout runs; null when there is no plan or the day has no lifts. */
+export function loadActiveDay(): ActiveDay | null {
+  const plan = loadActivePlan();
+  const day = plan?.days.find((d) => d.isNext);
+  if (!plan || !day || day.exercises.length === 0) return null;
+  return { planName: plan.planName, dayId: day.dayId, dayName: day.name, exercises: day.exercises };
+}
+
+/** Change It Up: this day is the one Start Workout runs next — chosen on the phone's
+ *  home or from the watch (164:4192). */
+export function setNextDay(dayId: string) {
+  getDb().runSync(
+    'UPDATE plans SET next_day_order = (SELECT day_order FROM plan_days WHERE id = ?) WHERE id = (SELECT plan_id FROM plan_days WHERE id = ?)',
+    [dayId, dayId],
+  );
 }
 
 /** Pure mapping from plan rows to what the machine starts with — the testable part.

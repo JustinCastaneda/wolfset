@@ -90,4 +90,7 @@ export type SessionEvent =
   /** Undo Skip: back to the first skipped set of this lift (Justin, 2026-09-03: a skip
    *  with no way back "feels bad"). A running rest keeps running. */
   | { type: 'setUnskipped' }
+  /** Change Workout (watch 164:4192, or the phone): another plan day's lifts replace the
+   *  workout — only while nothing has been logged or skipped, so no set is ever lost. */
+  | { type: 'dayChanged'; exercises: SessionExercise[] }
   | { type: 'workoutEnded'; at: number };

@@ -26,9 +26,10 @@ export type HrSample = {
  *  event for an earlier rest can never end the current one. */
 export type RestEnded = { at: number; endsAt: number };
 
-/** A tap on the watch, as it arrives (docs/hr-protocol.md): `logSet` carries the reps;
- *  `continue` carries nothing (reps is 0). The session turns it into a machine event. */
-export type WatchAction = { type: string; reps: number };
+/** A tap on the watch, as it arrives (docs/hr-protocol.md): `logSet` carries the reps,
+ *  `changeDay` the plan day's order; the rest carry nothing (0 and -1). The session turns
+ *  it into a machine event. */
+export type WatchAction = { type: string; reps: number; day: number };
 
 type WolfsetHrEvents = {
   onHrSample: (sample: HrSample) => void;

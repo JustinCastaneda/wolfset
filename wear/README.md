@@ -26,8 +26,9 @@ adb -s <watch> shell am start -n app.wolfset/app.wolfset.wear.MainActivity \
 ```
 
 A set (`"screen":"set"`, add `"setNo":3,"dayDone":1,"dayTotal":10,"canUnskip":true` to see a
-skipped pip, the End Workout copy and the Undo Skip card; swipe left for the panel), or the
-summary:
+skipped pip, the End Workout copy and the Undo Skip card; swipe left for the panel), the
+same set with Change Workout on the panel (add `"dayOrder":0,"canChange":true,"days":[{"order":0,"name":"Day 1","lifts":[{"name":"Squat","weight":135,"sets":5,"reps":5}]},{"order":1,"name":"Day 2","lifts":[{"name":"Front Squat","weight":90,"sets":5,"reps":6}]}]`
+— tap the card for Change It Up, the arrow for the day's preview), or the summary:
 
 ```
   --es app.wolfset.wear.DEBUG_VIEW '{"screen":"done","durationSeconds":2322,"volume":4180,"avgBpm":124,"exercisesDone":3}'

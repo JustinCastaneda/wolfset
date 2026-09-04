@@ -42,10 +42,11 @@ object HrBus {
         listeners.forEach { it.onEvent(EVENT_SAMPLE, Bundle(sample)) }
     }
 
-    fun watchAction(type: String, reps: Int) {
+    fun watchAction(type: String, reps: Int, day: Int) {
         val payload = Bundle().apply {
             putString("type", type)
             putInt("reps", reps)
+            putInt("day", day)
         }
         listeners.forEach { it.onEvent(EVENT_WATCH_ACTION, Bundle(payload)) }
     }
