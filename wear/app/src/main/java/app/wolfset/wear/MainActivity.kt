@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
                     onLog = { reps -> PhoneActions.logSet(this, reps) },
                     onContinue = { PhoneActions.continueRest(this) },
                     onSkipSet = { PhoneActions.skipSet(this) },
+                    onUndoSkip = { PhoneActions.unskipSet(this) },
                     onEndWorkout = { PhoneActions.endWorkout(this) },
                     onFinish = { PhoneActions.finish(this) },
                 )

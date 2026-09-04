@@ -49,6 +49,7 @@ fun EndWorkoutScreen(view: SessionView, ambient: Boolean, onCancel: () -> Unit, 
         if (!ambient) {
             BezelButtonRow {
                 BezelButton(
+                    edge = BezelEdge.Start,
                     colour = WolfsetColor.Raised,
                     pressedColour = WolfsetColor.Border,
                     enabled = !wait.waiting,
@@ -57,6 +58,7 @@ fun EndWorkoutScreen(view: SessionView, ambient: Boolean, onCancel: () -> Unit, 
                     Text("Cancel", style = type.button, color = WolfsetColor.TextPrimary)
                 }
                 BezelButton(
+                    edge = BezelEdge.End,
                     colour = WolfsetColor.Brand,
                     pressedColour = WolfsetColor.BrandPressed,
                     enabled = !wait.waiting,

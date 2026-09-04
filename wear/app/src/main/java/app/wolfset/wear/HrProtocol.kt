@@ -23,6 +23,8 @@ object HrProtocol {
     const val ACTION_LOG_SET = "logSet"
     const val ACTION_CONTINUE = "continue"
     const val ACTION_SKIP_SET = "skipSet"
+    /** Undo Skip: back to this lift's first skipped set. */
+    const val ACTION_UNSKIP_SET = "unskipSet"
     /** Sent after the watch's own "End Workout?" — that is the double confirm. */
     const val ACTION_END_WORKOUT = "endWorkout"
     /** Finish on Session Done: the phone leaves the session and clears the watch. */

@@ -28,6 +28,9 @@ object PhoneActions {
     fun skipSet(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_SKIP_SET))
 
+    fun unskipSet(context: Context) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_UNSKIP_SET))
+
     fun endWorkout(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_END_WORKOUT))
 

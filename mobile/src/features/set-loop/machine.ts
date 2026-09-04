@@ -142,11 +142,30 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
     }
 
     case 'setSkipped': {
-      if (state.phase.name !== 'logging' && state.phase.name !== 'all-sets-done') return state;
       // Same step as the end of a rest, minus the set: the next set of this lift, or the
       // next unfinished lift. The skipped set is simply never logged, so scoring counts
       // the lift short (a failure), and the day's total stays honest.
+      if (state.phase.name === 'resting') {
+        // From the timer: the rest ends, and the set that was coming is the one skipped.
+        const rested = advance({ ...state, sets: closeRest(state, 'continue', event.at) });
+        return advance(rested);
+      }
+      if (state.phase.name !== 'logging' && state.phase.name !== 'all-sets-done') return state;
       return advance(state);
+    }
+
+    case 'setUnskipped': {
+      // Sets of a lift are interchangeable, so "back to the skipped set" is simply: the
+      // next set is the count logged, not the index the skip pushed it to. Mid-rest the
+      // index still names the set just logged, one below that.
+      const logged = countLogged(state, state.exerciseIndex);
+      if (state.phase.name === 'resting') {
+        return state.setIndex > logged - 1 ? { ...state, setIndex: logged - 1 } : state;
+      }
+      if (state.phase.name !== 'logging' && state.phase.name !== 'all-sets-done') return state;
+      return state.setIndex > logged
+        ? { ...state, setIndex: logged, phase: { name: 'logging' } }
+        : state;
     }
 
     case 'workoutEnded': {

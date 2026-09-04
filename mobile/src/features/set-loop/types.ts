@@ -84,6 +84,10 @@ export type SessionEvent =
   /** The poke grid answered (rating) or auto-skipped after 8 s (null). */
   | { type: 'feelRated'; exerciseIndex: number; rating: FeelRating | null }
   /** Skip Set (watch Actions panel 164:4103): move on without logging — nothing is
-   *  recorded, no rest starts, and the lift scores as if the set was never done. */
+   *  recorded, no rest starts, and the lift scores as if the set was never done. During
+   *  a rest it ends the rest and skips the set that was coming. */
   | { type: 'setSkipped'; at: number }
+  /** Undo Skip: back to the first skipped set of this lift (Justin, 2026-09-03: a skip
+   *  with no way back "feels bad"). A running rest keeps running. */
+  | { type: 'setUnskipped' }
   | { type: 'workoutEnded'; at: number };

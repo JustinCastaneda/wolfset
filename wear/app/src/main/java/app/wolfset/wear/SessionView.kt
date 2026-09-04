@@ -21,6 +21,8 @@ data class SessionView(
     /** The day's sets, for "Only 3 of 5 sets done." on End Workout. */
     val dayDone: Int,
     val dayTotal: Int,
+    /** This lift has a skipped set to go back to — the panel shows Undo Skip. */
+    val canUnskip: Boolean,
     val weight: Double,
     val unit: String,
     /** Target reps for the next set — what the reps square starts at. */
@@ -62,6 +64,7 @@ data class SessionView(
                 setNo = o.optInt("setNo", setsDone + 1),
                 dayDone = o.optInt("dayDone", 0),
                 dayTotal = o.optInt("dayTotal", 0),
+                canUnskip = o.optBoolean("canUnskip", false),
                 weight = o.optDouble("weight", 0.0),
                 unit = o.optString("unit", "Lbs"),
                 reps = o.optInt("reps", 0),

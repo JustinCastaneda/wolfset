@@ -36,6 +36,8 @@ export type WatchView =
       /** The day's sets, for End Workout's "Only 3 of 5 sets done." (164:4371). */
       dayDone: number;
       dayTotal: number;
+      /** This lift has a skipped set to go back to — the panel's Undo Skip card. */
+      canUnskip: boolean;
       weight: number;
       unit: 'Lbs';
       /** Target reps for the next set; the watch counts down from it like Log a Set. */
@@ -79,6 +81,7 @@ export function watchView(state: SessionState, clock: SessionClock): WatchView {
     setNo: state.setIndex + 1,
     dayDone: day.done,
     dayTotal: day.total,
+    canUnskip: state.setIndex > done - (phase.name === 'resting' ? 1 : 0),
     weight: ex.weight,
     unit: 'Lbs',
     reps: ex.targetReps,
@@ -100,6 +103,8 @@ export function watchActionToEvent(action: WatchAction, at: number): SessionEven
       return { type: 'restEnded', reason: 'continue', at };
     case 'skipSet':
       return { type: 'setSkipped', at };
+    case 'unskipSet':
+      return { type: 'setUnskipped' };
     // The watch already asked "End Workout?" (164:4371) — that is the double confirm.
     case 'endWorkout':
       return { type: 'workoutEnded', at };

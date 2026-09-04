@@ -28,6 +28,7 @@ describe('what the watch shows', () => {
       setNo: 1,
       dayDone: 0,
       dayTotal: 5,
+      canUnskip: false,
       weight: 135,
       unit: 'Lbs',
       reps: 5,
@@ -54,7 +55,17 @@ describe('what the watch shows', () => {
 
   it('a skipped set moves the current pip past the done ones, so the watch sees the skip', () => {
     const state = reduce(startSession('plan', [squat]), { type: 'setSkipped', at: 1 });
-    expect(watchView(state, clock)).toMatchObject({ screen: 'set', setsDone: 0, setNo: 2 });
+    expect(watchView(state, clock)).toMatchObject({
+      screen: 'set',
+      setsDone: 0,
+      setNo: 2,
+      canUnskip: true,
+    });
+    const resting = reduce(state, { type: 'setLogged', reps: 5, at: 2 });
+    expect(watchView(resting, clock)).toMatchObject({ screen: 'rest', canUnskip: true });
+    expect(watchView(reduce(resting, { type: 'setUnskipped' }), clock)).toMatchObject({
+      canUnskip: false,
+    });
   });
 
   it('Session Done: time, total weight, average heart rate, lifts done', () => {
@@ -101,6 +112,10 @@ describe('a tap on the watch', () => {
       type: 'workoutEnded',
       at: 4,
     });
+  });
+
+  it("Undo Skip is the machine's setUnskipped", () => {
+    expect(watchActionToEvent({ type: 'unskipSet', reps: 0 }, 9)).toEqual({ type: 'setUnskipped' });
   });
 
   it('Finish is navigation, not a machine event — the session handles it', () => {

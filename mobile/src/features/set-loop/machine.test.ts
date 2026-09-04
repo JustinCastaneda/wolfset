@@ -253,15 +253,6 @@ describe('Skip Set (watch Actions panel) — move on without logging', () => {
     expect(s.sets.filter((x) => x.exerciseIndex === 0)).toHaveLength(1);
   });
 
-  it("a skip during a rest changes nothing — Continue is the rest's own skip", () => {
-    const resting = reduce(startSession('plan', [squat, curl]), {
-      type: 'setLogged',
-      reps: 5,
-      at: t(0),
-    });
-    expect(reduce(resting, { type: 'setSkipped', at: t(1) })).toBe(resting);
-  });
-
   it('a skipped set can never auto-finish the workout: the last log still asks for it', () => {
     let s = logAndRest(startSession('plan', [squat, curl]), t(0)); // squat 1/2
     s = reduce(s, { type: 'setSkipped', at: t(100) }); // squat 2/2 skipped → curl
@@ -271,5 +262,49 @@ describe('Skip Set (watch Actions panel) — move on without logging', () => {
     s = reduce(s, { type: 'restEnded', reason: 'timer', at: t(260) });
     expect(s.exerciseIndex).toBe(0);
     expect(s.setIndex).toBe(1);
+  });
+});
+
+describe('Skip Set from the timer, and Undo Skip', () => {
+  it('a skip during a rest ends the rest and skips the set that was coming', () => {
+    const resting = reduce(startSession('plan', [squat, curl]), {
+      type: 'setLogged',
+      reps: 5,
+      at: t(0),
+    });
+    const s = reduce(resting, { type: 'setSkipped', at: t(30) });
+    expect(s.sets[0]).toMatchObject({ restEndedAt: t(30), restEndReason: 'continue' });
+    // Squat 2/2 was coming; skipped, so the loop is on the curl.
+    expect(s.exerciseIndex).toBe(1);
+    expect(s.phase).toEqual({ name: 'logging' });
+  });
+
+  it('Undo Skip goes back to the first skipped set: the next set is the count logged', () => {
+    let s = logAndRest(startSession('plan', [squat, curl]), t(0)); // squat 1/2 logged
+    s = reduce(s, { type: 'setSkipped', at: t(100) }); // squat 2/2 skipped → curl
+    expect(s.exerciseIndex).toBe(1);
+    // Undo applies to the current lift only; the curl has nothing skipped.
+    expect(reduce(s, { type: 'setUnskipped' })).toBe(s);
+    const skippedFirst = reduce(startSession('plan', [squat, curl]), {
+      type: 'setSkipped',
+      at: t(0),
+    });
+    expect(skippedFirst.setIndex).toBe(1);
+    const back = reduce(skippedFirst, { type: 'setUnskipped' });
+    expect(back.setIndex).toBe(0);
+    expect(back.phase).toEqual({ name: 'logging' });
+    expect(reduce(back, { type: 'setUnskipped' })).toBe(back);
+  });
+
+  it('Undo Skip during a rest keeps the rest running and closes the gap', () => {
+    const wide: SessionExercise = { ...squat, prescribedSets: 4 };
+    let s = reduce(startSession('plan', [wide]), { type: 'setSkipped', at: t(0) }); // set 1 skipped
+    s = reduce(s, { type: 'setLogged', reps: 5, at: t(10) }); // set 2 logged, resting
+    expect(s.setIndex).toBe(1);
+    const back = reduce(s, { type: 'setUnskipped' });
+    expect(back.phase.name).toBe('resting');
+    expect(back.setIndex).toBe(0);
+    // After the rest, the next set is the second — the count logged plus one.
+    expect(reduce(back, { type: 'restEnded', reason: 'timer', at: t(100) }).setIndex).toBe(1);
   });
 });

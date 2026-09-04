@@ -63,6 +63,7 @@ fun SetScreen(view: SessionView, ambient: Boolean, wait: PhoneWait, onLog: (reps
         if (!ambient) {
             BezelButtonRow {
                 BezelButton(
+                    edge = BezelEdge.Start,
                     colour = WolfsetColor.Raised,
                     pressedColour = WolfsetColor.Border,
                     enabled = !wait.waiting,
@@ -71,6 +72,7 @@ fun SetScreen(view: SessionView, ambient: Boolean, wait: PhoneWait, onLog: (reps
                     Text(reps.toString(), style = type.h3Bold, color = WolfsetColor.TextPrimary)
                 }
                 BezelButton(
+                    edge = BezelEdge.End,
                     colour = WolfsetColor.Brand,
                     pressedColour = WolfsetColor.BrandPressed,
                     enabled = !wait.waiting,

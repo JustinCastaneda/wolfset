@@ -60,13 +60,18 @@ fun BoxScope.BezelButtonRow(content: @Composable RowScope.() -> Unit) {
     }
 }
 
-/** One button of the row: top corners as round as the EdgeButton's, so the pair and
- *  the single button read as one family (Justin, 2026-09-03: the frame's 8 "looks
- *  funny" beside Finish); pressed state darker for the brand and lighter for the gray
- *  (phone `press` tokens); content centred in the 96 the frame gives the button, the
- *  rest of the fill runs under the bezel. */
+/** Which side of the pair a BezelButton sits on: only its outer top corner is round. */
+enum class BezelEdge { Start, End }
+
+/** One button of the row: the outer top corner as round as the EdgeButton's, the inner
+ *  one square (Set / 2, 164:4389 — Justin, 2026-09-03: the frame's 8 "looks funny"
+ *  beside Finish, and rounding both makes a pair look like two pills); pressed state
+ *  darker for the brand and lighter for the gray (phone `press` tokens); content
+ *  centred in the 96 the frame gives the button, the rest of the fill runs under the
+ *  bezel. */
 @Composable
 fun RowScope.BezelButton(
+    edge: BezelEdge,
     colour: Color,
     pressedColour: Color,
     enabled: Boolean = true,
@@ -80,7 +85,12 @@ fun RowScope.BezelButton(
         Modifier
             .weight(1f)
             .fillMaxHeight()
-            .clip(RoundedCornerShape(topStart = EDGE_TOP_RADIUS, topEnd = EDGE_TOP_RADIUS))
+            .clip(
+                RoundedCornerShape(
+                    topStart = if (edge == BezelEdge.Start) EDGE_TOP_RADIUS else 0.dp,
+                    topEnd = if (edge == BezelEdge.End) EDGE_TOP_RADIUS else 0.dp,
+                ),
+            )
             .background(if (pressed) pressedColour else colour)
             .alpha(if (enabled) 1f else 0.5f)
             .clickable(interactionSource = interaction, indication = null, enabled = enabled, role = Role.Button, onClick = onClick),
