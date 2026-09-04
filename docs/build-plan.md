@@ -499,6 +499,12 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [x] **By Feel progression** — ✅ designed: the Calculation Engine (`384:11049`) + poke grid
       (`384:10881`). 🤖 Follow-up: implement the engine in `features/progression/` (the current
       by-feel code predates the spec)
+- [x] **Day Overview** (`34:778`, 2026-09-04) — the hub's day name opens the workout before it
+      starts (lifts as they would start, weights progressed, a rough length, Start Workout);
+      the hub's arrow still starts straight away. The hub title rotates daily through
+      encouraging lines (`features/home/hub-title.ts`). Settings gained the Developer Menu
+      behind a tap on the version, dev builds only; 👤 later: limit it to one account by
+      email once accounts exist (Phase 5). Both apps now carry the wolf mark as their icon
 - [x] **Settings flows** — designed 2026-08-31; built 2026-09-04 (`433:22471` + Equipment, Dumbbell
       Scale, Personal Info, Goal — the `profile` row, migration v7; the hub's mark + gear). Still
       open: **Exercise Data** (`433:23207`, charts + export, format 👤 undecided); the unit is
@@ -559,6 +565,18 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       off the set and the timer. Skip Set is a new machine event: the next set without a
       log, so the lift scores short; Undo Skip goes back to it (no frame — same card). The
       middle card is Change Workout while the workout is untouched, Undo Skip after a skip
+- [ ] 🤖 **Phone-less workout spike, then unit** (Justin, 2026-09-04: "I open the watch,
+      hit Next Workout and I'm in; I likely never open my phone"). Today the phone's
+      workout brain is React, which only runs while the app is on screen, so a wrist tap
+      with the app swiped away does nothing, and a backgrounded app freezes before it
+      publishes the watch's screen. Plan: a "Workout in progress" foreground service for
+      the whole session (keeps React alive in the pocket — the rest timer's service,
+      widened), plus a Headless JS boot for the one moment no React exists (Next Workout
+      with the app dead), under a single-owner rule with the session screen. Fallback:
+      the watch remote-opens the phone app (RemoteActivityHelper), at the cost of the
+      phone lighting up. Kill gate: app swiped away → tap Next Workout → watch flips to
+      the Set screen. Android 12+ background-start policy is the risk; spike on the
+      Pixel 10 Pro first
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
 - [x] 🤖 **Change Workout** (`164:4192` → `123:3251`, 2026-09-03) — the plan's days, the
       running one marked Current, the others with the arrow button to a preview whose

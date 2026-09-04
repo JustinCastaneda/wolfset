@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { reduce, startSession } from './machine';
-import { dayProgress, formatClock, loopTitle, sessionTotals } from './session-ui';
+import { dayProgress, estimatedMinutes, formatClock, loopTitle, sessionTotals } from './session-ui';
 import type { SessionExercise } from './types';
 
 const squat: SessionExercise = {
@@ -43,5 +43,39 @@ describe('loop screen helpers', () => {
     s = reduce(s, { type: 'restEnded', reason: 'timer', at: 1 });
     s = reduce(s, { type: 'setLogged', reps: 4, at: 2 });
     expect(sessionTotals(s)).toEqual({ volume: 135 * 9, sets: 2 });
+  });
+});
+
+describe('estimatedMinutes', () => {
+  it('charges every prescribed set its rest plus 45 s of lifting, in whole minutes', () => {
+    const lift = (sets: number | null, restSeconds: number) =>
+      ({
+        exerciseId: 'x',
+        name: 'x',
+        prescribedSets: sets,
+        targetReps: 5,
+        weight: 100,
+        restSeconds,
+        autoStartTimer: true,
+      }) as const;
+    // 5 × (90 + 45) = 675 s → 11 min; 3 × (60 + 45) = 315 s → 5 min; together 990 s → 17.
+    expect(estimatedMinutes([lift(5, 90)])).toBe(11);
+    expect(estimatedMinutes([lift(5, 90), lift(3, 60)])).toBe(17);
+  });
+
+  it('counts an open-ended lift as nothing, since it has no sets to plan', () => {
+    expect(
+      estimatedMinutes([
+        {
+          exerciseId: 'x',
+          name: 'x',
+          prescribedSets: null,
+          targetReps: 5,
+          weight: 100,
+          restSeconds: 90,
+          autoStartTimer: true,
+        },
+      ]),
+    ).toBe(0);
   });
 });
