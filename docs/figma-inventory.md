@@ -250,7 +250,10 @@ The watch was designed last and is the fuzziest part of the file. Read these fra
    shape whose bottom edge follows the bezel curve. On Wear OS this is a stock component —
    **`EdgeButton`** in Compose for Wear OS Material 3 (`androidx.wear.compose.material3`),
    which computes that curve from the screen shape. **Build those bottom-anchored buttons with
-   `EdgeButton`, not a custom shape, and do not match the Figma geometry.** Applies only to the
+   `EdgeButton`, not a custom shape, and do not match the Figma geometry.** A *pair* of
+   bottom buttons (Set, End Workout?) is clipped to the face instead, with top corners as
+   round as the `EdgeButton`'s (~20 dp), not the frames' 8 — Justin, 2026-09-03, after
+   seeing the two side by side.** Applies only to the
    bottom-edge buttons; everything else on the watch follows the frame.
 2. **The watch strays from the phone design system** and will probably get its own (open
    decision #9). Until then there is no watch design system: take colours and type from the

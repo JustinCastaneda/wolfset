@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.EdgeButtonSize
@@ -59,9 +60,11 @@ fun BoxScope.BezelButtonRow(content: @Composable RowScope.() -> Unit) {
     }
 }
 
-/** One button of the row: top corners at the frame's 8, pressed state darker for the
- *  brand and lighter for the gray (phone `press` tokens); content centred in the 96 the
- *  frame gives the button, the rest of the fill runs under the bezel. */
+/** One button of the row: top corners as round as the EdgeButton's, so the pair and
+ *  the single button read as one family (Justin, 2026-09-03: the frame's 8 "looks
+ *  funny" beside Finish); pressed state darker for the brand and lighter for the gray
+ *  (phone `press` tokens); content centred in the 96 the frame gives the button, the
+ *  rest of the fill runs under the bezel. */
 @Composable
 fun RowScope.BezelButton(
     colour: Color,
@@ -77,7 +80,7 @@ fun RowScope.BezelButton(
         Modifier
             .weight(1f)
             .fillMaxHeight()
-            .clip(RoundedCornerShape(topStart = s.dp(8), topEnd = s.dp(8)))
+            .clip(RoundedCornerShape(topStart = EDGE_TOP_RADIUS, topEnd = EDGE_TOP_RADIUS))
             .background(if (pressed) pressedColour else colour)
             .alpha(if (enabled) 1f else 0.5f)
             .clickable(interactionSource = interaction, indication = null, enabled = enabled, role = Role.Button, onClick = onClick),
@@ -119,6 +122,11 @@ fun BoxScope.BottomEdgeButton(label: String, colour: Color, enabled: Boolean = t
 /** How far the edge button sits above the bezel: the ring's inset and stroke plus a
  *  hair, which puts the button's top at the frames' y 324–328. */
 private const val EDGE_BUTTON_LIFT = 28f
+
+/** The top-corner radius Material 3's EdgeButton draws at its Small size — height 56
+ *  minus half its bottom ellipse (58 + 10 × 1.42), from the platform's EdgeButton.kt —
+ *  in real dp, not frame units, because the platform button is not frame-scaled. */
+private val EDGE_TOP_RADIUS = 20.dp
 
 /** Screens sit on the brand background; in ambient the face goes black (low emission). */
 @Composable
