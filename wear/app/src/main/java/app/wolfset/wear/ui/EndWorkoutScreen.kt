@@ -35,7 +35,8 @@ fun EndWorkoutScreen(view: SessionView, ambient: Boolean, onCancel: () -> Unit, 
             Text("End Workout?", style = type.h1, color = WolfsetColor.TextPrimary, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Text(
                 text = if (early) {
-                    "Only ${view.dayDone} of ${view.dayTotal} sets done.\n\nUnfinished lifts count as failures and may trigger a deload."
+                    // Shorter than the phone sheet's line so it holds to the frame's four lines.
+                    "Only ${view.dayDone} of ${view.dayTotal} sets done.\n\nUnfinished lifts fail and may trigger a deload."
                 } else {
                     "All sets done. Nice work."
                 },
