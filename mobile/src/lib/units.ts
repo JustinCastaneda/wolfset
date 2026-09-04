@@ -18,6 +18,11 @@ export function stepWeight(lb: number, unit: Unit, direction: 1 | -1): number {
   return Math.max(0, round1(lb + direction * stepLb));
 }
 
+/** A weight typed in the chosen unit, back to stored pounds. */
+export function storedWeight(value: number, unit: Unit): number {
+  return round1(unit === 'lb' ? value : value * LB_PER_KG);
+}
+
 /** Height for display: "5’9”" in imperial, "175 cm" in metric. */
 export function displayHeight(cm: number, unit: Unit): string {
   if (unit === 'kg') return `${Math.round(cm)} cm`;

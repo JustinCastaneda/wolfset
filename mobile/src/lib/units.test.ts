@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { displayHeight, displayWeight, stepHeight, stepWeight } from './units';
+import { displayHeight, displayWeight, stepHeight, stepWeight, storedWeight } from './units';
 
 describe('Personal Info units (433:23386)', () => {
   it('shows pounds as stored and kilos converted', () => {
@@ -11,6 +11,12 @@ describe('Personal Info units (433:23386)', () => {
     expect(stepWeight(165, 'lb', 1)).toBe(166);
     expect(displayWeight(stepWeight(165, 'kg', -1), 'kg')).toBe(74.3);
     expect(stepWeight(0.5, 'lb', -1)).toBe(0);
+  });
+
+  it('stores a typed weight in pounds whichever unit it was typed in', () => {
+    expect(storedWeight(170, 'lb')).toBe(170);
+    expect(storedWeight(75, 'kg')).toBe(165.3);
+    expect(displayWeight(storedWeight(75, 'kg'), 'kg')).toBe(75);
   });
 
   it('shows height as feet and inches, or centimetres', () => {
