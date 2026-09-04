@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { dayLetter, planSubtitle, suggestedWeek } from './week';
+import { dayLetter, planSubtitle, suggestedWeek } from './plan-week';
 
 describe('Plan Summary — suggested week (123:2530)', () => {
   it('trains Mon / Wed / Fri, cycling the days by letter', () => {

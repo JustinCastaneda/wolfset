@@ -462,6 +462,11 @@ Order:
 - [ ] Set Workflow *(done in Phase 4)*
 - [ ] Post Set Timer full states + Pacing Override detour
 - [ ] Next Workout / Workout A
+- [x] 🤖 **Home Hub — Change It Up** (`34:1464`, 2026-09-04) — the active plan's days as rows
+      (Up Next / In Progress tag, arrow starts or resumes), the Suggested Week, Edit Current
+      MesoCycle → Plan Summary. Freestyle, Browse Exercises and Workout History tiles wait on
+      their flows; the avatar and settings gear wait on a profile and Settings. "Week 3 of 5"
+      waits on `plannedWeeks`. No plan → Get Started (`101:637`)
 - [ ] Freestyle — **after** Set Workflow, needs the engine to handle open-ended sets
 - [x] Getting Started **(= Create New MesoCycle — one build)** — Name this Plan · How You Get
       Stronger (#37); Search Exercise · Add Exercise Details · Day Summary, Save Day activates

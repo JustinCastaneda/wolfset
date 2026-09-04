@@ -19,7 +19,8 @@ import {
 import { color, type } from '@/theme/tokens';
 import { STRATEGY_LABEL } from './exercise-defaults';
 import { moveItem } from './reorder';
-import { WEEKDAYS, dayLetter, planSubtitle, suggestedWeek } from './week';
+import { WeekStrip } from '@/components/WeekStrip';
+import { dayLetter, planSubtitle, suggestedWeek } from '@/lib/plan-week';
 
 // Plan Summary (Figma 123:2530): the plan's days by letter, Add Day, the Suggested
 // Week, and Save Plan — which makes the plan the one Start Workout runs. Day rows use
@@ -101,24 +102,8 @@ export function PlanSummaryScreen() {
         </View>
       </ScrollView>
 
-      {/* Figma 123:2979: Suggested Week — r12 tiles, brand border on training days. */}
       <View style={styles.week}>
-        <Text style={styles.weekLabel}>Suggested Week</Text>
-        <View style={styles.weekRow}>
-          {WEEKDAYS.map((name, i) => {
-            const letter = week[i];
-            return (
-              <View key={name} style={[styles.tile, letter !== null && styles.tileActive]}>
-                <Text numberOfLines={1} style={styles.tileDay}>
-                  {name}
-                </Text>
-                <Text style={[styles.tileLetter, letter === null && styles.tileRest]}>
-                  {letter ?? '•'}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
+        <WeekStrip week={week} />
       </View>
       <View style={styles.bottomBar}>
         <Button
@@ -206,24 +191,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   addWrap: { paddingHorizontal: 24 },
-  week: { paddingHorizontal: 24, paddingTop: 16, gap: 8 },
-  weekLabel: { ...type.label, color: color.text.secondary },
-  weekRow: { flexDirection: 'row', gap: 8 },
-  // Seven across at 412 leaves ~45 each: the frame's p12 would squeeze "Mon" to two
-  // lines on a real phone, so the sides go to 4 and the vertical keeps the frame's 12.
-  tile: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    gap: 10,
-    alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: color.border,
-  },
-  tileActive: { borderColor: color.brand },
-  tileDay: { ...type.caption, color: color.text.primary },
-  tileLetter: { ...type.label, color: color.text.primary },
-  tileRest: { color: color.border },
+  week: { paddingTop: 16 },
   bottomBar: { paddingHorizontal: 24, paddingBottom: 40, paddingTop: 12 },
 });

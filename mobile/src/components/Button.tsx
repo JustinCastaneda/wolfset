@@ -7,7 +7,10 @@ import { color, type } from '@/theme/tokens';
 // the frame's values; pressed state comes from Pressable, not a prop.
 
 type ButtonProps = {
-  title: string;
+  /** The label. Omit it for an icon-only button (the hub's arrow, 34:1520): the icon
+   *  alone fills the 48px square, so pass exactly one icon and an accessibilityLabel. */
+  title?: string;
+  accessibilityLabel?: string;
   onPress?: () => void;
   variant?: 'solid' | 'outline' | 'ghost' | 'secondary';
   size?: 'large' | 'small';
@@ -19,6 +22,7 @@ type ButtonProps = {
 
 export function Button({
   title,
+  accessibilityLabel,
   onPress,
   variant = 'solid',
   size = 'large',
@@ -52,6 +56,7 @@ export function Button({
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
@@ -60,11 +65,13 @@ export function Button({
     >
       {({ pressed }) => (
         <View style={styles.row}>
-          {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
-          <Text numberOfLines={1} style={[styles.label, { color: textColor(pressed) }]}>
-            {title}
-          </Text>
-          {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
+          {leftIcon && <View style={title !== undefined && styles.iconLeft}>{leftIcon}</View>}
+          {title !== undefined && (
+            <Text numberOfLines={1} style={[styles.label, { color: textColor(pressed) }]}>
+              {title}
+            </Text>
+          )}
+          {rightIcon && <View style={title !== undefined && styles.iconRight}>{rightIcon}</View>}
         </View>
       )}
     </Pressable>
