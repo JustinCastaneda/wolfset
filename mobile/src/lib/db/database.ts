@@ -6,11 +6,11 @@ import { STARTER_PLAN } from './seed-plan';
 // The local database — the source of truth (decision #1: local-first; Supabase syncs
 // later, Phase 6). Schema follows docs/data-model.md: the session loop's tables, the
 // per-exercise progress, (v4) the plan tables the builder edits, (v5) the exercise
-// catalog, (v6) day rotation.
+// catalog, (v6) day rotation, (v7) the profile row Settings edits.
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 6;
+const VERSION = 7;
 
 let db: SQLiteDatabase | null = null;
 
@@ -171,6 +171,24 @@ function migrate(database: SQLiteDatabase) {
         -- which plan day a finished workout came from (data-model §2 Workout.planDayId).
         ALTER TABLE plans ADD COLUMN next_day_order INTEGER NOT NULL DEFAULT 0;
         ALTER TABLE workouts ADD COLUMN plan_day_id TEXT;
+      `);
+    }
+    if (from < 7) {
+      database.execSync(`
+        -- The profile (data-model §2): one row, created here so Settings always has
+        -- something to edit. Bodyweight in pounds, height in centimetres, whatever the
+        -- unit — lib/units converts for display. Equipment is the checklist's ids, joined.
+        CREATE TABLE profile (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          unit TEXT NOT NULL DEFAULT 'lb',
+          smallest_step_dumbbell REAL NOT NULL DEFAULT 5,
+          equipment TEXT NOT NULL DEFAULT '',
+          experience TEXT,
+          goal TEXT,
+          bodyweight REAL,
+          height_cm REAL
+        );
+        INSERT INTO profile (id) VALUES (1);
       `);
     }
     database.execSync(`PRAGMA user_version = ${VERSION}`);

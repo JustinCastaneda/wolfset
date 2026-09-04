@@ -178,12 +178,12 @@ Workout A is also the live in-session hub — three progress states of the same 
 
 | Screen | ID | Notes |
 |---|---|---|
-| Settings home | `433:22471` | Equipment · Unit & Scale · Exercise Data · Personal Settings · Workout Goal |
-| Equipment | `433:22674` | |
-| Dumbbell Scale | `433:22844` | unit toggle + increment choice **5 lb** (10/15/20/25/30) or **2.5 lb** (10/12.5/…), "Impacts progression increases" — this is `Profile.smallestStepDumbbell` |
-| Exercise Data | `433:23207` | stat tiles (workouts, mesocycles, total gain, joined), bodyweight trend, per-exercise progress charts, **export** (top-right). ⚠️ header copy is stale: "Settings • Dumbbell scale" |
-| Goal | `433:27536` | Build Muscle · Build Strength · Endurance · **Vibing** ("no specific goal") — a 4th goal option |
-| Personal Info | `433:23386` | unit toggle, weight/height steppers, experience Radio Cards — the frame is still *named* "Home Hub - Change it up", but it is a Settings screen (checked 2026-09-04) |
+| Settings home | `433:22471` | Equipment · Unit & Scale · Exercise Data · Personal Settings · Workout Goal. **Built 2026-09-04** (`features/settings/`), reached from the hub's gear |
+| Equipment | `433:22674` | eight-item checklist (Dumbbells … Medicine Balls) — a multi-select, not the onboarding's three-way enum. Built |
+| Dumbbell Scale | `433:22844` | unit toggle + increment choice **5 lb** (10/15/20/25/30) or **2.5 lb** (10/12.5/…), "Impacts progression increases" — this is `Profile.smallestStepDumbbell`. Built (cards stay in lb whichever unit is chosen — no kg drawing) |
+| Exercise Data | `433:23207` | stat tiles (workouts, mesocycles, total gain, joined), bodyweight trend, per-exercise progress charts, **export** (top-right). header copy fixed by Justin 2026-09-04. Not built — its own unit |
+| Goal | `433:27536` | Build Muscle · Build Strength · Endurance · **Vibing** ("no specific goal") — a 4th goal option. Built |
+| Personal Info | `433:23386` | unit toggle, weight/height steppers, experience Radio Cards. Frame renamed "Settings / Personal Info" by Justin 2026-09-04. Built |
 
 ### Onboarding addition ✨
 

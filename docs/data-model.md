@@ -53,7 +53,7 @@ From Onboarding (all four screens skippable → every field nullable).
 |---|---|---|
 | `unit` | `lb` \| `kg` | Setup toggle (default `lb`) |
 | `experience` | `beginner` \| `intermediate` \| `advanced` \| null | Setup |
-| `equipment` | `full-gym` \| `some-weights` \| `body-weight` \| null | Equipment |
+| `equipment` | set of `dumbbells` · `barbells` · `machines` · `treadmills` · `kettlebells` · `pull-up-bars` · `exercise-bikes` · `medicine-balls` | Settings → Equipment (`433:22674`) is a checklist, so the onboarding's three-way enum (`full-gym` / `some-weights` / `body-weight`) became a set (2026-09-04); onboarding should map onto it |
 | `goal` | `muscle` \| `strength` \| `endurance` \| `vibing` \| null | Goals; Settings → Goal adds **Vibing** ("no specific goal"). "Not sure yet" = null |
 | `smallestStepBarbell` + unit | number, default **5 lb** | the gym's smallest barbell jump (2.5 lb plates each side). Future onboarding question |
 | `smallestStepDumbbell` + unit | number, default **5 lb** | dumbbell racks differ by gym: 2.5 or 5 lb |
