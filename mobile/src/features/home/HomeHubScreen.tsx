@@ -1,5 +1,6 @@
 import { Link, router, useFocusEffect } from 'expo-router';
-import { ArrowRight, BookOpen, Dumbbell, History, Play } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { ArrowRight, BookOpen, Dumbbell, History, Play, Settings } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { IconCard } from '@/components/IconCard';
 import { ListItem } from '@/components/ListItem';
+import { TopBar } from '@/components/TopBar';
 import { WeekStrip } from '@/components/WeekStrip';
 import { showOnWatch } from '@/features/hr/watch-control';
 import {
@@ -27,8 +29,9 @@ import { color, type } from '@/theme/tokens';
 // day: only its own arrow is live, and it resumes.
 //
 // Not built yet, so their tiles render disabled: Freestyle Workout, Browse Exercises
-// (Search Exercise only exists inside a plan day) and Workout History. The frame's top
-// bar (initials avatar, settings gear) waits on a profile and Settings.
+// (Search Exercise only exists inside a plan day) and Workout History. The top bar is
+// the 70:281 drawing — the wolf mark in the left slot, the gear to Settings on the
+// right; the initials avatar of 34:1464 waits on a profile with a name.
 //
 // With no plan to show — none active, or one with no days — the hub is Get Started
 // (101:637), the first-run entry into plan build.
@@ -61,94 +64,103 @@ export function HomeHubScreen() {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.scroll,
-        { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
-      ]}
-      style={styles.root}
-    >
-      {plan === null ? (
-        <GetStarted />
-      ) : (
-        <>
-          <View style={styles.titleBlock}>
-            <Text style={styles.h1}>Change It Up</Text>
-          </View>
-          <View>
-            {/* The frame reads "Plan A • Week 3 of 5"; the week waits on the plan
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      <TopBar
+        left={
+          <Image
+            accessibilityLabel="WOLFSET"
+            contentFit="contain"
+            source={require('../../../assets/brand/wolfset-mark.svg')}
+            style={styles.mark}
+          />
+        }
+        onPressRight={() => router.push('/settings')}
+        right={<Settings color={color.text.primary} size={24} />}
+        title=""
+      />
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}>
+        {plan === null ? (
+          <GetStarted />
+        ) : (
+          <>
+            <View style={styles.titleBlock}>
+              <Text style={styles.h1}>Change It Up</Text>
+            </View>
+            <View>
+              {/* The frame reads "Plan A • Week 3 of 5"; the week waits on the plan
                 knowing its length (data-model `plannedWeeks`). */}
-            <Text style={styles.planName}>{plan.planName}</Text>
-            {plan.days.map((day) => {
-              const canRun = day.exercises.length > 0 && (!hasSession || day.isNext);
-              return (
-                <ListItem
-                  caption={
-                    day.exercises.length > 0
-                      ? day.exercises.map((e) => e.name).join(' • ')
-                      : 'No exercises yet'
-                  }
-                  key={day.dayId}
-                  title={day.name}
-                  titleTag={day.isNext ? (hasSession ? 'In Progress' : 'Up Next') : undefined}
-                  trailing={
-                    <Button
-                      accessibilityLabel={`${hasSession && day.isNext ? 'Resume' : 'Start'} ${day.name}`}
-                      disabled={!canRun}
-                      leftIcon={
-                        <ArrowRight
-                          color={canRun ? color.text.onButton : color.text.disabled}
-                          size={24}
-                        />
-                      }
-                      onPress={() => run(day)}
-                      size="small"
-                      variant={day.isNext ? 'solid' : 'secondary'}
-                    />
+              <Text style={styles.planName}>{plan.planName}</Text>
+              {plan.days.map((day) => {
+                const canRun = day.exercises.length > 0 && (!hasSession || day.isNext);
+                return (
+                  <ListItem
+                    caption={
+                      day.exercises.length > 0
+                        ? day.exercises.map((e) => e.name).join(' • ')
+                        : 'No exercises yet'
+                    }
+                    key={day.dayId}
+                    title={day.name}
+                    titleTag={day.isNext ? (hasSession ? 'In Progress' : 'Up Next') : undefined}
+                    trailing={
+                      <Button
+                        accessibilityLabel={`${hasSession && day.isNext ? 'Resume' : 'Start'} ${day.name}`}
+                        disabled={!canRun}
+                        leftIcon={
+                          <ArrowRight
+                            color={canRun ? color.text.onButton : color.text.disabled}
+                            size={24}
+                          />
+                        }
+                        onPress={() => run(day)}
+                        size="small"
+                        variant={day.isNext ? 'solid' : 'secondary'}
+                      />
+                    }
+                  />
+                );
+              })}
+              <View style={styles.week}>
+                <WeekStrip week={suggestedWeek(plan.days.length)} />
+              </View>
+            </View>
+            <View style={styles.tiles}>
+              <View style={styles.tileRow}>
+                <IconCard
+                  icon={<BookOpen color={color.text.primary} size={32} />}
+                  label={'Edit Current\nMesoCycle'}
+                  onPress={() =>
+                    router.push({ pathname: '/plan/[planId]', params: { planId: plan.planId } })
                   }
                 />
-              );
-            })}
-            <View style={styles.week}>
-              <WeekStrip week={suggestedWeek(plan.days.length)} />
+                <IconCard
+                  disabled
+                  icon={<Play color={color.text.disabled} size={32} />}
+                  label={'Freestyle\nWorkout'}
+                />
+              </View>
+              <View style={styles.tileRow}>
+                <IconCard
+                  disabled
+                  icon={<Dumbbell color={color.text.disabled} size={32} />}
+                  label={'Browse\nExercises'}
+                />
+                <IconCard
+                  disabled
+                  icon={<History color={color.text.disabled} size={32} />}
+                  label={'Workout\nHistory'}
+                />
+              </View>
             </View>
-          </View>
-          <View style={styles.tiles}>
-            <View style={styles.tileRow}>
-              <IconCard
-                icon={<BookOpen color={color.text.primary} size={32} />}
-                label={'Edit Current\nMesoCycle'}
-                onPress={() =>
-                  router.push({ pathname: '/plan/[planId]', params: { planId: plan.planId } })
-                }
-              />
-              <IconCard
-                disabled
-                icon={<Play color={color.text.disabled} size={32} />}
-                label={'Freestyle\nWorkout'}
-              />
-            </View>
-            <View style={styles.tileRow}>
-              <IconCard
-                disabled
-                icon={<Dumbbell color={color.text.disabled} size={32} />}
-                label={'Browse\nExercises'}
-              />
-              <IconCard
-                disabled
-                icon={<History color={color.text.disabled} size={32} />}
-                label={'Workout\nHistory'}
-              />
-            </View>
-          </View>
-        </>
-      )}
-      {__DEV__ && (
-        <Link href="/design-kit" style={styles.kitLink}>
-          Design Kit
-        </Link>
-      )}
-    </ScrollView>
+          </>
+        )}
+        {__DEV__ && (
+          <Link href="/design-kit" style={styles.kitLink}>
+            Design Kit
+          </Link>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -176,7 +188,9 @@ function GetStarted() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg.base },
-  scroll: { gap: 32 },
+  // The mark fills the 48px slot at its own 36×44 (70:309, "Property 1=Mark").
+  mark: { width: 36, height: 44 },
+  scroll: { paddingTop: 24, gap: 32 },
   titleBlock: { paddingHorizontal: 24, paddingVertical: 4, gap: 8 },
   h1: { ...type.h1, color: color.text.primary },
   lede: { ...type.body, lineHeight: 20, color: color.text.secondary },

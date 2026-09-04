@@ -499,8 +499,11 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [x] **By Feel progression** — ✅ designed: the Calculation Engine (`384:11049`) + poke grid
       (`384:10881`). 🤖 Follow-up: implement the engine in `features/progression/` (the current
       by-feel code predates the spec)
-- [ ] **Settings flows** — designed 2026-08-31 (5 screens + subscreens, incl. Exercise Data with
-      export). Fold into Phase 5 scope; export format 👤 undecided
+- [x] **Settings flows** — designed 2026-08-31; built 2026-09-04 (`433:22471` + Equipment, Dumbbell
+      Scale, Personal Info, Goal — the `profile` row, migration v7; the hub's mark + gear). Still
+      open: **Exercise Data** (`433:23207`, charts + export, format 👤 undecided); the unit is
+      stored but the workout screens still say Lbs; `smallestStepDumbbell` is stored but rounding
+      still uses 5 for every lift
 
 ---
 

@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { ArrowRight, BookOpen, History, ListTree, Settings2, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,7 +12,9 @@ import { Input } from '@/components/Input';
 import { Keypad } from '@/components/Keypad';
 import { ListItem } from '@/components/ListItem';
 import { RadioCard } from '@/components/RadioCard';
+import { SegmentedButtons } from '@/components/SegmentedButtons';
 import { SegmentedProgress } from '@/components/SegmentedProgress';
+import { Stepper } from '@/components/Stepper';
 import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
 import { WeekStrip } from '@/components/WeekStrip';
@@ -201,6 +204,14 @@ export default function DesignKit() {
 
       <Text style={styles.section}>Radio Card — default · selected (tap to move)</Text>
       <RadioCardDemo />
+      <Text style={styles.caption}>Checklist — the Settings look, any number checked</Text>
+      <ChecklistDemo />
+
+      <Text style={styles.section}>Segmented Buttons — the unit toggle</Text>
+      <SegmentedDemo />
+
+      <Text style={styles.section}>Stepper — Personal Info’s weight</Text>
+      <StepperDemo />
 
       <Text style={styles.section}>
         Button Group — 1 · 3 · 5 · 10 · custom (pencil opens a keypad)
@@ -240,7 +251,18 @@ export default function DesignKit() {
         <CountedInputDemo />
       </View>
 
-      <Text style={styles.section}>Top Bar — centered · left-aligned (lucide chrome)</Text>
+      <Text style={styles.section}>Top Bar — mark · centered · left-aligned (lucide chrome)</Text>
+      <TopBar
+        left={
+          <Image
+            contentFit="contain"
+            source={require('../../assets/brand/wolfset-mark.svg')}
+            style={styles.mark}
+          />
+        }
+        right={<Settings2 color={color.text.primary} size={24} />}
+        title=""
+      />
       <TopBar
         left={<ListTree color={color.text.primary} size={24} />}
         right={<X color={color.text.primary} size={24} />}
@@ -350,6 +372,50 @@ function ButtonGroupDemo() {
   return <ButtonGroup label="Sets" onChange={setSets} options={[1, 3, 5, 10]} value={sets} />;
 }
 
+function ChecklistDemo() {
+  const [checked, setChecked] = useState<Record<string, boolean>>({ Dumbbells: true });
+  return (
+    <View style={styles.group}>
+      {['Dumbbells', 'Barbells'].map((item) => (
+        <RadioCard
+          checkbox
+          key={item}
+          onPress={() => setChecked((prev) => ({ ...prev, [item]: !prev[item] }))}
+          selected={!!checked[item]}
+          title={item}
+        />
+      ))}
+    </View>
+  );
+}
+
+function SegmentedDemo() {
+  const [unit, setUnit] = useState<'kg' | 'lb'>('lb');
+  return (
+    <SegmentedButtons
+      label="Unit"
+      onChange={setUnit}
+      options={[
+        { value: 'kg', label: 'Kgs' },
+        { value: 'lb', label: 'Lbs' },
+      ]}
+      value={unit}
+    />
+  );
+}
+
+function StepperDemo() {
+  const [weight, setWeight] = useState(165);
+  return (
+    <Stepper
+      label="Your Weight (Lbs)"
+      onDecrement={() => setWeight((w) => w - 1)}
+      onIncrement={() => setWeight((w) => w + 1)}
+      value={String(weight)}
+    />
+  );
+}
+
 function RadioCardDemo() {
   const [picked, setPicked] = useState<'steady' | 'by-feel'>('steady');
   return (
@@ -404,6 +470,7 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   // The strip pads its own 24 sides for a screen; the kit's 16 gutters take it back.
   kitWeek: { marginHorizontal: -8, gap: 12 },
+  mark: { width: 36, height: 44 },
   sample: { color: color.text.primary },
   swatch: { width: 28, height: 28, borderRadius: 4 },
   swatchLabel: { ...type.caption, color: color.text.muted },
