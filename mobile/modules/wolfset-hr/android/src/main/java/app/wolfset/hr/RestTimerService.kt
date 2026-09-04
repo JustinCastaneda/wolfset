@@ -33,10 +33,13 @@ import androidx.core.app.ServiceCompat
  * a live countdown in the notification shade, and at the end buzzes, dings and posts
  * "Rest over" so the phone need not be looked at. The ding plays on the alarm stream —
  * audible through headphones with the phone on vibrate, the way a timer app sounds
- * (Justin, 2026-09-03: Stronglifts and Fitbod do this and it is what a lifter expects). It also watches the heart-rate bus: the first sample
- * under the recovered threshold buzzes once ("Recovered") — the gate's verdict, delivered
- * while JS sleeps. Neither alert moves the session by itself: the end of the rest is sent
- * to JS (`onRestEnded`) and the machine advances there (brief §01).
+ * (Justin, 2026-09-03: Stronglifts and Fitbod do this and it is what a lifter expects).
+ * The end of the rest is the only alert: recovering early is shown (green ring, Continue
+ * solid), never announced — a ding the moment the heart rate is already low, right after
+ * logging, was noise (Justin, 2026-09-03: "we only ding when the full timer is done; the
+ * user makes the call on whether they're recovered"). The alert does not move the session
+ * by itself: the end of the rest is sent to JS (`onRestEnded`) and the machine advances
+ * there (brief §01).
  *
  * Started by `WolfsetHrModule.startRest` when a rest begins, stopped by `endRest` when it
  * ends for any reason (timer, Continue, workout ended, screen left).
@@ -46,14 +49,9 @@ class RestTimerService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var wakeLock: PowerManager.WakeLock? = null
     private var endsAtMs = 0L
-    private var recoveredBelowBpm = Double.NaN
-    private var recoveredShown = false
     private var player: MediaPlayer? = null
 
     private val endRunnable = Runnable { onTimerEnd() }
-    private val hrListener = HrBus.Listener { name, payload ->
-        if (name == HrBus.EVENT_SAMPLE) onSample(payload.getDouble("bpm"))
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -69,12 +67,11 @@ class RestTimerService : Service() {
         nm.deleteNotificationChannel(CHANNEL_ALERT_V1)
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL_ALERT, "Rest alerts", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Rest over, and recovered"
+                description = "Rest over"
                 enableVibration(true)
                 setSound(null, null)
             },
         )
-        HrBus.addListener(hrListener)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -85,8 +82,6 @@ class RestTimerService : Service() {
             return START_NOT_STICKY
         }
         endsAtMs = endsAt
-        recoveredBelowBpm = intent.getDouble(EXTRA_RECOVERED_BELOW)
-        recoveredShown = false
         handler.removeCallbacks(endRunnable)
         notificationManager().cancel(NOTIF_ALERT)
 
@@ -108,7 +103,7 @@ class RestTimerService : Service() {
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "wolfset:rest")
             .apply { acquire(remaining + WAKE_MARGIN_MS) }
         handler.postDelayed(endRunnable, remaining)
-        Log.i(TAG, "rest timer armed: ${remaining / 1000} s, recovered below $recoveredBelowBpm bpm")
+        Log.i(TAG, "rest timer armed: ${remaining / 1000} s")
         // If the OS kills us mid-rest, come back with the same intent and re-arm.
         return START_REDELIVER_INTENT
     }
@@ -122,16 +117,6 @@ class RestTimerService : Service() {
         HrBus.restEnded(at, endsAtMs)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
-    }
-
-    private fun onSample(bpm: Double) {
-        if (recoveredShown || recoveredBelowBpm.isNaN() || bpm >= recoveredBelowBpm) return
-        recoveredShown = true
-        Log.i(TAG, "recovered at ${bpm.toInt()} bpm")
-        alert(NOTIF_ALERT, "Recovered", "${bpm.toInt()} bpm — Continue when you're ready", CHANNEL_ALERT)
-        vibrate()
-        ding()
-        notificationManager().notify(NOTIF_TIMER, timerNotification("Recovered · ${bpm.toInt()} bpm"))
     }
 
     private fun timerNotification(text: String): Notification =
@@ -218,7 +203,6 @@ class RestTimerService : Service() {
 
     override fun onDestroy() {
         handler.removeCallbacks(endRunnable)
-        HrBus.removeListener(hrListener)
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
         // A ding already playing finishes on its own; the player frees itself on completion.
@@ -235,22 +219,17 @@ class RestTimerService : Service() {
         private const val NOTIF_TIMER = 2
         private const val NOTIF_ALERT = 3
         private const val EXTRA_ENDS_AT = "endsAt"
-        private const val EXTRA_RECOVERED_BELOW = "recoveredBelow"
         private const val WAKE_MARGIN_MS = 10_000L
         private const val ALERT_TIMEOUT_MS = 90_000L
 
-        fun start(context: Context, endsAtMs: Long, recoveredBelowBpm: Double) {
+        fun start(context: Context, endsAtMs: Long) {
             context.startForegroundService(
-                Intent(context, RestTimerService::class.java)
-                    .putExtra(EXTRA_ENDS_AT, endsAtMs)
-                    .putExtra(EXTRA_RECOVERED_BELOW, recoveredBelowBpm),
+                Intent(context, RestTimerService::class.java).putExtra(EXTRA_ENDS_AT, endsAtMs),
             )
         }
 
         fun stop(context: Context) {
             context.stopService(Intent(context, RestTimerService::class.java))
         }
-
-        private fun Intent.getDouble(key: String) = getDoubleExtra(key, Double.NaN)
     }
 }

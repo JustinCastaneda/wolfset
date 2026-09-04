@@ -529,9 +529,10 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       watch starts silently when its permissions are granted, else opens its screen to ask.
       3-hour backstop on the watch for a lost `stop` (2026-09-03)
 - [x] 🤖 **Doze-proof rest timer in the native module** — a health-type foreground service
-      holds each rest through screen-off: countdown in the shade, buzz + "Rest over" at the
-      end, buzz + "Recovered" on the first sample under the threshold; "rest over" comes back
-      to JS and the machine advances there. `docs/rest-timer.md` (2026-09-03)
+      holds each rest through screen-off: countdown in the shade, buzz + ding + "Rest over" at
+      the end — the only alert (the "Recovered" buzz was removed after the first watch run:
+      it dinged the instant a set was logged; Justin, 2026-09-03); "rest over" comes back to
+      JS and the machine advances there. `docs/rest-timer.md` (2026-09-03)
 
 - [x] 🤖 **The watch mirrors the loop** — the phone publishes its view of the session
       (`/wolfset/session` item, `features/set-loop/watch-view.ts`), the watch draws the

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -27,7 +28,9 @@ import kotlin.math.ceil
  * countdown inside, the heart line, Continue along the bottom edge. Ring length is time
  * left; ring colour is the heart-rate zone (RestZone). Recovered turns Continue solid
  * brand — the gate arms the button, it never presses it (brief §01). Continue is the
- * platform's EdgeButton, per Justin's rule for bottom-anchored buttons.
+ * platform's EdgeButton, per Justin's rule for bottom-anchored buttons, raised off the
+ * bezel so it sits inside the ring where the frame draws it (Justin, 2026-09-03: it must
+ * not cross the ring).
  */
 @Composable
 fun TimerScreen(
@@ -83,13 +86,19 @@ fun TimerScreen(
                     containerColor = if (view.recovered) WolfsetColor.Brand else WolfsetColor.Raised,
                     contentColor = WolfsetColor.TextPrimary,
                 ),
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = s.dp(CONTINUE_LIFT)),
             ) {
                 Text("Continue", style = type.button, color = WolfsetColor.TextPrimary)
             }
         }
     }
 }
+
+/** How far Continue sits above the bezel: the ring's inset and stroke plus a hair, which
+ *  puts the button's top at the frame's y 324 (123:3843). */
+private const val CONTINUE_LIFT = 28f
 
 /** "1:23" from seconds, zero-padded, ceiling — the phone's formatClock. */
 fun formatClock(seconds: Double): String {
