@@ -18,6 +18,18 @@ taps back (`PhoneActions`). The contract is `docs/hr-protocol.md`.
 Build: `./gradlew assembleDebug` (JDK from Android Studio, see `docs/hr-protocol.md` for the
 signing rule that makes the Data Layer route). Real HR needs a physical watch.
 
+Install — to the watch only, never `installDebug` (it installs to every connected device,
+and the phone app shares the `app.wolfset` id, so a wrong-device install silently replaces
+the other app):
+
+```
+./gradlew assembleDebug
+adb -s <watch-serial> install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The phone app is installed from `mobile/` with `npm run android:phone` (asks which device).
+`adb devices` lists the serials.
+
 Screenshots without a phone: push a view over ADB —
 
 ```

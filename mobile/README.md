@@ -8,7 +8,8 @@ Expo / React Native, TypeScript strict, Android-first. This is the real app (Pha
 ```bash
 npm install
 npm start                 # Metro
-npm run android           # dev build on a connected device
+npm run android:phone     # build + install the phone app — asks which device (pick the phone)
+npm run android           # same, but takes the first device ADB lists — see "Installing" below
 npm run test              # jest — the rules, not the rendering
 npm run verify            # typecheck + lint + format:check + test — what CI runs
 npm run format            # write formatting
@@ -17,6 +18,28 @@ npm run format            # write formatting
 Before any `prebuild`: `npx expo-doctor && npx expo install --check`.
 
 Expo Go cannot load the HR native module. Anything touching heart rate needs a dev build.
+
+## Installing — phone vs watch (read this when both are on ADB)
+
+Both apps are deliberately `app.wolfset` (the Data Layer only routes between apps with the
+same id), so **an app installed on the wrong device replaces the other app in place**, with
+no error. `npm run android` takes the first device ADB lists, and the watch is often first.
+
+```bash
+# Phone app — from mobile/. Asks which device; pick the phone.
+npm run android:phone
+# Same thing, spelled out. The `--` is required: without it npm eats the flag
+# ("Unknown cli config --device") and Expo never sees it.
+npm run android -- --device
+npm run android -- --device <phone-serial>
+
+# Watch app — from wear/. Build, then install to the watch only.
+./gradlew assembleDebug
+adb -s <watch-serial> install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+`adb devices` lists the serials. Never `./gradlew installDebug` with both attached: it
+installs to every device. Wrong app on the watch? Run the two watch lines; it is replaced.
 
 ## Layout
 

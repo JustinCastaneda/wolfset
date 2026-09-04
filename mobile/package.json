@@ -47,6 +47,7 @@
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
+    "android:phone": "expo run:android --device",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "eslint .",
