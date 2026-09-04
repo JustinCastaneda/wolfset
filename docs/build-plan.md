@@ -501,7 +501,10 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       by-feel code predates the spec)
 - [x] **Day Overview** (`34:778`, 2026-09-04) — the hub's day name opens the workout before it
       starts (lifts as they would start, weights progressed, a rough length, Start Workout);
-      the hub's arrow still starts straight away. The hub title rotates daily through
+      the hub's arrow still starts straight away. Its button is never a dead end (Justin,
+      2026-09-04): with another day's workout under way it stays red and a drawer warns —
+      that workout ends where it stands, unfinished lifts count as failures — then this day
+      starts. The hub title rotates daily through
       encouraging lines (`features/home/hub-title.ts`). Settings gained the Developer Menu
       behind a tap on the version, dev builds only; 👤 later: limit it to one account by
       email once accounts exist (Phase 5). Both apps now carry the wolf mark as their icon
@@ -601,6 +604,12 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
   maybe an End Exercise) as menu items — never as big CTAs on the set screen. Undesigned; revisit
   when the loop has more than one detour
 
+- **Time-budgeted workouts** (Justin, 2026-09-04): the Day Overview's "~65m" grows into a
+  per-workout estimate used with the rest timer; later, ask the user how much time they have on
+  which days and build the workout to fit. For the non-power users — after the power users'
+  workflows are solid, the same foundations feed ML/AI-generated plans for people who want to
+  progress or learn without programming their own
+
 **Store submission** *(verified 2026-08-17)*
 
 - [ ] Privacy policy — mandatory both stores. Apple: App Store Connect URL. Google: Play Console **and** in-app, publicly accessible, non-geofenced. One canonical URL
@@ -638,6 +647,7 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 | 10 | ~~Icon set~~ | — | ✅ `lucide-react-native` for chrome (confirmed 2026-09-01 — Justin designs with lucide via shadcn); custom WolfSet set (`436:4844`) for domain icons |
 | 11 | ~~Progression: three strategies or one rule?~~ | — | ✅ Strategy enum, `steady` (progressive overload, weight-based) default; `reps-first`; `by-feel` last. Mesocycle typed by strategy. Increment size / plateau rule / −10% deload scope still to pin (decisions.md) |
 | 12 | First preset 5×5 — programmed by whom, when? | Justin | Preset gap |
+| 14 | **How long does a mesocycle run?** Nothing captures it (Justin, 2026-09-04: the assumption was "until they create a new one"). Likely a calendar picker in plan build between *How You Get Stronger* and *What's the first lift* — not mocked. Until then "Plan A • Week 3 of 5" (`34:778`, the hub) stays "Plan A" | Justin | `plannedWeeks`, the week line on the hub and Day Overview |
 
 ---
 

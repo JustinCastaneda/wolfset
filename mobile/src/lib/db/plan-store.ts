@@ -16,7 +16,8 @@ export type ActiveDay = {
   exercises: SessionExercise[];
 };
 
-/** One plan_exercises row with the plan default already resolved into `strategy`. */
+/** One plan_exercises row with the plan default already resolved into `strategy`, and
+ *  the plan's own default beside it so an override can still be told apart. */
 export type PlanExerciseRow = {
   exercise_id: string;
   name: string;
@@ -26,11 +27,13 @@ export type PlanExerciseRow = {
   rest_seconds: number;
   auto_start_timer: number;
   strategy: string | null;
+  plan_strategy: string;
   rep_ceiling: number | null;
 };
 
 const EXERCISE_COLUMNS = `pe.exercise_id, pe.name, pe.sets, pe.reps, pe.start_weight, pe.rest_seconds,
-  pe.auto_start_timer, COALESCE(pe.strategy, p.progression_default) AS strategy, pe.rep_ceiling`;
+  pe.auto_start_timer, COALESCE(pe.strategy, p.progression_default) AS strategy,
+  p.progression_default AS plan_strategy, pe.rep_ceiling`;
 
 /** One day of the active plan, as Start Workout would run it. `isNext` marks the day the
  *  rotation points at — the one Start Workout runs, and "Current" on the watch's Change
@@ -111,6 +114,11 @@ export function sessionExercisesFrom(rows: PlanExerciseRow[]): SessionExercise[]
     autoStartTimer: r.auto_start_timer === 1,
     ...(r.strategy === 'by-feel' || r.strategy === 'reps-first' ? { strategy: r.strategy } : {}),
     ...(r.strategy === 'reps-first' && r.rep_ceiling !== null ? { repCeiling: r.rep_ceiling } : {}),
+    // The same rule as the builder's Day Summary badge: an override is a strategy of
+    // its own, not the plan's default written out.
+    ...(r.strategy !== null && r.strategy !== r.plan_strategy
+      ? { overridesProgression: true }
+      : {}),
   }));
 }
 

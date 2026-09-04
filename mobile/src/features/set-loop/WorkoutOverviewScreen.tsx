@@ -2,7 +2,7 @@ import { Check, Home } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { ExerciseRow, RowNumber } from '@/components/ExerciseRow';
+import { CaptionLead, ExerciseRow, RowNumber } from '@/components/ExerciseRow';
 import { ProgressWheel } from '@/components/ProgressWheel';
 import { SetDots } from '@/components/SetDots';
 import { TopBar } from '@/components/TopBar';
@@ -93,27 +93,27 @@ export function WorkoutOverviewScreen({
             );
             // Captions: the current row carries Current Set (and the live countdown);
             // other started rows read "X of N Sets • Defaults • rest" per the mock.
+            const lead = <CaptionLead overrides={ex.overridesProgression === true} />;
             const caption =
               started && current ? (
-                <Text style={styles.rowCaption}>
+                <>
                   {logged} of {ex.prescribedSets} Sets •{' '}
                   {remaining !== null && remaining > 0 && `${formatClock(remaining)} • `}
                   <Text style={styles.upNext}>Current Set</Text>
-                </Text>
+                </>
               ) : started ? (
-                <Text style={styles.rowCaption}>
-                  {logged} of {ex.prescribedSets} Sets • Defaults • {formatClock(ex.restSeconds)}{' '}
-                  Rest
-                </Text>
+                <>
+                  {logged} of {ex.prescribedSets} Sets • {lead} • {formatClock(ex.restSeconds)} Rest
+                </>
               ) : (
-                <Text style={styles.rowCaption}>
-                  Defaults •{' '}
+                <>
+                  {lead} •{' '}
                   {current ? (
                     <Text style={styles.upNext}>Up Next</Text>
                   ) : (
                     `${formatClock(ex.restSeconds)} Rest`
                   )}
-                </Text>
+                </>
               );
             return (
               <ExerciseRow
@@ -164,7 +164,6 @@ const styles = StyleSheet.create({
   barRest: { backgroundColor: color.setsBar.upcoming, borderRadius: 4 },
   barCaption: { ...type.caption, color: color.text.secondary },
   checkBadge: { backgroundColor: color.brand, borderRadius: 12, padding: 4 },
-  rowCaption: { ...type.caption, color: color.text.secondary },
   upNext: { color: color.brand },
   bottomBar: {
     flexDirection: 'row',

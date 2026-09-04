@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { ButtonGroup } from '@/components/ButtonGroup';
 import { Chip } from '@/components/Chip';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
+import { CaptionLead, ExerciseRow, RowNumber } from '@/components/ExerciseRow';
 import { IconCard } from '@/components/IconCard';
 import { Input } from '@/components/Input';
 import { Keypad } from '@/components/Keypad';
@@ -250,6 +252,46 @@ export default function DesignKit() {
       />
       <ListItem caption="Goes nowhere yet" chevron title="Exercise Data" />
 
+      <Text style={styles.section}>Exercise Row — defaults · progression override · current</Text>
+      <ExerciseRow
+        caption={
+          <>
+            <CaptionLead overrides={false} /> • 1:30 Rest
+          </>
+        }
+        indicator={<RowNumber n={1} />}
+        rx="5x5"
+        title="Bulgarian Split Squat"
+        weight={85}
+      />
+      <ExerciseRow
+        caption={
+          <>
+            <CaptionLead overrides /> • 1:30 Rest
+          </>
+        }
+        indicator={<RowNumber n={2} />}
+        rx="4x10"
+        title="Goblet Squat"
+        weight={50}
+      />
+      <ExerciseRow
+        caption={
+          <>
+            <CaptionLead overrides={false} /> • <Text style={styles.brand}>Up Next</Text>
+          </>
+        }
+        current
+        indicator={<RowNumber n={3} />}
+        onPress={() => {}}
+        rx="5x6"
+        title="Front Squat"
+        weight={90}
+      />
+
+      <Text style={styles.section}>Confirm sheet — the drawer every workout-ender opens</Text>
+      <ConfirmSheetDemo />
+
       <Text style={styles.section}>Input — default · filled · error · required + count</Text>
       <View style={styles.group}>
         <Input label="Label" placeholder="Placeholder Text" />
@@ -360,6 +402,23 @@ export default function DesignKit() {
 
 // The counter needs a controlled input — value + onChangeText — which screens will
 // always have. The kit fakes the screen's state here.
+function ConfirmSheetDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onPress={() => setOpen(true)} size="small" title="Open" variant="secondary" />
+      <ConfirmSheet
+        confirmLabel="End & Start"
+        message="Workout B is still in progress. Starting Workout A ends it now, and every lift you didn't finish counts as a failure."
+        onCancel={() => setOpen(false)}
+        onConfirm={() => setOpen(false)}
+        title="End Workout B?"
+        visible={open}
+      />
+    </>
+  );
+}
+
 function CountedInputDemo() {
   const [name, setName] = useState('');
   return (
@@ -491,6 +550,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 12 },
   h1: { ...type.h1, color: color.text.primary },
   section: { ...type.label, color: color.text.secondary, marginTop: 16 },
+  brand: { color: color.brand },
   caption: { ...type.caption, color: color.text.muted },
   group: { gap: 8 },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

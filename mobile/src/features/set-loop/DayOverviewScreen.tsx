@@ -6,12 +6,15 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
-import { ExerciseRow, RowNumber } from '@/components/ExerciseRow';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
+import { CaptionLead, ExerciseRow, RowNumber } from '@/components/ExerciseRow';
 import { TopBar } from '@/components/TopBar';
 import { loadActivePlan, setNextDay } from '@/lib/db/plan-store';
 import { loadAllProgress } from '@/lib/db/progress-store';
 import { loadSnapshot } from '@/lib/db/session-store';
 import { color, type } from '@/theme/tokens';
+import { startAction, startLabel, type StartAction } from './day-overview';
+import { abandonSavedSession } from './end-session';
 import { applyProgress } from './plan-day';
 import { estimatedMinutes, formatClock } from './session-ui';
 import type { SessionExercise } from './types';
@@ -22,11 +25,16 @@ import type { SessionExercise } from './types';
 // see the whole workout without starting it; the hub's arrow still starts straight
 // away. The mid-workout overview (WorkoutOverviewScreen) is this same list with
 // progress in the rows and the sets bar on top.
+//
+// The button is never a dead end (Justin, 2026-09-04): with another day's workout under
+// way it stays red, and pressing it asks first — that workout ends where it stands, its
+// unfinished lifts count as failures — then this day starts.
 
 export function DayOverviewScreen() {
   const insets = useSafeAreaInsets();
   const { dayId } = useLocalSearchParams<{ dayId: string }>();
   const [view, setView] = useState<DayView | null>(null);
+  const [confirmingReplace, setConfirmingReplace] = useState(false);
   useFocusEffect(
     useCallback(() => {
       const id = setTimeout(() => setView(loadDay(dayId ?? '')), 0);
@@ -34,12 +42,38 @@ export function DayOverviewScreen() {
     }, [dayId]),
   );
 
-  const start = () => {
+  const action: StartAction = view
+    ? startAction({
+        exerciseCount: view.exercises.length,
+        isNext: view.isNext,
+        inProgressName: view.inProgressName,
+      })
+    : { kind: 'none' };
+
+  // Replace, so the session comes back to home, not here.
+  const open = () => router.replace('/session');
+  const press = () => {
     if (!view) return;
-    // The arrow's rule (HomeHubScreen): a workout under way keeps its day; otherwise
-    // this one becomes the rotation's next. Replace, so the session comes back to home.
-    if (!view.hasSession) setNextDay(view.dayId);
-    router.replace('/session');
+    switch (action.kind) {
+      case 'none':
+        return;
+      case 'resume':
+        // The arrow's rule (HomeHubScreen): a workout under way keeps its day.
+        return open();
+      case 'start':
+        // This one becomes the rotation's next, and runs.
+        setNextDay(view.dayId);
+        return open();
+      case 'replace':
+        return setConfirmingReplace(true);
+    }
+  };
+  const replace = () => {
+    if (!view) return;
+    setConfirmingReplace(false);
+    abandonSavedSession(Date.now());
+    setNextDay(view.dayId);
+    open();
   };
 
   return (
@@ -55,7 +89,8 @@ export function DayOverviewScreen() {
         align="left"
         onPressRight={() => router.back()}
         right={<Home color={color.text.primary} size={24} />}
-        // The frame reads "Plan A • Week 3 of 5"; the week waits on `plannedWeeks`.
+        // The frame reads "Plan A • Week 3 of 5"; the week waits on the plan knowing
+        // how long its mesocycle runs (build plan, open decision #14).
         title={view?.planName ?? ''}
       />
       {view && (
@@ -71,7 +106,12 @@ export function DayOverviewScreen() {
             <View>
               {view.exercises.map((ex, i) => (
                 <ExerciseRow
-                  caption={`Defaults • ${formatClock(ex.restSeconds)} Rest`}
+                  caption={
+                    <>
+                      <CaptionLead overrides={ex.overridesProgression === true} /> •{' '}
+                      {formatClock(ex.restSeconds)} Rest
+                    </>
+                  }
                   indicator={<RowNumber n={i + 1} />}
                   key={ex.exerciseId}
                   rx={ex.prescribedSets === null ? 'open' : `${ex.prescribedSets}x${ex.targetReps}`}
@@ -83,12 +123,18 @@ export function DayOverviewScreen() {
           </ScrollView>
           {/* Start Workout (34:788): the bottom bar's one solid button. */}
           <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 40 }]}>
-            <Button
-              disabled={!view.canStart}
-              onPress={start}
-              title={view.hasSession && view.isNext ? 'Resume Workout' : 'Start Workout'}
-            />
+            <Button disabled={action.kind === 'none'} onPress={press} title={startLabel(action)} />
           </View>
+          {action.kind === 'replace' && (
+            <ConfirmSheet
+              confirmLabel="End & Start"
+              message={`${action.inProgressName} is still in progress. Starting ${view.name} ends it now, and every lift you didn't finish counts as a failure.`}
+              onCancel={() => setConfirmingReplace(false)}
+              onConfirm={replace}
+              title={`End ${action.inProgressName}?`}
+              visible={confirmingReplace}
+            />
+          )}
         </>
       )}
     </View>
@@ -103,9 +149,8 @@ type DayView = {
   volume: number;
   minutes: number;
   isNext: boolean;
-  hasSession: boolean;
-  /** Empty days cannot start; a workout under way only resumes on its own day. */
-  canStart: boolean;
+  /** The day a workout is under way on — always the rotation's next — or null. */
+  inProgressName: string | null;
 };
 
 /** The day as the session would start it: the plan's prescription with the stored
@@ -128,8 +173,7 @@ function loadDay(dayId: string): DayView | null {
     ),
     minutes: estimatedMinutes(exercises),
     isNext: day.isNext,
-    hasSession,
-    canStart: exercises.length > 0 && (!hasSession || day.isNext),
+    inProgressName: hasSession ? (plan.days.find((d) => d.isNext)?.name ?? null) : null,
   };
 }
 
