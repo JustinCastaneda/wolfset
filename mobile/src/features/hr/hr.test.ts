@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { HrSample } from '@modules/wolfset-hr';
-import { EMPTY_STREAM, currentBpm, ingest, isStale } from './hr-stream';
+import { EMPTY_STREAM, currentBpm, ingest, isStale, meanBpm } from './hr-stream';
 import { DEFAULT_THRESHOLDS, hrZone, isRecovered } from './recovered';
 
 const sample = (seq: number, bpm: number): HrSample => ({
@@ -21,6 +21,15 @@ describe('the heart-rate stream (spike pipe requirements)', () => {
     expect(s.bpm).toBe(120);
     expect(s.peak).toBe(140);
     expect(s.received).toBe(3);
+  });
+
+  it('keeps the session average for Session Done; unknown before the first reading', () => {
+    expect(meanBpm(EMPTY_STREAM)).toBeNull();
+    let s = ingest(EMPTY_STREAM, sample(1, 90), 1_000);
+    s = ingest(s, sample(2, 140), 2_000);
+    s = ingest(s, sample(1, 200), 2_100); // out of order: not counted
+    s = ingest(s, sample(3, 0), 2_200); // garbage: not counted
+    expect(meanBpm(s)).toBe(115);
   });
 
   it('drops an out-of-order sample — a stale low reading must not unlock the gate', () => {

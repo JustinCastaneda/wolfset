@@ -25,6 +25,15 @@ object PhoneActions {
     fun continueRest(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_CONTINUE))
 
+    fun skipSet(context: Context) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_SKIP_SET))
+
+    fun endWorkout(context: Context) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_END_WORKOUT))
+
+    fun finish(context: Context) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_FINISH))
+
     private fun send(context: Context, body: JSONObject) {
         val app = context.applicationContext
         val payload = body.toString().toByteArray()

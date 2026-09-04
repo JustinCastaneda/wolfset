@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icon / SkipForward (Figma 10:9697, lucide skip-forward), exported from the Actions
+     panel 164:4103 at 48×48. Colour comes from the tint at the call site. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M9.13281 6.19727C9.82574 5.86423 10.6497 5.95723 11.25 6.4375L31.25 22.4375C31.7244 22.817 32 23.3924 32 24C32 24.6076 31.7244 25.183 31.25 25.5625L11.25 41.5625C10.6497 42.0428 9.82574 42.1358 9.13281 41.8027C8.44023 41.4696 8 40.7686 8 40V8C8 7.23141 8.44023 6.53042 9.13281 6.19727ZM36 38V10C36 8.89543 36.8954 8 38 8C39.1046 8 40 8.89543 40 10V38C40 39.1046 39.1046 40 38 40C36.8954 40 36 39.1046 36 38ZM12 35.8359L26.7969 24L12 12.1621V35.8359Z" />
+</vector>

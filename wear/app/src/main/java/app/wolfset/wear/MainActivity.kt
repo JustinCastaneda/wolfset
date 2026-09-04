@@ -56,6 +56,9 @@ class MainActivity : ComponentActivity() {
                     onToggleStream = ::toggleStream,
                     onLog = { reps -> PhoneActions.logSet(this, reps) },
                     onContinue = { PhoneActions.continueRest(this) },
+                    onSkipSet = { PhoneActions.skipSet(this) },
+                    onEndWorkout = { PhoneActions.endWorkout(this) },
+                    onFinish = { PhoneActions.finish(this) },
                 )
             }
         }

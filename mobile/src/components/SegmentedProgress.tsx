@@ -11,16 +11,24 @@ type SegmentedProgressProps = {
   done: number;
   /** Highlight the segment after the done ones as "current". On by default. */
   showCurrent?: boolean;
+  /** Which segment is current; defaults to the one after the done ones. A skipped set
+   *  leaves a gap, so the loop passes its own set index. */
+  current?: number;
 };
 
-export function SegmentedProgress({ total, done, showCurrent = true }: SegmentedProgressProps) {
+export function SegmentedProgress({
+  total,
+  done,
+  showCurrent = true,
+  current = done,
+}: SegmentedProgressProps) {
   return (
     <View style={styles.row}>
       {Array.from({ length: total }, (_, i) => {
         const fill =
           i < done
             ? color.setsBar.done
-            : showCurrent && i === done
+            : showCurrent && i === current
               ? color.setsBar.current
               : color.setsBar.upcoming;
         return <View key={i} style={[styles.segment, { backgroundColor: fill }]} />;

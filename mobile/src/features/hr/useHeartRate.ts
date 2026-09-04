@@ -7,6 +7,7 @@ import {
   currentBpm,
   ingest,
   isStale,
+  meanBpm,
   type HrStreamState,
 } from './hr-stream';
 import { hrZone, isRecovered, type HrZone } from './recovered';
@@ -23,6 +24,8 @@ export type HeartRate = {
   /** True once a signal existed and then went quiet — "watch signal lost". */
   lost: boolean;
   peak: number;
+  /** Average of every reading this session; null before the first. */
+  mean: number | null;
   /** The recovered rule's verdict; null while there is no fresh reading. */
   recovered: boolean | null;
   zone: HrZone | null;
@@ -64,6 +67,7 @@ export function useHeartRate(): HeartRate {
     bpm,
     lost: stream.received > 0 && now !== 0 && isStale(stream, now),
     peak: stream.peak,
+    mean: meanBpm(stream),
     recovered: bpm === null ? null : isRecovered(bpm),
     zone: bpm === null ? null : hrZone(bpm),
     available: WolfsetHr !== null,

@@ -14,8 +14,11 @@ export type HrStreamState = {
   at: number | null;
   /** Highest seq accepted; anything at or below it is old news. */
   maxSeq: number;
-  /** Session peak — shown nowhere yet; Session Done's avg/peak stats will want it. */
+  /** Session peak — shown nowhere yet. */
   peak: number;
+  /** Sum of every accepted reading; with `received` it is the session's average
+   *  (Session Done, phone and watch). */
+  total: number;
   received: number;
 };
 
@@ -24,6 +27,7 @@ export const EMPTY_STREAM: HrStreamState = {
   at: null,
   maxSeq: -1,
   peak: 0,
+  total: 0,
   received: 0,
 };
 
@@ -37,8 +41,14 @@ export function ingest(state: HrStreamState, sample: HrSample, now: number): HrS
     at: now,
     maxSeq: sample.seq,
     peak: Math.max(state.peak, sample.bpm),
+    total: state.total + sample.bpm,
     received: state.received + 1,
   };
+}
+
+/** The session's average heart rate so far; null before the first reading. */
+export function meanBpm(state: HrStreamState): number | null {
+  return state.received === 0 ? null : state.total / state.received;
 }
 
 /** True when the reading is too old to trust. */

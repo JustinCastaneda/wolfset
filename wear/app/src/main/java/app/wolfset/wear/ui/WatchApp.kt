@@ -3,7 +3,9 @@ package app.wolfset.wear.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -11,15 +13,26 @@ import app.wolfset.wear.WatchState
 import kotlinx.coroutines.delay
 
 /**
- * One screen per thing the phone's session is doing (WatchState.session): the set to log,
- * the rest, or nothing. The clock ticks here — four times a second while a rest counts
- * down on a lit screen, once a second otherwise — so the countdown and the staleness
- * rule (WatchState.freshBpm) both follow it and no screen reads the time itself.
+ * One screen per thing the phone's session is doing (WatchState.session): the set to log
+ * (with the Actions panel a swipe to its left), the rest, the summary, or nothing. The
+ * one piece of state the watch keeps for itself is whether "End Workout?" is up — it
+ * drops the moment the phone publishes a different set. The clock ticks here — four
+ * times a second while a rest counts down on a lit screen, once a second otherwise — so
+ * the countdown and the staleness rule (WatchState.freshBpm) both follow it and no
+ * screen reads the time itself.
  */
 @Composable
-fun WatchApp(onToggleStream: (streaming: Boolean) -> Unit, onLog: (reps: Int) -> Unit, onContinue: () -> Unit) {
+fun WatchApp(
+    onToggleStream: (streaming: Boolean) -> Unit,
+    onLog: (reps: Int) -> Unit,
+    onContinue: () -> Unit,
+    onSkipSet: () -> Unit,
+    onEndWorkout: () -> Unit,
+    onFinish: () -> Unit,
+) {
     val state by WatchState.snapshot.collectAsStateWithLifecycle()
     val session = state.session
+    var confirmEnd by remember(session?.screen, session?.exerciseNo, session?.setNo) { mutableStateOf(false) }
     val counting = session?.isRest == true && !state.isAmbient
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(counting) {
@@ -32,7 +45,12 @@ fun WatchApp(onToggleStream: (streaming: Boolean) -> Unit, onLog: (reps: Int) ->
 
     when {
         session == null -> IdleScreen(state, bpm, state.isAmbient, onToggleStream)
+        session.isDone -> DoneScreen(session, state.isAmbient, onFinish)
         session.isRest -> TimerScreen(session, bpm, now, state.isAmbient, onContinue)
-        else -> SetScreen(session, state.isAmbient, onLog)
+        confirmEnd -> EndWorkoutScreen(session, state.isAmbient, onCancel = { confirmEnd = false }, onEnd = onEndWorkout)
+        // Keyed on the set so a new one from the phone lands back on the set page.
+        else -> key(session.exerciseNo, session.setNo) {
+            SetPager(session, state.isAmbient, onLog, onSkipSet, onEndWorkout = { confirmEnd = true })
+        }
     }
 }

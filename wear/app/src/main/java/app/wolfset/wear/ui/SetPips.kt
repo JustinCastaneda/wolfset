@@ -14,10 +14,11 @@ import kotlin.math.PI
  * The set pips — the phone's Sets bar bent around the top of the round face ("Progress
  * Arc Option", 123:3923): one pip per prescribed set across the top 90°, on the same
  * ring the timer draws. Colours follow the phone's rule (SegmentedProgress): done brand
- * red, the current set the pressed red, upcoming the border gray.
+ * red, the current set the pressed red, upcoming the border gray. `current` is 0-based
+ * and sits past `done` after a skip, which leaves the skipped pip gray.
  */
 @Composable
-fun SetPips(done: Int, total: Int, ambient: Boolean, modifier: Modifier = Modifier.fillMaxSize()) {
+fun SetPips(done: Int, total: Int, ambient: Boolean, current: Int = done, modifier: Modifier = Modifier.fillMaxSize()) {
     val s = LocalScale.current
     val stroke = s.dp(RING_STROKE)
     val inset = s.dp(RING_INSET + RING_STROKE / 2)
@@ -35,7 +36,7 @@ fun SetPips(done: Int, total: Int, ambient: Boolean, modifier: Modifier = Modifi
             val colour = when {
                 ambient -> WolfsetColor.Muted
                 i < done -> WolfsetColor.Brand
-                i == done -> WolfsetColor.BrandPressed
+                i == current -> WolfsetColor.BrandPressed
                 else -> WolfsetColor.Border
             }
             drawArc(

@@ -26,6 +26,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.wear.compose.material3.ButtonDefaults
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.EdgeButtonSize
+import androidx.wear.compose.material3.Text
 
 /**
  * A pair of buttons along the bottom of the round face (Set frame 123:3818: the reps
@@ -85,6 +89,36 @@ fun RowScope.BezelButton(
         )
     }
 }
+
+/**
+ * One bottom-anchored button (Continue 123:3843, Finish 164:4812): the platform's
+ * EdgeButton, per Justin's rule, raised off the bezel so it sits inside the ring where
+ * the frames draw it (Justin, 2026-09-03: it must not cross the ring).
+ */
+@Composable
+fun BoxScope.BottomEdgeButton(label: String, colour: Color, enabled: Boolean = true, onClick: () -> Unit) {
+    val s = LocalScale.current
+    EdgeButton(
+        onClick = onClick,
+        enabled = enabled,
+        buttonSize = EdgeButtonSize.Small,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colour,
+            contentColor = WolfsetColor.TextPrimary,
+            disabledContainerColor = colour.copy(alpha = 0.5f),
+            disabledContentColor = WolfsetColor.TextPrimary,
+        ),
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(bottom = s.dp(EDGE_BUTTON_LIFT)),
+    ) {
+        Text(label, style = LocalType.current.button, color = WolfsetColor.TextPrimary)
+    }
+}
+
+/** How far the edge button sits above the bezel: the ring's inset and stroke plus a
+ *  hair, which puts the button's top at the frames' y 324–328. */
+private const val EDGE_BUTTON_LIFT = 28f
 
 /** Screens sit on the brand background; in ambient the face goes black (low emission). */
 @Composable
