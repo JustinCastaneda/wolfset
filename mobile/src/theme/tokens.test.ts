@@ -50,15 +50,17 @@ describe('type scale', () => {
     expect(Object.keys(type)).toHaveLength(14);
   });
 
-  it('every style is Geom with a resolved px line height', () => {
+  it('every style is Geom with a line box tall enough for its descenders', () => {
     for (const style of Object.values(type)) {
       expect(style.fontFamily).toBe('Geom');
-      expect(style.lineHeight).toBeGreaterThanOrEqual(style.fontSize!);
+      // Geom's ascender + descender is 1.25× the size; anything less clips a "g".
+      expect(style.lineHeight).toBeGreaterThanOrEqual(style.fontSize! * 1.25);
     }
   });
 
-  it('spot-checks the Figma values: Button 20/24 SemiBold, Display XL 128 Black', () => {
-    expect(type.button).toMatchObject({ fontSize: 20, lineHeight: 24, fontWeight: '600' });
-    expect(type.displayXl).toMatchObject({ fontSize: 128, fontWeight: '900' });
+  it('spot-checks the Figma values: Button 20 SemiBold, Body 16/20, Display XL 128 Black', () => {
+    expect(type.button).toMatchObject({ fontSize: 20, lineHeight: 25, fontWeight: '600' });
+    expect(type.body).toMatchObject({ fontSize: 16, lineHeight: 20 });
+    expect(type.displayXl).toMatchObject({ fontSize: 128, lineHeight: 160, fontWeight: '900' });
   });
 });

@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -52,17 +52,10 @@ export function SettingsScreen() {
           {ROWS.map((row) => (
             <ListItem
               caption={row.caption}
+              chevron
               key={row.title}
               onPress={row.href ? () => router.push(row.href) : undefined}
               title={row.title}
-              trailing={
-                <View style={styles.chevron}>
-                  <ChevronRight
-                    color={row.href ? color.text.primary : color.text.disabled}
-                    size={24}
-                  />
-                </View>
-              }
             />
           ))}
         </View>
@@ -84,6 +77,4 @@ const styles = StyleSheet.create({
   scroll: { paddingTop: 24, gap: 32 },
   titleBlock: { paddingHorizontal: 24 },
   h1: { ...type.h1, color: color.text.primary },
-  // The frame's chevron sits in a 48px ghost button slot (433:22598).
-  chevron: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });

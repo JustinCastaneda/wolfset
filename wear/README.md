@@ -7,8 +7,9 @@ taps back (`PhoneActions`). The contract is `docs/hr-protocol.md`.
 
 - `ui/WolfsetTheme.kt` — the phone's tokens and Geom, scaled from the 456-wide frames to the
   watch (open decision #9: no watch token set yet, so nothing here invents one).
-- `ui/SetScreen.kt`, `ui/TimerScreen.kt`, `ui/DoneScreen.kt`, `ui/IdleScreen.kt` — one per
-  thing the session is doing; `WatchApp.kt` picks. `ui/LoopPager.kt` puts the Actions panel
+- `ui/SetScreen.kt`, `ui/TimerScreen.kt`, `ui/DoneScreen.kt`, `ui/TileScreen.kt` — one per
+  thing the session is doing (the tile is the opening screen when there is none; its Next
+  Workout asks the phone to start); `WatchApp.kt` picks. `ui/LoopPager.kt` puts the Actions panel
   (`ui/ActionsScreen.kt`: Skip Set / Undo Skip / End Workout) a swipe left of the set and
   the timer;
   `ui/EndWorkoutScreen.kt` is the watch's own "End Workout?" and the only state it keeps.

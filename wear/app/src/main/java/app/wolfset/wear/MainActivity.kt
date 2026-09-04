@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WolfsetTheme {
                 WatchApp(
-                    onToggleStream = ::toggleStream,
+                    onStartWorkout = { PhoneActions.startWorkout(this) },
                     onLog = { reps -> PhoneActions.logSet(this, reps) },
                     onContinue = { PhoneActions.continueRest(this) },
                     onSkipSet = { PhoneActions.skipSet(this) },
@@ -108,22 +108,19 @@ class MainActivity : ComponentActivity() {
     private fun autoStartIfAsked(intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_AUTO_START, false) != true) return
         intent.removeExtra(EXTRA_AUTO_START)
-        if (!WatchState.snapshot.value.streaming) toggleStream(streaming = false)
+        if (!WatchState.snapshot.value.streaming) startStream()
     }
 
-    private fun toggleStream(streaming: Boolean) {
-        if (streaming) {
-            HrStreamService.stop(this)
-        } else {
-            val wanted = buildList {
-                add(Manifest.permission.BODY_SENSORS)
-                add(Manifest.permission.ACTIVITY_RECOGNITION)
-                // Wear OS 6 heart-rate permission (see the manifest); older watches ignore it.
-                add(READ_HEART_RATE)
-                if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            permissionLauncher.launch(wanted.toTypedArray())
+    /** Ask for the stream's permissions, then start it (the launcher's result does). */
+    private fun startStream() {
+        val wanted = buildList {
+            add(Manifest.permission.BODY_SENSORS)
+            add(Manifest.permission.ACTIVITY_RECOGNITION)
+            // Wear OS 6 heart-rate permission (see the manifest); older watches ignore it.
+            add(READ_HEART_RATE)
+            if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
         }
+        permissionLauncher.launch(wanted.toTypedArray())
     }
 
     companion object {

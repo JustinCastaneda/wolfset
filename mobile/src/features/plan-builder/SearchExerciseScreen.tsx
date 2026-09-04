@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, ChevronRight, Dumbbell } from 'lucide-react-native';
+import { ArrowLeft, Dumbbell } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -61,6 +61,7 @@ export function SearchExerciseScreen() {
         renderItem={({ item }) => (
           <ListItem
             caption={`${LOAD_LABEL[item.loadType]} • ${item.muscles.join(', ')}`}
+            chevron
             leading={
               <View style={styles.icon}>
                 <Dumbbell color={color.brand} size={32} />
@@ -73,11 +74,6 @@ export function SearchExerciseScreen() {
               })
             }
             title={item.name}
-            trailing={
-              <View style={styles.chevron}>
-                <ChevronRight color={color.text.primary} size={24} />
-              </View>
-            }
           />
         )}
       />
@@ -104,6 +100,4 @@ const styles = StyleSheet.create({
   search: { paddingHorizontal: 24, paddingVertical: 12 },
   // The 64px illustration slot (443:7337) until the icon set lands.
   icon: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center' },
-  // The row's trailing ghost button slot (443:7341): 48px.
-  chevron: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });

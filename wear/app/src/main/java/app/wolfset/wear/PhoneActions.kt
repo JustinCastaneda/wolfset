@@ -41,6 +41,10 @@ object PhoneActions {
     fun finish(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_FINISH))
 
+    /** Next Workout on the tile: start the plan's up-next day on the phone. */
+    fun startWorkout(context: Context) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_START_WORKOUT))
+
     private fun send(context: Context, body: JSONObject) {
         val app = context.applicationContext
         val payload = body.toString().toByteArray()

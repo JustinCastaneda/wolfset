@@ -1,11 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { RowChevron } from '@/components/RowChevron';
 import { color, type } from '@/theme/tokens';
 
 // Figma: Select/List Item 114:2626 (412×80) — the Search Exercise row and the
 // Progression / Pacing rows on Add Exercise Details: title (Title) over a caption
 // (Caption, secondary), an optional 64px leading slot, and a trailing slot for a Go
-// button or chevron. Pressable only when given onPress.
+// button, or the row's own chevron. Pressable only when given onPress. A row is flush
+// with the background even while pressed (Justin, 2026-09-04: a fill would cover the
+// watermark); the chevron carries the press instead (RowChevron).
 
 type ListItemProps = {
   title: string;
@@ -16,6 +19,8 @@ type ListItemProps = {
   captionAccent?: string;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
+  /** The row leads somewhere: a chevron in the trailing slot, disabled without onPress. */
+  chevron?: boolean;
   onPress?: () => void;
 };
 
@@ -26,9 +31,10 @@ export function ListItem({
   captionAccent,
   leading,
   trailing,
+  chevron = false,
   onPress,
 }: ListItemProps) {
-  const body = (
+  const body = (pressed: boolean) => (
     <>
       <View style={styles.left}>
         {leading}
@@ -48,16 +54,13 @@ export function ListItem({
         </View>
       </View>
       {trailing}
+      {chevron && <RowChevron disabled={!onPress} pressed={pressed} />}
     </>
   );
-  if (!onPress) return <View style={styles.root}>{body}</View>;
+  if (!onPress) return <View style={styles.root}>{body(false)}</View>;
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.root, pressed && styles.pressed]}
-    >
-      {body}
+    <Pressable accessibilityRole="button" onPress={onPress} style={styles.root}>
+      {({ pressed }) => body(pressed)}
     </Pressable>
   );
 }
@@ -74,7 +77,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     minHeight: 80,
   },
-  pressed: { backgroundColor: color.bg.raised },
   left: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
   text: { gap: 8, flexShrink: 1 },
   // Figma 48:260: title and tag share a baseline, 8 apart; the title yields first.

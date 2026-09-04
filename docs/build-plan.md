@@ -550,7 +550,11 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       Start Workout on the phone now opens the watch screen. `docs/hr-protocol.md` (2026-09-03)
 - [ ] 🤝 Separate watch token set, or ported primitives? — until decided the watch borrows
       the phone's colours and type (`wear/.../ui/WolfsetTheme.kt`)
-- [ ] 🤖 Watch Tile — cardio above, Next Workout below, reads today off the phone
+- [x] 🤖 **Watch Tile** (`123:3440`, redrawn by Justin 2026-09-04 to match the hub; built the
+      same day) — the watch's opening screen whenever there is no session: Cardio and
+      Freestyle disabled (not built on either surface), Next Workout asks the phone to
+      start the up-next day (`startWorkout` action, handled app-wide by the root layout).
+      Replaces the placeholder idle screen and its Start/Stop stream test
 - [x] 🤖 **Actions panel (swipe left) — Skip Set / Undo Skip / End** (`164:4103`, 2026-09-03),
       off the set and the timer. Skip Set is a new machine event: the next set without a
       log, so the lift scores short; Undo Skip goes back to it (no frame — same card). The

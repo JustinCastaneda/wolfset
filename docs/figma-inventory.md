@@ -233,7 +233,7 @@ motion. Until it lands, the watch notes below still apply.
 
 | Flowchart screen | Frame | ID |
 |---|---|---|
-| Watch Tile | Watch Tile | `123:3440` |
+| Watch Tile | Watch Tile | `123:3440` — redrawn 2026-09-04 (three Icon Cards: Cardio · Freestyle · Next Workout, the hub's tiles at watch size); built the same day as `ui/TileScreen.kt`, the screen with no session |
 | Set / 1 | Set / 1 | `123:3615` |
 | Set / 2 | Set / 2 | `164:4389` |
 | Edit Set (new — not in the flowchart) | Edit Set | `293:1520` |
