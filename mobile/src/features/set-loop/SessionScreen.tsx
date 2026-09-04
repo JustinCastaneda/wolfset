@@ -14,8 +14,9 @@ import {
   restEndsAt,
 } from './native-rest';
 import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
-import { advanceNextDay, loadActiveDay } from '@/lib/db/plan-store';
+import { advanceNextDay, loadActivePlan, setNextDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
+import { applyProgress, type PlanDayStart } from './plan-day';
 import { acceptDeload, settleSession, type SettledExercise } from './settle-session';
 import { color } from '@/theme/tokens';
 import { ConfirmEndSheet } from './ConfirmEndSheet';
@@ -26,7 +27,7 @@ import { SessionDoneScreen } from './SessionDoneScreen';
 import { WorkoutOverviewScreen } from './WorkoutOverviewScreen';
 import { ByFeelGridScreen } from './ByFeelGridScreen';
 import { dayProgress } from './session-ui';
-import { reduce, restRemaining, startSession } from './machine';
+import { isUntouched, reduce, restRemaining, startSession } from './machine';
 import type { SessionState } from './types';
 import { watchActionToEvent, watchView } from './watch-view';
 
@@ -43,46 +44,44 @@ import { watchActionToEvent, watchView } from './watch-view';
 // watch is never tapped to stream (decision 2026-09-03). The watch mirrors the loop: every
 // state change publishes its view (watch-view.ts) and a Log, Continue, Skip Set or End
 // tapped on the wrist arrives as the same event the phone's button sends; Finish on the
-// watch's Session Done leaves like the phone's. Each rest is also handed to
-// the native rest timer, which holds it through screen-off and buzzes at the end
-// (native-rest.ts).
+// watch's Session Done leaves like the phone's. Change Workout on the wrist swaps in
+// another plan day while nothing has been logged, and the plan's rotation follows.
+// Each rest is also handed to the native rest timer, which holds it through screen-off
+// and buzzes at the end (native-rest.ts).
 
-type Boot = { state: SessionState; startedAt: number; dayName: string; dayId: string };
+/** Every day the plan could run, weights progressed, and which one this session is. */
+type Boot = { state: SessionState; startedAt: number; day: PlanDayStart; days: PlanDayStart[] };
 
 export function SessionScreen() {
   // The snapshot and plan reads are impure, so they happen in an effect, never in render.
   const [boot, setBoot] = useState<Boot | null>(null);
   useEffect(() => {
     const id = setTimeout(() => {
-      // The day comes from the stored plan (plan-store): the active plan's next day.
-      // No plan means nothing to run — back to home until the plan builder makes one.
-      const day = loadActiveDay();
-      if (!day) {
+      // The day comes from the stored plan (plan-store): the active plan's next day. A
+      // fresh session starts from the stored progress: yesterday's hits moved today's
+      // weights (data-model §5.2); the plan's start weight is only the first. Every day
+      // is prepared the same way, so the watch's Change It Up shows what would start.
+      // No plan, or an empty day, means nothing to run — back to home.
+      const plan = loadActivePlan();
+      const progress = loadAllProgress();
+      const days = (plan?.days ?? [])
+        .filter((d) => d.exercises.length > 0)
+        .map((d) => ({ ...d, exercises: applyProgress(d.exercises, progress) }));
+      const day = plan?.days.find((d) => d.isNext);
+      if (!day || day.exercises.length === 0) {
         router.back();
         return;
       }
       const saved = loadSnapshot();
-      if (saved && saved.state.phase.name !== 'done') {
-        setBoot({ ...saved, dayName: day.dayName, dayId: day.dayId });
-        return;
-      }
-      // A fresh session starts from the stored progress: yesterday's hits moved
-      // today's weights (data-model §5.2); the plan's start weight is only the first.
-      const progress = loadAllProgress();
-      const exercises = day.exercises.map((ex) => ({
-        ...ex,
-        weight: progress[ex.exerciseId]?.currentWeight ?? ex.weight,
-        // By-feel and reps-first lifts carry a moving rep target; steady keeps the plan's.
-        targetReps:
-          ex.strategy === 'by-feel' || ex.strategy === 'reps-first'
-            ? (progress[ex.exerciseId]?.currentReps ?? ex.targetReps)
-            : ex.targetReps,
-      }));
+      const state =
+        saved && saved.state.phase.name !== 'done'
+          ? saved.state
+          : startSession('plan', applyProgress(day.exercises, progress));
       setBoot({
-        state: startSession('plan', exercises),
-        startedAt: 0,
-        dayName: day.dayName,
-        dayId: day.dayId,
+        state,
+        startedAt: saved && saved.state.phase.name !== 'done' ? saved.startedAt : 0,
+        day: days.find((d) => d.dayId === day.dayId) ?? { ...day, exercises: state.exercises },
+        days,
       });
     }, 0);
     return () => clearTimeout(id);
@@ -93,7 +92,9 @@ export function SessionScreen() {
 }
 
 function SessionRunner({ boot }: { boot: Boot }) {
-  const dayName = boot.dayName;
+  // The day this session runs. Change Workout (the watch) replaces it before any set.
+  const [day, setDay] = useState(boot.day);
+  const dayName = day.name;
   const insets = useSafeAreaInsets();
   const [state, dispatch] = useReducer(reduce, boot.state);
   // The overview is navigation, not a machine phase (brief §01). Tree icon leads here.
@@ -144,7 +145,11 @@ function SessionRunner({ boot }: { boot: Boot }) {
   const sessionOver = state.phase.name === 'done' && state.pendingRatings.length === 0;
   const viewJson = JSON.stringify(
     pendingRating === undefined
-      ? watchView(state, { startedAt: clock.startedAt, now: clock.now, avgBpm: hr.mean })
+      ? watchView(
+          state,
+          { startedAt: clock.startedAt, now: clock.now, avgBpm: hr.mean },
+          { dayOrder: day.order, days: boot.days },
+        )
       : { screen: 'none' },
   );
   useEffect(() => {
@@ -158,10 +163,20 @@ function SessionRunner({ boot }: { boot: Boot }) {
           if (sessionOver) router.back();
           return;
         }
-        const event = watchActionToEvent(action, Date.now());
-        if (event) send(event);
+        const event = watchActionToEvent(action, Date.now(), boot.days);
+        if (!event) return;
+        if (event.type === 'dayChanged') {
+          // The machine only takes it while the workout is untouched; the plan's
+          // rotation and this screen's day move with it, so a finish, a kill and a
+          // resume, and the next Start Workout all agree on which day ran.
+          const picked = boot.days.find((d) => d.order === action.day);
+          if (!picked || !isUntouched(state)) return;
+          setNextDay(picked.dayId);
+          setDay(picked);
+        }
+        send(event);
       }),
-    [send, sessionOver],
+    [send, sessionOver, boot.days, state],
   );
 
   // The doze-proof rest timer. Permission is asked once, at the first workout; a refusal
@@ -224,13 +239,13 @@ function SessionRunner({ boot }: { boot: Boot }) {
       const now = Date.now();
       const settled = settleSession(state, loadAllProgress());
       for (const lift of settled) saveProgress(lift.exerciseId, lift.progress, now);
-      finalizeSession(state, clock.startedAt, now, boot.dayId);
+      finalizeSession(state, clock.startedAt, now, day.dayId);
       // Multi-day plans rotate: the next Start Workout runs the following day.
-      advanceNextDay(boot.dayId);
+      advanceNextDay(day.dayId);
       setSummary(settled);
     }, 0);
     return () => clearTimeout(id);
-  }, [state, sessionOver, clock.startedAt, boot.dayId]);
+  }, [state, sessionOver, clock.startedAt, day.dayId]);
 
   // The plateau question's two answers (decisions 11b — the app asked).
   const answerPlateau = (exerciseId: string, deload: boolean) => {

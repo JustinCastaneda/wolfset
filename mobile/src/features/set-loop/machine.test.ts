@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { reduce, restRemaining, startSession } from './machine';
+import { isUntouched, reduce, restRemaining, startSession } from './machine';
 import type { SessionExercise, SessionState } from './types';
 
 // A two-lift plan day: squat 2×5 @ 135 (1:30 rest), curls 1×10 @ 30 (1:00 rest).
@@ -306,5 +306,30 @@ describe('Skip Set from the timer, and Undo Skip', () => {
     expect(back.setIndex).toBe(0);
     // After the rest, the next set is the second — the count logged plus one.
     expect(reduce(back, { type: 'restEnded', reason: 'timer', at: t(100) }).setIndex).toBe(1);
+  });
+});
+
+describe('Change Workout — another day, while nothing has happened yet', () => {
+  it('an untouched workout takes the other day, from the top', () => {
+    const fresh = startSession('plan', [squat, curl]);
+    expect(isUntouched(fresh)).toBe(true);
+    const changed = reduce(fresh, { type: 'dayChanged', exercises: [curl] });
+    expect(changed).toEqual(startSession('plan', [curl]));
+  });
+
+  it('once a set is logged, skipped or the lifts were jumped, the day cannot change', () => {
+    const fresh = startSession('plan', [squat, curl]);
+    const logged = reduce(fresh, { type: 'setLogged', reps: 5, at: t(0) });
+    const skipped = reduce(fresh, { type: 'setSkipped', at: t(0) });
+    const jumped = reduce(fresh, { type: 'exerciseJumped', index: 1, at: t(0) });
+    for (const state of [logged, skipped, jumped]) {
+      expect(isUntouched(state)).toBe(false);
+      expect(reduce(state, { type: 'dayChanged', exercises: [curl] })).toBe(state);
+    }
+  });
+
+  it('a day with no lifts is refused', () => {
+    const fresh = startSession('plan', [squat]);
+    expect(reduce(fresh, { type: 'dayChanged', exercises: [] })).toBe(fresh);
   });
 });

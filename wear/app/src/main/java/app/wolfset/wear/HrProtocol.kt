@@ -17,14 +17,16 @@ object HrProtocol {
     const val PATH_SESSION = "/wolfset/session"
     const val KEY_VIEW = "view"
 
-    /** Watch → phone: a tap on the wrist, JSON body `{ "type": ..., "reps": n }`. The
-     *  phone's session applies it exactly as if its own button had been pressed. */
+    /** Watch → phone: a tap on the wrist, JSON body `{ "type": ..., "reps": n, "day": n }`.
+     *  The phone's session applies it exactly as if its own button had been pressed. */
     const val PATH_ACTION = "/wolfset/action"
     const val ACTION_LOG_SET = "logSet"
     const val ACTION_CONTINUE = "continue"
     const val ACTION_SKIP_SET = "skipSet"
     /** Undo Skip: back to this lift's first skipped set. */
     const val ACTION_UNSKIP_SET = "unskipSet"
+    /** Start Workout on a day preview (123:3251): `day` carries the plan day's order. */
+    const val ACTION_CHANGE_DAY = "changeDay"
     /** Sent after the watch's own "End Workout?" — that is the double confirm. */
     const val ACTION_END_WORKOUT = "endWorkout"
     /** Finish on Session Done: the phone leaves the session and clears the watch. */

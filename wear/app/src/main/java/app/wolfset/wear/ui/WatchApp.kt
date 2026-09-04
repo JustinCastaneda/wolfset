@@ -15,12 +15,12 @@ import kotlinx.coroutines.delay
 /**
  * One screen per thing the phone's session is doing (WatchState.session): the set to log
  * or the rest (each with the Actions panel a swipe to its left), the summary, or
- * nothing. The
- * one piece of state the watch keeps for itself is whether "End Workout?" is up — it
- * drops the moment the phone publishes a different set. The clock ticks here — four
- * times a second while a rest counts down on a lit screen, once a second otherwise — so
- * the countdown and the staleness rule (WatchState.freshBpm) both follow it and no
- * screen reads the time itself.
+ * nothing. The watch keeps two small things for itself: whether "End Workout?" is up,
+ * and where it is in Change It Up (the day list, then one day's preview) — both drop the
+ * moment the phone publishes a different set or day. The clock ticks here — four times a
+ * second while a rest counts down on a lit screen, once a second otherwise — so the
+ * countdown and the staleness rule (WatchState.freshBpm) both follow it and no screen
+ * reads the time itself.
  */
 @Composable
 fun WatchApp(
@@ -29,12 +29,18 @@ fun WatchApp(
     onContinue: () -> Unit,
     onSkipSet: () -> Unit,
     onUndoSkip: () -> Unit,
+    onChangeDay: (order: Int) -> Unit,
     onEndWorkout: () -> Unit,
     onFinish: () -> Unit,
 ) {
     val state by WatchState.snapshot.collectAsStateWithLifecycle()
     val session = state.session
-    var confirmEnd by remember(session?.screen, session?.exerciseNo, session?.setNo) { mutableStateOf(false) }
+    // "Which set" as one key: a new set or day from the phone resets what the watch kept.
+    val setKey = "${session?.screen}/${session?.dayOrder}/${session?.exerciseNo}/${session?.setNo}"
+    var confirmEnd by remember(setKey) { mutableStateOf(false) }
+    var changing by remember(setKey) { mutableStateOf(false) }
+    /** The day whose preview is open (its order), while Change It Up is up. */
+    var previewOrder by remember(setKey) { mutableStateOf<Int?>(null) }
     val counting = session?.isRest == true && !state.isAmbient
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(counting) {
@@ -44,13 +50,27 @@ fun WatchApp(
         }
     }
     val bpm = state.freshBpm(now)
+    val preview = previewOrder?.let { order -> session?.days?.firstOrNull { it.order == order } }
 
     when {
         session == null -> IdleScreen(state, bpm, state.isAmbient, onToggleStream)
         session.isDone -> DoneScreen(session, state.isAmbient, onFinish)
         confirmEnd -> EndWorkoutScreen(session, state.isAmbient, onCancel = { confirmEnd = false }, onEnd = onEndWorkout)
+        preview != null -> DayPreviewScreen(
+            view = session,
+            day = preview,
+            ambient = state.isAmbient,
+            onBack = { previewOrder = null },
+            onStart = { onChangeDay(preview.order) },
+        )
+        changing -> ChangeWorkoutScreen(
+            view = session,
+            ambient = state.isAmbient,
+            onBack = { changing = false },
+            onPick = { order -> previewOrder = order },
+        )
         // Keyed on the set so a new one from the phone lands back on the loop page.
-        else -> key(session.exerciseNo, session.setNo) {
+        else -> key(setKey) {
             LoopPager(
                 view = session,
                 bpm = bpm,
@@ -60,6 +80,7 @@ fun WatchApp(
                 onContinue = onContinue,
                 onSkipSet = onSkipSet,
                 onUndoSkip = onUndoSkip,
+                onChangeWorkout = { changing = true },
                 onEndWorkout = { confirmEnd = true },
             )
         }

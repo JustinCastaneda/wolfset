@@ -168,6 +168,12 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
         : state;
     }
 
+    case 'dayChanged': {
+      // Another day's lifts, from the top — allowed only while the workout is untouched.
+      if (!isUntouched(state) || event.exercises.length === 0) return state;
+      return startSession(state.kind, event.exercises);
+    }
+
     case 'workoutEnded': {
       const sets =
         state.phase.name === 'resting' ? closeRest(state, 'continue', event.at) : state.sets;
@@ -180,6 +186,17 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
 }
 
 /** Seconds left on the rest timer; the caller supplies now (injectable clock). */
+/** Nothing logged, skipped or jumped yet: the workout has not really started, so its
+ *  day can still be swapped (Change Workout) without losing anything. */
+export function isUntouched(state: SessionState): boolean {
+  return (
+    state.phase.name !== 'done' &&
+    state.sets.length === 0 &&
+    state.exerciseIndex === 0 &&
+    state.setIndex === 0
+  );
+}
+
 export function restRemaining(state: SessionState, now: number): number | null {
   if (state.phase.name !== 'resting') return null;
   const elapsed = (now - state.phase.startedAt) / 1000;

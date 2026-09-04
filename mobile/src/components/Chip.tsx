@@ -46,8 +46,11 @@ export function Chip({
         ? color.brand
         : color.text.secondary;
 
+  // One line, always: a chip re-rendered in place on Android wrapped its last word onto
+  // a hidden second line ("Workout A" → "Workout", the home day chips, 2026-09-03).
   const body = (pressed: boolean) => (
     <Text
+      numberOfLines={1}
       style={[
         size === 'large' ? styles.labelLarge : styles.labelSmall,
         { color: textColor(pressed) },

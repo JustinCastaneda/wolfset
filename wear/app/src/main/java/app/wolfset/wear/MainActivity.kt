@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
                     onContinue = { PhoneActions.continueRest(this) },
                     onSkipSet = { PhoneActions.skipSet(this) },
                     onUndoSkip = { PhoneActions.unskipSet(this) },
+                    onChangeDay = { order -> PhoneActions.changeDay(this, order) },
                     onEndWorkout = { PhoneActions.endWorkout(this) },
                     onFinish = { PhoneActions.finish(this) },
                 )

@@ -24,6 +24,7 @@ fun LoopPager(
     onContinue: () -> Unit,
     onSkipSet: () -> Unit,
     onUndoSkip: () -> Unit,
+    onChangeWorkout: () -> Unit,
     onEndWorkout: () -> Unit,
 ) {
     val pager = rememberPagerState { 2 }
@@ -36,6 +37,7 @@ fun LoopPager(
                 ambient = ambient,
                 enabled = !wait.waiting,
                 canUnskip = view.canUnskip,
+                canChange = view.canChange,
                 onSkipSet = {
                     wait.start()
                     onSkipSet()
@@ -44,6 +46,7 @@ fun LoopPager(
                     wait.start()
                     onUndoSkip()
                 },
+                onChangeWorkout = onChangeWorkout,
                 onEndWorkout = onEndWorkout,
             )
         }
