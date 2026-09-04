@@ -1,4 +1,4 @@
-import { ListTree, Settings2, X } from 'lucide-react-native';
+import { ArrowRight, BookOpen, History, ListTree, Settings2, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { ButtonGroup } from '@/components/ButtonGroup';
 import { Chip } from '@/components/Chip';
+import { IconCard } from '@/components/IconCard';
 import { Input } from '@/components/Input';
 import { Keypad } from '@/components/Keypad';
 import { ListItem } from '@/components/ListItem';
@@ -13,7 +14,9 @@ import { RadioCard } from '@/components/RadioCard';
 import { SegmentedProgress } from '@/components/SegmentedProgress';
 import { TimerRing } from '@/components/TimerRing';
 import { TopBar } from '@/components/TopBar';
+import { WeekStrip } from '@/components/WeekStrip';
 import { WeightReadout } from '@/components/WeightReadout';
+import { suggestedWeek } from '@/lib/plan-week';
 import { color, palette, type } from '@/theme/tokens';
 import { WolfsetHr } from '@modules/wolfset-hr';
 import {
@@ -162,6 +165,27 @@ export default function DesignKit() {
           <Button title="disabled" variant={variant} size="small" disabled />
         </View>
       ))}
+      <Text style={styles.caption}>Icon-only — the hub row’s arrow (34:1520)</Text>
+      <View style={styles.chipRow}>
+        <Button
+          accessibilityLabel="Start"
+          leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
+          size="small"
+        />
+        <Button
+          accessibilityLabel="Start"
+          leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
+          size="small"
+          variant="secondary"
+        />
+        <Button
+          accessibilityLabel="Start"
+          disabled
+          leftIcon={<ArrowRight color={color.text.disabled} size={24} />}
+          size="small"
+          variant="secondary"
+        />
+      </View>
 
       <Text style={styles.section}>Chip — Brand · Muted · Outline (idle / selected)</Text>
       {(['brand', 'muted', 'outline'] as const).map((variant) => (
@@ -183,11 +207,23 @@ export default function DesignKit() {
       </Text>
       <ButtonGroupDemo />
 
-      <Text style={styles.section}>List Item — leading · trailing · accent caption</Text>
+      <Text style={styles.section}>List Item — leading · trailing · accent caption · tag</Text>
       <ListItem
         caption="Barbell • Legs, Back"
         title="Deadlift"
         trailing={<Button size="small" title="Go" />}
+      />
+      <ListItem
+        caption="Squat • Overhead Press • Deadlift"
+        title="Workout A"
+        titleTag="Up Next"
+        trailing={
+          <Button
+            accessibilityLabel="Start Workout A"
+            leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
+            size="small"
+          />
+        }
       />
       <ListItem caption="Reps First • Plan Default" title="Progression" />
       <ListItem
@@ -215,6 +251,26 @@ export default function DesignKit() {
         right={<Settings2 color={color.text.primary} size={24} />}
         title="Plan A • Squat • 4/5"
       />
+
+      <Text style={styles.section}>Icon Card — enabled · disabled (the hub tiles)</Text>
+      <View style={styles.chipRow}>
+        <IconCard
+          icon={<BookOpen color={color.text.primary} size={32} />}
+          label={'Edit Current\nMesoCycle'}
+          onPress={() => {}}
+        />
+        <IconCard
+          disabled
+          icon={<History color={color.text.disabled} size={32} />}
+          label={'Workout\nHistory'}
+        />
+      </View>
+
+      <Text style={styles.section}>Week strip — two days · none</Text>
+      <View style={styles.kitWeek}>
+        <WeekStrip week={suggestedWeek(2)} />
+        <WeekStrip week={suggestedWeek(0)} />
+      </View>
 
       <Text style={styles.section}>Timer ring — resting · approaching · ready</Text>
       <View style={styles.chipRow}>
@@ -346,6 +402,8 @@ const styles = StyleSheet.create({
   caption: { ...type.caption, color: color.text.muted },
   group: { gap: 8 },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // The strip pads its own 24 sides for a screen; the kit's 16 gutters take it back.
+  kitWeek: { marginHorizontal: -8, gap: 12 },
   sample: { color: color.text.primary },
   swatch: { width: 28, height: 28, borderRadius: 4 },
   swatchLabel: { ...type.caption, color: color.text.muted },

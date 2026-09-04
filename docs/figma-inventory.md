@@ -116,7 +116,7 @@ journey — build once (brief §03).
 
 | Flowchart screen | Frame | ID | Notes |
 |---|---|---|---|
-| Get Started / Change It Up hub | Home Hub - Change it up | `34:1464`, `70:281`, `101:637` (412×1120), `93:668` | four drawings of the hub |
+| Get Started / Change It Up hub | Home Hub - Change it up | `34:1464`, `70:281`, `101:637` (412×1120), `93:668` | four drawings of the hub. **Built from `34:1464`** (2026-09-04): day rows + Suggested Week + four Icon Cards; `70:281` is the same with the claw mark in the avatar slot; `93:668` drops the week; `101:637` is **Get Started**, the no-plan state |
 | Name this Plan | New Plan | `114:3014` | |
 | How You Get Stronger | New Plan / Reps First | `101:994` | three Radio Cards (IDs corrected 2026-09-02 — they were swapped) |
 | What's the first lift? | Search Exercise | `70:339`, `101:814` | shared with Freestyle |
@@ -183,7 +183,7 @@ Workout A is also the live in-session hub — three progress states of the same 
 | Dumbbell Scale | `433:22844` | unit toggle + increment choice **5 lb** (10/15/20/25/30) or **2.5 lb** (10/12.5/…), "Impacts progression increases" — this is `Profile.smallestStepDumbbell` |
 | Exercise Data | `433:23207` | stat tiles (workouts, mesocycles, total gain, joined), bodyweight trend, per-exercise progress charts, **export** (top-right). ⚠️ header copy is stale: "Settings • Dumbbell scale" |
 | Goal | `433:27536` | Build Muscle · Build Strength · Endurance · **Vibing** ("no specific goal") — a 4th goal option |
-| Home Hub (updated) | `433:23386` | |
+| Personal Info | `433:23386` | unit toggle, weight/height steppers, experience Radio Cards — the frame is still *named* "Home Hub - Change it up", but it is a Settings screen (checked 2026-09-04) |
 
 ### Onboarding addition ✨
 

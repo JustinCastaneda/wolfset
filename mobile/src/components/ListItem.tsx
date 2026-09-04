@@ -9,6 +9,8 @@ import { color, type } from '@/theme/tokens';
 
 type ListItemProps = {
   title: string;
+  /** A brand caption beside the title — the hub row's "Up Next" (node 48:397). */
+  titleTag?: string;
   caption?: string;
   /** Caption fragment drawn in brand before the caption (Day Summary's override). */
   captionAccent?: string;
@@ -19,6 +21,7 @@ type ListItemProps = {
 
 export function ListItem({
   title,
+  titleTag,
   caption,
   captionAccent,
   leading,
@@ -30,9 +33,12 @@ export function ListItem({
       <View style={styles.left}>
         {leading}
         <View style={styles.text}>
-          <Text numberOfLines={1} style={styles.title}>
-            {title}
-          </Text>
+          <View style={styles.titleRow}>
+            <Text numberOfLines={1} style={styles.title}>
+              {title}
+            </Text>
+            {titleTag !== undefined && <Text style={styles.titleTag}>{titleTag}</Text>}
+          </View>
           {(caption !== undefined || captionAccent !== undefined) && (
             <Text numberOfLines={1} style={styles.caption}>
               {captionAccent !== undefined && <Text style={styles.accent}>{captionAccent} • </Text>}
@@ -71,7 +77,10 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: color.bg.raised },
   left: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
   text: { gap: 8, flexShrink: 1 },
-  title: { ...type.title, color: color.text.primary },
+  // Figma 48:260: title and tag share a baseline, 8 apart; the title yields first.
+  titleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  title: { ...type.title, color: color.text.primary, flexShrink: 1 },
+  titleTag: { ...type.caption, color: color.brand },
   caption: { ...type.caption, color: color.text.secondary },
   accent: { color: color.brand },
 });
