@@ -1,16 +1,23 @@
+import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/Button';
 import { ListItem } from '@/components/ListItem';
 import { TopBar } from '@/components/TopBar';
 import { color, type } from '@/theme/tokens';
 
 // Settings (Figma 433:22471): five rows into the subscreens, the wolf mark faded behind
 // them. Exercise Data (433:23207 — stat tiles, trend charts, export) is a unit of its
-// own, so its row waits, drawn but not pressable.
+// own, so its row waits, drawn but not pressable. Below the rows, the version; tapping
+// it reveals the Developer Menu (Justin's 2026-09-04 frame) — the Design Kit, and
+// whatever tooling comes later. Only in development builds: store builds never carry
+// `__DEV__`, which is the "never on production" the frame asks for. Limiting it to one
+// account by email waits on accounts (Phase 5).
 
 const ROWS = [
   { title: 'Equipment', caption: 'What you have access to', href: '/settings/equipment' },
@@ -30,6 +37,7 @@ const ROWS = [
 
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const [developerMenu, setDeveloperMenu] = useState(false);
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       {/* The muted mark (550:19079): 405px, centred, a little below the middle. */}
@@ -59,6 +67,23 @@ export function SettingsScreen() {
             />
           ))}
         </View>
+        {__DEV__ && developerMenu && (
+          <View style={styles.developer}>
+            <Text style={styles.developerTitle}>Developer Menu</Text>
+            <Button
+              onPress={() => router.push('/design-kit')}
+              title="Design Kit"
+              variant="outline"
+            />
+          </View>
+        )}
+        <Pressable
+          accessibilityRole={__DEV__ ? 'button' : undefined}
+          onPress={__DEV__ ? () => setDeveloperMenu((open) => !open) : undefined}
+          style={styles.version}
+        >
+          <Text style={styles.versionText}>Version {Constants.expoConfig?.version ?? '—'}</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -77,4 +102,17 @@ const styles = StyleSheet.create({
   scroll: { paddingTop: 24, gap: 32 },
   titleBlock: { paddingHorizontal: 24 },
   h1: { ...type.h1, color: color.text.primary },
+  // The frame's panel: raised r12 with the border, pad 24, title over the buttons.
+  developer: {
+    marginHorizontal: 24,
+    padding: 24,
+    gap: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: color.border,
+    backgroundColor: color.bg.raised,
+  },
+  developerTitle: { ...type.label, color: color.text.secondary },
+  version: { alignSelf: 'center', padding: 12 },
+  versionText: { ...type.caption, color: color.text.secondary },
 });

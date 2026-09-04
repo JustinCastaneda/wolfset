@@ -17,7 +17,7 @@
 
     <application
         android:label="WOLFSET"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.DeviceDefault">
 
         <!-- Sideloaded next to the phone app during development; no Play pairing flow. -->

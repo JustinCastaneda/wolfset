@@ -1,4 +1,4 @@
-import { Link, router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
 import { ArrowRight, BookOpen, Dumbbell, History, Play, Settings } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
@@ -20,13 +20,16 @@ import {
 import { loadSnapshot } from '@/lib/db/session-store';
 import { suggestedWeek } from '@/lib/plan-week';
 import { color, type } from '@/theme/tokens';
+import { hubTitle } from './hub-title';
 
 // The home hub — Change It Up (Figma 34:1464): the active plan's days, the one the
 // rotation points at tagged Up Next, an arrow on each that runs it; the Suggested Week;
 // then four tiles. The flowchart's edge is arrow → the workout, so an arrow both points
 // the rotation at that day and starts it (the watch's Change It Up points without
 // starting, for a wrist that only wants to pick). A workout already under way keeps its
-// day: only its own arrow is live, and it resumes.
+// day: only its own arrow is live, and it resumes. The day's name opens the Day Overview
+// (34:778) instead — the whole workout, with Start Workout, for looking before lifting
+// (Justin, 2026-09-04). The title is one of the hub's encouraging lines (hub-title.ts).
 //
 // Not built yet, so their tiles render disabled: Freestyle Workout, Browse Exercises
 // (Search Exercise only exists inside a plan day) and Workout History. The top bar is
@@ -84,7 +87,7 @@ export function HomeHubScreen() {
         ) : (
           <>
             <View style={styles.titleBlock}>
-              <Text style={styles.h1}>Change It Up</Text>
+              <Text style={styles.h1}>{hubTitle(new Date())}</Text>
             </View>
             <View>
               {/* The frame reads "Plan A • Week 3 of 5"; the week waits on the plan
@@ -100,6 +103,12 @@ export function HomeHubScreen() {
                         : 'No exercises yet'
                     }
                     key={day.dayId}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/plan/day/[dayId]/overview',
+                        params: { dayId: day.dayId },
+                      })
+                    }
                     title={day.name}
                     titleTag={day.isNext ? (hasSession ? 'In Progress' : 'Up Next') : undefined}
                     trailing={
@@ -154,11 +163,6 @@ export function HomeHubScreen() {
             </View>
           </>
         )}
-        {__DEV__ && (
-          <Link href="/design-kit" style={styles.kitLink}>
-            Design Kit
-          </Link>
-        )}
       </ScrollView>
     </View>
   );
@@ -209,5 +213,4 @@ const styles = StyleSheet.create({
   startText: { gap: 8 },
   startTitle: { ...type.title, color: color.text.primary },
   startBody: { ...type.body, lineHeight: 20, color: color.text.secondary },
-  kitLink: { ...type.label, color: color.text.muted, textAlign: 'center', padding: 12 },
 });

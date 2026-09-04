@@ -1,7 +1,8 @@
 import { Check, Home } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { ExerciseRow, RowNumber } from '@/components/ExerciseRow';
 import { ProgressWheel } from '@/components/ProgressWheel';
 import { SetDots } from '@/components/SetDots';
 import { TopBar } from '@/components/TopBar';
@@ -88,7 +89,7 @@ export function WorkoutOverviewScreen({
             ) : started ? (
               <ProgressWheel progress={ex.prescribedSets ? logged / ex.prescribedSets : 0} />
             ) : (
-              <Text style={styles.rowNumber}>{i + 1}</Text>
+              <RowNumber n={i + 1} />
             );
             // Captions: the current row carries Current Set (and the live countdown);
             // other started rows read "X of N Sets • Defaults • rest" per the mock.
@@ -115,32 +116,20 @@ export function WorkoutOverviewScreen({
                 </Text>
               );
             return (
-              <Pressable
-                accessibilityRole="button"
+              <ExerciseRow
+                caption={caption}
+                current={current}
+                indicator={indicator}
                 key={ex.exerciseId}
                 onPress={() => (current ? onReturn() : onJump(i))}
-                style={({ pressed }) => [
-                  styles.row,
-                  current && styles.rowCurrent,
-                  pressed && styles.rowPressed,
-                ]}
-              >
-                <View style={styles.rowLeft}>
-                  <View style={styles.indicatorBox}>{indicator}</View>
-                  <View style={styles.rowText}>
-                    <Text style={styles.rowTitle}>{ex.name}</Text>
-                    {caption}
-                  </View>
-                </View>
-                <View style={styles.rowRight}>
-                  <Text style={styles.rowWeight}>{ex.weight}</Text>
-                  <Text style={styles.rowRx}>
-                    {ex.prescribedSets === null
-                      ? `${logged} sets`
-                      : `${ex.prescribedSets}x${ex.targetReps}`}
-                  </Text>
-                </View>
-              </Pressable>
+                rx={
+                  ex.prescribedSets === null
+                    ? `${logged} sets`
+                    : `${ex.prescribedSets}x${ex.targetReps}`
+                }
+                title={ex.name}
+                weight={ex.weight}
+              />
             );
           })}
         </View>
@@ -174,27 +163,9 @@ const styles = StyleSheet.create({
   barFill: { backgroundColor: color.brand, borderRadius: 4 },
   barRest: { backgroundColor: color.setsBar.upcoming, borderRadius: 4 },
   barCaption: { ...type.caption, color: color.text.secondary },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    marginBottom: 3,
-  },
-  rowCurrent: { backgroundColor: color.bg.raised },
-  rowPressed: { backgroundColor: color.press.raised },
-  indicatorBox: { minWidth: 28, alignItems: 'center' },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   checkBadge: { backgroundColor: color.brand, borderRadius: 12, padding: 4 },
-  rowNumber: { ...type.title, color: color.text.secondary, width: 24, textAlign: 'center' },
-  rowText: { gap: 4, flexShrink: 1 },
-  rowTitle: { ...type.title, color: color.text.primary },
   rowCaption: { ...type.caption, color: color.text.secondary },
   upNext: { color: color.brand },
-  rowRight: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  rowWeight: { ...type.titleValue, color: color.text.primary },
-  rowRx: { ...type.label, color: color.text.secondary },
   bottomBar: {
     flexDirection: 'row',
     gap: 10,

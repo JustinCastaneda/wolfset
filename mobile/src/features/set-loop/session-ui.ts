@@ -1,4 +1,4 @@
-import type { SessionEvent, SessionState } from './types';
+import type { SessionEvent, SessionExercise, SessionState } from './types';
 
 // Small pure helpers the loop screens share. UI math only — the rules live in machine.ts.
 
@@ -44,6 +44,19 @@ export function plannedVolume(state: SessionState): number {
     0,
   );
 }
+
+/** A rough length for a day before it starts — the "~55m" on the Day Overview (34:778):
+ *  every prescribed set costs its rest plus about 45 s of lifting. Deliberately crude
+ *  (Justin, 2026-09-04: "ish" it for now; learning the user's real pace is a later idea). */
+export function estimatedMinutes(exercises: SessionExercise[]): number {
+  const seconds = exercises.reduce(
+    (sum, ex) => sum + (ex.prescribedSets ?? 0) * (ex.restSeconds + WORKING_SECONDS_PER_SET),
+    0,
+  );
+  return Math.round(seconds / 60);
+}
+
+const WORKING_SECONDS_PER_SET = 45;
 
 /** Session totals for the done screen: Σ weight×reps and set count. */
 export function sessionTotals(state: SessionState): { volume: number; sets: number } {
