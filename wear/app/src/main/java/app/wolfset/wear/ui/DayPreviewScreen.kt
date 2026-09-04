@@ -84,7 +84,8 @@ private fun BoxScope.DayPreviewFace(day: SessionView.DayView, ambient: Boolean, 
 }
 
 /** One Line-Item (123:3371, 72 tall): the number in the secondary gray, the lift's name,
- *  and on the right the weight with its sets × reps beside it. */
+ *  and on the right the weight with its sets × reps beside it. A step up from the frame's
+ *  sizes (Justin, 2026-09-04: "very small" on the wrist). */
 @Composable
 private fun LiftRow(no: Int, lift: SessionView.LiftView) {
     val s = LocalScale.current
@@ -95,13 +96,13 @@ private fun LiftRow(no: Int, lift: SessionView.LiftView) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-            Text(no.toString(), style = type.button, color = WolfsetColor.TextSecondary, maxLines = 1, modifier = Modifier.width(s.dp(32)))
-            Text(lift.name, style = type.button, color = WolfsetColor.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(no.toString(), style = type.title, color = WolfsetColor.TextSecondary, maxLines = 1, modifier = Modifier.width(s.dp(36)))
+            Text(lift.name, style = type.title, color = WolfsetColor.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(start = s.dp(8))) {
-            Text(formatWeight(lift.weight), style = type.title, color = WolfsetColor.TextPrimary, maxLines = 1)
-            Spacer(Modifier.width(s.dp(4)))
-            Text("${lift.sets}x${lift.reps}", style = type.body, color = WolfsetColor.TextSecondary, maxLines = 1)
+            Text(formatWeight(lift.weight), style = type.h3Bold, color = WolfsetColor.TextPrimary, maxLines = 1)
+            Spacer(Modifier.width(s.dp(6)))
+            Text("${lift.sets}x${lift.reps}", style = type.button, color = WolfsetColor.TextSecondary, maxLines = 1)
         }
     }
 }

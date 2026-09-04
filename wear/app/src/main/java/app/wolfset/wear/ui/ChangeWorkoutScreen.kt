@@ -73,7 +73,14 @@ private fun BoxScope.ChangeWorkoutFace(view: SessionView, ambient: Boolean, onPi
         Spacer(Modifier.height(s.dp(72 - 44)))
         view.days.forEachIndexed { i, day ->
             if (i > 0) Spacer(Modifier.height(s.dp(16)))
-            DayRow(day, current = day.order == view.dayOrder, ambient = ambient, onPick = { onPick(day.order) })
+            DayRow(
+                day,
+                current = day.order == view.dayOrder,
+                // The button's big corner faces the bezel: up for the top row, down below.
+                upperHalf = i == 0,
+                ambient = ambient,
+                onPick = { onPick(day.order) },
+            )
         }
     }
     // Rows scrolled under the bottom edge dim into the background (Rectangle 11).
@@ -89,7 +96,7 @@ private fun BoxScope.ChangeWorkoutFace(view: SessionView, ambient: Boolean, onPi
 /** One Row (164:4271, 392 × 104): the day's name over its lift count on the left; on the
  *  right either "Current" or the 96-square brand button with the arrow (164:4282). */
 @Composable
-private fun DayRow(day: SessionView.DayView, current: Boolean, ambient: Boolean, onPick: () -> Unit) {
+private fun DayRow(day: SessionView.DayView, current: Boolean, upperHalf: Boolean, ambient: Boolean, onPick: () -> Unit) {
     val s = LocalScale.current
     val type = LocalType.current
     val lifts = day.lifts.size
@@ -117,14 +124,16 @@ private fun DayRow(day: SessionView.DayView, current: Boolean, ambient: Boolean,
                 modifier = Modifier.padding(end = s.dp(24)),
             )
         } else {
-            PickButton(ambient = ambient, onClick = onPick)
+            PickButton(upperHalf = upperHalf, ambient = ambient, onClick = onPick)
         }
     }
 }
 
-/** The "Do B" button: a 96 brand square, its outer bottom corner rounded to the bezel. */
+/** The "Do B" button (164:4282): a 96 brand square whose outer corner is rounded to the
+ *  bezel — the bottom one on the frame's lower row, the top one when the row sits in the
+ *  upper half of the face (Justin, 2026-09-04: it read upside down on Day 1). */
 @Composable
-private fun PickButton(ambient: Boolean, onClick: () -> Unit) {
+private fun PickButton(upperHalf: Boolean, ambient: Boolean, onClick: () -> Unit) {
     val s = LocalScale.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -136,7 +145,14 @@ private fun PickButton(ambient: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(s.dp(96))
-            .clip(RoundedCornerShape(topStart = s.dp(12), topEnd = s.dp(12), bottomStart = s.dp(12), bottomEnd = s.dp(48)))
+            .clip(
+                RoundedCornerShape(
+                    topStart = s.dp(12),
+                    topEnd = if (upperHalf) s.dp(48) else s.dp(12),
+                    bottomStart = s.dp(12),
+                    bottomEnd = if (upperHalf) s.dp(12) else s.dp(48),
+                ),
+            )
             .background(fill)
             .clickable(interactionSource = interaction, indication = null, enabled = !ambient, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
