@@ -83,4 +83,7 @@ export type SessionEvent =
   | { type: 'exerciseJumped'; index: number; at: number }
   /** The poke grid answered (rating) or auto-skipped after 8 s (null). */
   | { type: 'feelRated'; exerciseIndex: number; rating: FeelRating | null }
+  /** Skip Set (watch Actions panel 164:4103): move on without logging — nothing is
+   *  recorded, no rest starts, and the lift scores as if the set was never done. */
+  | { type: 'setSkipped'; at: number }
   | { type: 'workoutEnded'; at: number };

@@ -63,24 +63,43 @@ Layer only delivers changes, so republishing the same view costs nothing. Built 
 
 | Field | Type | Meaning |
 |---|---|---|
-| `screen` | `set` / `rest` / `none` | Which watch screen. `none` clears the watch (session done, screen left, poke grid up on the phone). |
+| `screen` | `set` / `rest` / `done` / `none` | Which watch screen. `done` is Session Done; `none` clears the watch (screen left, poke grid up on the phone). |
 | `exerciseNo` | int | 1-based position of the exercise — the "01" in "01 • Squat". |
 | `exercise` | string | Exercise name. |
 | `setsDone`, `setsTotal` | int | This exercise's sets — the pips across the top. |
+| `setNo` | int | 1-based index of the set to log — the current pip. Past `setsDone` after a skip, which is also what changes the item so the watch learns the skip happened. |
+| `dayDone`, `dayTotal` | int | The day's sets, for End Workout's "Only 3 of 5 sets done." |
 | `weight`, `unit`, `reps` | number, `Lbs`, int | The set to log; `reps` is the target the watch counts down from. |
 | `restEndsAt` | int | Wall-clock ms (phone clock) when the rest ends; the watch counts down on its own clock. 0 outside a rest. |
 | `restSeconds` | int | Length of the rest, for the ring's fraction. |
 | `recovered` | bool | The gate's verdict for this rest: turns the watch's Continue solid. |
 | `recoveredBelowBpm`, `approachingUpToBpm` | number | The thresholds, so the watch colours its ring from its own fresh reading (same rule as `features/hr/recovered.ts`). |
 
-The watch is a display: it never decides anything about the workout.
+`done` carries the summary instead (Figma `164:4712`):
+
+| Field | Type | Meaning |
+|---|---|---|
+| `durationSeconds` | int | Session length, from the phone's clock. |
+| `volume` | number | Σ weight × reps — Total Weight. |
+| `avgBpm` | number / null | The phone's average of every accepted sample this session; null when no watch streamed (the watch shows "––"). |
+| `exercisesDone` | int | Lifts with at least one set logged. |
+
+The watch is a display: it never decides anything about the workout. The one thing it
+keeps for itself is whether its own "End Workout?" question is up, and it drops that as
+soon as the phone publishes a different set.
 
 ## Action message (watch → phone)
 
 `MessageClient` message, path **`/wolfset/action`**, JSON body `{ "type": ..., "reps": n }`:
 
 - `logSet` with `reps` — the Log button on the watch's set screen;
-- `continue` — the Continue button on the watch's timer.
+- `continue` — the Continue button on the watch's timer;
+- `skipSet` — Skip Set on the Actions panel (swipe left of the set): the machine moves to
+  the next set without logging one;
+- `endWorkout` — End on the watch's "End Workout?" screen. That screen *is* the double
+  confirm, so the phone ends the session on it without asking again;
+- `finish` — Finish on Session Done. Not a machine event: the phone leaves the session
+  screen, exactly as its own Finish does, which clears the watch.
 
 The phone's session turns each into the same machine event its own button sends
 (`watchActionToEvent`), so a late or repeated tap is a no-op by the machine's guards: a

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icon / CircleStop (Figma 10:9819, lucide circle-stop), exported from the Actions
+     panel 164:4103 at 48×48. Colour comes from the tint at the call site. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M42 24C42 14.0589 33.9411 6 24 6C14.0589 6 6 14.0589 6 24C6 33.9411 14.0589 42 24 42C33.9411 42 42 33.9411 42 24ZM30 16C31.1046 16 32 16.8954 32 18V30C32 31.1046 31.1046 32 30 32H18C16.8954 32 16 31.1046 16 30V18C16 16.8954 16.8954 16 18 16H30ZM20 28H28V20H20V28ZM46 24C46 36.1503 36.1503 46 24 46C11.8497 46 2 36.1503 2 24C2 11.8497 11.8497 2 24 2C36.1503 2 46 11.8497 46 24Z" />
+</vector>

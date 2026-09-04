@@ -42,7 +42,12 @@ export function LogASetScreen({
         title={loopTitle(dayName, state)}
       />
       <View style={styles.sets}>
-        <SegmentedProgress done={done} showCurrent={!allDone} total={total} />
+        <SegmentedProgress
+          current={state.setIndex}
+          done={done}
+          showCurrent={!allDone}
+          total={total}
+        />
       </View>
 
       <View style={styles.center}>

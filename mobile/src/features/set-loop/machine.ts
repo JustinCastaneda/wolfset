@@ -141,6 +141,14 @@ export function reduce(state: SessionState, event: SessionEvent): SessionState {
       return { ...jumped, setIndex: countLogged(jumped, event.index), phase: { name: 'logging' } };
     }
 
+    case 'setSkipped': {
+      if (state.phase.name !== 'logging' && state.phase.name !== 'all-sets-done') return state;
+      // Same step as the end of a rest, minus the set: the next set of this lift, or the
+      // next unfinished lift. The skipped set is simply never logged, so scoring counts
+      // the lift short (a failure), and the day's total stays honest.
+      return advance(state);
+    }
+
     case 'workoutEnded': {
       const sets =
         state.phase.name === 'resting' ? closeRest(state, 'continue', event.at) : state.sets;

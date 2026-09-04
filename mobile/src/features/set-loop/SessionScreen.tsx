@@ -41,8 +41,9 @@ import { watchActionToEvent, watchView } from './watch-view';
 // colors the ring and arms Continue, never a transition (brief §01). The session also
 // drives the watch: mounting starts its stream, finishing (or leaving) stops it, so the
 // watch is never tapped to stream (decision 2026-09-03). The watch mirrors the loop: every
-// state change publishes its view (watch-view.ts) and a Log or Continue tapped on the
-// wrist arrives as the same event the phone's button sends. Each rest is also handed to
+// state change publishes its view (watch-view.ts) and a Log, Continue, Skip Set or End
+// tapped on the wrist arrives as the same event the phone's button sends; Finish on the
+// watch's Session Done leaves like the phone's. Each rest is also handed to
 // the native rest timer, which holds it through screen-off and buzzes at the end
 // (native-rest.ts).
 
@@ -140,8 +141,11 @@ function SessionRunner({ boot }: { boot: Boot }) {
   // nothing; leaving the session clears it; a tap on the watch is dispatched like a tap
   // here. The poke grid is phone-only, so while it is up the watch shows nothing.
   const pendingRating = state.pendingRatings[0];
+  const sessionOver = state.phase.name === 'done' && state.pendingRatings.length === 0;
   const viewJson = JSON.stringify(
-    pendingRating === undefined ? watchView(state) : { screen: 'none' },
+    pendingRating === undefined
+      ? watchView(state, { startedAt: clock.startedAt, now: clock.now, avgBpm: hr.mean })
+      : { screen: 'none' },
   );
   useEffect(() => {
     showOnWatch(viewJson);
@@ -150,10 +154,14 @@ function SessionRunner({ boot }: { boot: Boot }) {
   useEffect(
     () =>
       onWatchAction((action) => {
+        if (action.type === 'finish') {
+          if (sessionOver) router.back();
+          return;
+        }
         const event = watchActionToEvent(action, Date.now());
         if (event) send(event);
       }),
-    [send],
+    [send, sessionOver],
   );
 
   // The doze-proof rest timer. Permission is asked once, at the first workout; a refusal
@@ -202,7 +210,6 @@ function SessionRunner({ boot }: { boot: Boot }) {
   // Persistence: snapshot after every state change; on done — once the poke grid has
   // been answered or skipped — settle: score the lifts, move next session's weights,
   // store them, and turn the snapshot into history.
-  const sessionOver = state.phase.name === 'done' && state.pendingRatings.length === 0;
   useEffect(() => {
     if (clock.startedAt === 0) return;
     if (!sessionOver) {
@@ -354,6 +361,7 @@ function SessionBody({
     case 'done':
       return (
         <SessionDoneScreen
+          avgBpm={hr.mean}
           now={now}
           onAcceptDeload={(id) => onPlateau(id, true)}
           onKeepWeight={(id) => onPlateau(id, false)}

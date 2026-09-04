@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -18,7 +16,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.wear.compose.material3.Text
 import app.wolfset.wear.SessionView
-import kotlinx.coroutines.delay
 import java.util.Locale
 
 /**
@@ -26,25 +23,18 @@ import java.util.Locale
  * "Lbs x 5 reps", and along the bottom the reps square and Log. Same rules as the phone's
  * Log a Set: tap the number to decrease reps, it wraps back to the target; a reduced count
  * reads "3/5 reps" in brand. Log sends the reps to the phone, which logs the set and
- * publishes the rest — until that arrives the buttons wait, so a second tap cannot log
- * twice (the phone ignores it anyway).
+ * publishes the rest — until that arrives the buttons wait (PhoneWait, shared with the
+ * Actions panel beside this screen), so a second tap cannot log twice.
  */
 @Composable
-fun SetScreen(view: SessionView, ambient: Boolean, onLog: (reps: Int) -> Unit) {
+fun SetScreen(view: SessionView, ambient: Boolean, wait: PhoneWait, onLog: (reps: Int) -> Unit) {
     val s = LocalScale.current
     val type = LocalType.current
     // Keyed on the set: a new set (or exercise) from the phone resets the counter.
-    var reps by remember(view.exerciseNo, view.setsDone) { mutableIntStateOf(view.reps) }
-    var waiting by remember(view) { mutableStateOf(false) }
-    LaunchedEffect(waiting) {
-        if (waiting) {
-            delay(WAIT_FOR_PHONE_MS)
-            waiting = false
-        }
-    }
+    var reps by remember(view.exerciseNo, view.setNo) { mutableIntStateOf(view.reps) }
 
     Face(ambient) {
-        SetPips(done = view.setsDone, total = view.setsTotal, ambient = ambient)
+        SetPips(done = view.setsDone, total = view.setsTotal, ambient = ambient, current = view.setNo - 1)
         ExerciseTitle(view.exerciseNo, view.exercise)
 
         Column(
@@ -75,7 +65,7 @@ fun SetScreen(view: SessionView, ambient: Boolean, onLog: (reps: Int) -> Unit) {
                 BezelButton(
                     colour = WolfsetColor.Raised,
                     pressedColour = WolfsetColor.Border,
-                    enabled = !waiting,
+                    enabled = !wait.waiting,
                     onClick = { reps = if (reps > 1) reps - 1 else view.reps },
                 ) {
                     Text(reps.toString(), style = type.h3Bold, color = WolfsetColor.TextPrimary)
@@ -83,9 +73,9 @@ fun SetScreen(view: SessionView, ambient: Boolean, onLog: (reps: Int) -> Unit) {
                 BezelButton(
                     colour = WolfsetColor.Brand,
                     pressedColour = WolfsetColor.BrandPressed,
-                    enabled = !waiting,
+                    enabled = !wait.waiting,
                     onClick = {
-                        waiting = true
+                        wait.start()
                         onLog(reps)
                     },
                 ) {
@@ -100,6 +90,3 @@ fun SetScreen(view: SessionView, ambient: Boolean, onLog: (reps: Int) -> Unit) {
 fun formatWeight(weight: Double): String =
     if (weight == Math.floor(weight)) String.format(Locale.US, "%.0f", weight)
     else String.format(Locale.US, "%.1f", weight)
-
-/** How long a tap is allowed to wait for the phone's answer before the buttons come back. */
-private const val WAIT_FOR_PHONE_MS = 4_000L

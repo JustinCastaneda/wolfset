@@ -11,12 +11,13 @@ import type { SessionState } from './types';
 // (164:4712), left-aligned like every phone screen. Now also the progression readout:
 // each lift's verdict and next weight, plus the plateau question when a streak hits
 // the threshold (decisions 11b: the app asks, never decides). ⚠️ The plateau row is
-// UNDESIGNED — minimal until Justin draws it. Avg heart rate joins when HR lands.
+// UNDESIGNED — minimal until Justin draws it.
 
 export function SessionDoneScreen({
   state,
   startedAt,
   now,
+  avgBpm,
   summary,
   onAcceptDeload,
   onKeepWeight,
@@ -25,6 +26,8 @@ export function SessionDoneScreen({
   state: SessionState;
   startedAt: number;
   now: number;
+  /** The session's average heart rate; null when no watch streamed. */
+  avgBpm: number | null;
   summary: SettledExercise[] | null;
   onAcceptDeload: (exerciseId: string) => void;
   onKeepWeight: (exerciseId: string) => void;
@@ -38,6 +41,7 @@ export function SessionDoneScreen({
         <Text style={styles.title}>Session Done</Text>
         <Stat label="Time" value={formatClock(seconds)} />
         <Stat label="Total Weight" value={volume.toLocaleString('en-US')} />
+        {avgBpm !== null && <Stat label="Avg. Heart rate" value={String(Math.round(avgBpm))} />}
         <Stat label="Sets" value={String(sets)} />
 
         {summary && (

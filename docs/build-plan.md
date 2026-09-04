@@ -543,11 +543,18 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
 - [ ] 🤝 Separate watch token set, or ported primitives? — until decided the watch borrows
       the phone's colours and type (`wear/.../ui/WolfsetTheme.kt`)
 - [ ] 🤖 Watch Tile — cardio above, Next Workout below, reads today off the phone
-- [ ] 🤖 Actions panel (swipe left) — Skip Set / Change / End
+- [x] 🤖 **Actions panel (swipe left) — Skip Set / End** (`164:4103`, 2026-09-03). Skip Set is
+      a new machine event: the next set without a log, so the lift scores short. The
+      Change Exercise card waits for Change Workout below (the frame's arrow points there
+      and the phone cannot switch days yet)
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
-- [ ] 🤖 Change Workout — A marked Current, B with a Do B button
-- [ ] 🤖 End Workout — "Only 3 of 5 sets done. May trigger a deload."
-- [ ] 🤖 Session Done — time, volume, avg bpm, exercise count
+- [ ] 🤖 Change Workout — A marked Current, B with a Do B button; then the Actions
+      panel's middle card
+- [x] 🤖 **End Workout** (`164:4371`, 2026-09-03) — the watch asks, so the phone ends the
+      session on the tap; copy is the phone sheet's (failures, not misses)
+- [x] 🤖 **Session Done** (`164:4712`, 2026-09-03) — time, total weight, avg bpm (the phone's
+      stream average, now also on the phone's done screen), lifts done; Finish leaves on
+      both surfaces
 - [ ] 🤖 Phone ↔ watch sync
 
 > Both surfaces close the same way: Finish → Session Done → back to the opening tiles.

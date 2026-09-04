@@ -66,7 +66,11 @@ class Scale(private val factor: Float) {
  *  the phone, except Display L's 108. */
 class WatchType(s: Scale) {
     val displayL = geom(s.sp(96), FontWeight.Black, s.sp(108))
+    /** The question and summary titles (164:4444, 164:4717). */
+    val h1 = geom(s.sp(44), FontWeight.Black)
     val h2 = geom(s.sp(36), FontWeight.SemiBold)
+    /** Session Done's numbers (164:4787). */
+    val stat = geom(s.sp(32), FontWeight.Black)
     val h3Bold = geom(s.sp(28), FontWeight.SemiBold)
     val title = geom(s.sp(24), FontWeight.SemiBold)
     val context = geom(s.sp(24), FontWeight.Medium)

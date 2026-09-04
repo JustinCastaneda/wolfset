@@ -236,3 +236,40 @@ describe('purity', () => {
     expect(s0).toEqual(frozen);
   });
 });
+
+describe('Skip Set (watch Actions panel) — move on without logging', () => {
+  it('skips to the next set of the same lift: nothing logged, no rest', () => {
+    const s = reduce(startSession('plan', [squat, curl]), { type: 'setSkipped', at: t(0) });
+    expect(s.sets).toHaveLength(0);
+    expect(s.setIndex).toBe(1);
+    expect(s.phase).toEqual({ name: 'logging' });
+  });
+
+  it('skipping the last set of a lift moves to the next lift, and the lift stays short', () => {
+    let s = logAndRest(startSession('plan', [squat, curl]), t(0));
+    s = reduce(s, { type: 'setSkipped', at: t(100) });
+    expect(s.exerciseIndex).toBe(1);
+    expect(s.setIndex).toBe(0);
+    expect(s.sets.filter((x) => x.exerciseIndex === 0)).toHaveLength(1);
+  });
+
+  it("a skip during a rest changes nothing — Continue is the rest's own skip", () => {
+    const resting = reduce(startSession('plan', [squat, curl]), {
+      type: 'setLogged',
+      reps: 5,
+      at: t(0),
+    });
+    expect(reduce(resting, { type: 'setSkipped', at: t(1) })).toBe(resting);
+  });
+
+  it('a skipped set can never auto-finish the workout: the last log still asks for it', () => {
+    let s = logAndRest(startSession('plan', [squat, curl]), t(0)); // squat 1/2
+    s = reduce(s, { type: 'setSkipped', at: t(100) }); // squat 2/2 skipped → curl
+    s = reduce(s, { type: 'setLogged', reps: 10, at: t(200) }); // curl 1/1
+    // The squat is short a set, so the day is not done — the loop comes back to it.
+    expect(s.phase.name).toBe('resting');
+    s = reduce(s, { type: 'restEnded', reason: 'timer', at: t(260) });
+    expect(s.exerciseIndex).toBe(0);
+    expect(s.setIndex).toBe(1);
+  });
+});
