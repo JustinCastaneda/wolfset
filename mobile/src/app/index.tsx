@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
+import { showOnWatch } from '@/features/hr/watch-control';
 import { loadActivePlan, setNextDay, type ActivePlan } from '@/lib/db/plan-store';
 import { loadSnapshot } from '@/lib/db/session-store';
 import { color, type } from '@/theme/tokens';
@@ -18,8 +19,14 @@ export default function Index() {
   const [plan, setPlan] = useState<ActivePlan | null>(null);
   const refresh = useCallback(() => {
     const saved = loadSnapshot();
-    setHasSession(saved !== null && saved.state.phase.name !== 'done');
+    const live = saved !== null && saved.state.phase.name !== 'done';
+    setHasSession(live);
     setPlan(loadActivePlan());
+    // No workout under way, so the watch has nothing to show. The session clears the
+    // watch when it is left, but a phone killed mid-workout never got to; the last set
+    // it published would otherwise sit on the wrist until the next Start Workout
+    // (Justin, 2026-09-04: a stale exercise on the watch).
+    if (!live) showOnWatch(JSON.stringify({ screen: 'none' }));
   }, []);
   useFocusEffect(
     useCallback(() => {
