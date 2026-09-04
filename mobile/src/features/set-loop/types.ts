@@ -21,6 +21,9 @@ export type SessionExercise = {
   strategy?: 'steady' | 'reps-first' | 'by-feel';
   /** Reps First only: "Max Reps before Weight Increase". Undefined = plan default (20). */
   repCeiling?: number;
+  /** True when `strategy` is this lift's own, not the plan's default — the overviews'
+   *  "Progression Override" caption (123:3072) instead of "Defaults". */
+  overridesProgression?: boolean;
 };
 
 /** The poke on the By Feel grid (384:10881): x = form, y = reps left in the tank. */

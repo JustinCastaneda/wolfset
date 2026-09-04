@@ -13,11 +13,12 @@ import {
   restEndedMatches,
   restEndsAt,
 } from './native-rest';
-import { finalizeSession, loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
+import { loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { advanceNextDay, loadActivePlan, setNextDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
+import { storeFinishedSession } from './end-session';
 import { applyProgress, type PlanDayStart } from './plan-day';
-import { acceptDeload, settleSession, type SettledExercise } from './settle-session';
+import { acceptDeload, type SettledExercise } from './settle-session';
 import { color } from '@/theme/tokens';
 import { ConfirmEndSheet } from './ConfirmEndSheet';
 import { EditWeightsScreen } from './EditWeightsScreen';
@@ -234,12 +235,9 @@ function SessionRunner({ boot }: { boot: Boot }) {
     // The workout is over while the summary is read — the watch can rest now.
     void stopWatch();
     // Deferred so no state is set synchronously inside an effect (compiler rule).
-    // settleSession is deterministic and a done session never changes, so this runs once.
+    // Settling is deterministic and a done session never changes, so this runs once.
     const id = setTimeout(() => {
-      const now = Date.now();
-      const settled = settleSession(state, loadAllProgress());
-      for (const lift of settled) saveProgress(lift.exerciseId, lift.progress, now);
-      finalizeSession(state, clock.startedAt, now, day.dayId);
+      const settled = storeFinishedSession(state, clock.startedAt, Date.now(), day.dayId);
       // Multi-day plans rotate: the next Start Workout runs the following day.
       advanceNextDay(day.dayId);
       setSummary(settled);

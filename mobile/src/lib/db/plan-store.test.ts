@@ -12,6 +12,7 @@ const row = (over: Partial<PlanExerciseRow>): PlanExerciseRow => ({
   rest_seconds: 90,
   auto_start_timer: 1,
   strategy: null,
+  plan_strategy: 'steady',
   rep_ceiling: null,
   ...over,
 });
@@ -48,6 +49,17 @@ describe('sessionExercisesFrom — plan rows become what the loop starts with', 
     expect(withCeiling).toMatchObject({ strategy: 'reps-first', repCeiling: 12 });
     expect(without.strategy).toBe('reps-first');
     expect(without.repCeiling).toBeUndefined();
+  });
+
+  it('a strategy of its own marks the lift as overriding the plan; the plan default written out does not', () => {
+    const [override, spelledOut, inherited] = sessionExercisesFrom([
+      row({ strategy: 'by-feel', plan_strategy: 'steady' }),
+      row({ strategy: 'steady', plan_strategy: 'steady' }),
+      row({ strategy: 'by-feel', plan_strategy: 'by-feel' }),
+    ]);
+    expect(override.overridesProgression).toBe(true);
+    expect(spelledOut.overridesProgression).toBeUndefined();
+    expect(inherited.overridesProgression).toBeUndefined();
   });
 
   it('auto_start_timer is a SQLite 0/1, not a boolean', () => {
@@ -92,6 +104,7 @@ describe('STARTER_PLAN — the seeded Workout A the loop trains from until a pla
       rest_seconds: e.restSeconds,
       auto_start_timer: e.autoStartTimer ? 1 : 0,
       strategy: e.strategy ?? 'steady',
+      plan_strategy: 'steady',
       rep_ceiling: null,
     }));
     const state = startSession('plan', sessionExercisesFrom(rows));

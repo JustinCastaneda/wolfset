@@ -45,7 +45,8 @@ export function ExerciseRow({
         <View style={styles.indicatorBox}>{indicator}</View>
         <View style={styles.text}>
           <Text style={styles.title}>{title}</Text>
-          {typeof caption === 'string' ? <Text style={styles.caption}>{caption}</Text> : caption}
+          {/* Always the caption style: a caller's nested Text (a brand span) inherits it. */}
+          <Text style={styles.caption}>{caption}</Text>
         </View>
       </View>
       <View style={styles.right}>
@@ -59,6 +60,12 @@ export function ExerciseRow({
 /** The row number for a lift that has not started (123:3075). */
 export function RowNumber({ n }: { n: number }) {
   return <Text style={styles.number}>{n}</Text>;
+}
+
+/** How the caption opens (123:3072): "Defaults" for a lift on the plan's progression,
+ *  "Progression Override" in brand for one with its own. Goes inside the caption. */
+export function CaptionLead({ overrides }: { overrides: boolean }) {
+  return overrides ? <Text style={styles.override}>Progression Override</Text> : <>Defaults</>;
 }
 
 const styles = StyleSheet.create({
@@ -78,6 +85,7 @@ const styles = StyleSheet.create({
   text: { gap: 4, flexShrink: 1 },
   title: { ...type.title, color: color.text.primary },
   caption: { ...type.caption, color: color.text.secondary },
+  override: { color: color.brand },
   right: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
   weight: { ...type.titleValue, color: color.text.primary },
   rx: { ...type.label, color: color.text.secondary },
