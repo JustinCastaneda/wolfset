@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,7 +9,9 @@ import { color, type } from '@/theme/tokens';
 
 // The frame every Settings subscreen shares (433:22674, 433:22844, 433:23386,
 // 433:27536): back arrow, "Settings • <name>" in the bar, the H1, then the screen's
-// content 32 apart. Values save the moment they change — none of these has a Save button.
+// content 32 apart, with the claw slashes faded behind — one low on the left, one on
+// the right edge turned 105° (the frames' two "Slashes" layers; the opacity is baked
+// into the SVG). Values save the moment they change — none of these has a Save button.
 
 type SettingsSubscreenProps = {
   /** The bar's "Settings • …" tail. */
@@ -21,6 +24,18 @@ export function SettingsSubscreen({ barTitle, title, children }: SettingsSubscre
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
+      <Image
+        contentFit="contain"
+        pointerEvents="none"
+        source={require('../../../assets/brand/wolfset-watermark-slashes.svg')}
+        style={styles.slashesLeft}
+      />
+      <Image
+        contentFit="contain"
+        pointerEvents="none"
+        source={require('../../../assets/brand/wolfset-watermark-slashes.svg')}
+        style={styles.slashesRight}
+      />
       <TopBar
         left={<ArrowLeft color={color.text.primary} size={24} />}
         onPressLeft={() => router.back()}
@@ -35,7 +50,25 @@ export function SettingsSubscreen({ barTitle, title, children }: SettingsSubscre
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: color.bg.base },
+  root: { flex: 1, backgroundColor: color.bg.base, overflow: 'hidden' },
+  // Frame positions: centres at (32, 50% + 297) and (412, 50% − 12), the second rotated.
+  slashesLeft: {
+    position: 'absolute',
+    width: 412,
+    height: 412,
+    left: -174,
+    top: '50%',
+    marginTop: 91,
+  },
+  slashesRight: {
+    position: 'absolute',
+    width: 500,
+    height: 500,
+    right: -250,
+    top: '50%',
+    marginTop: -262,
+    transform: [{ rotate: '105deg' }],
+  },
   scroll: { paddingTop: 24, paddingHorizontal: 24, gap: 32 },
   h1: { ...type.h1, color: color.text.primary },
 });

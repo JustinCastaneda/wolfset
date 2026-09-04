@@ -36,7 +36,7 @@ export function SettingsScreen() {
       <Image
         contentFit="contain"
         pointerEvents="none"
-        source={require('../../../assets/brand/wolfset-mark-muted.svg')}
+        source={require('../../../assets/brand/wolfset-watermark-logo.svg')}
         style={styles.watermark}
       />
       <TopBar

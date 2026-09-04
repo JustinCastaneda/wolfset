@@ -1,17 +1,21 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { NumberSheet } from '@/components/NumberSheet';
 import { RadioCard } from '@/components/RadioCard';
 import { SegmentedButtons } from '@/components/SegmentedButtons';
 import { Stepper } from '@/components/Stepper';
 import type { Experience } from '@/lib/db/profile-store';
-import { displayHeight, displayWeight, stepHeight, stepWeight } from '@/lib/units';
+import { displayHeight, displayWeight, stepHeight, stepWeight, storedWeight } from '@/lib/units';
 import { color, type } from '@/theme/tokens';
 import { SettingsSubscreen } from './SettingsSubscreen';
 import { useProfile } from './useProfile';
 
 // Personal Info (Figma 433:23386): the unit, bodyweight and height steppers, and the
 // experience level. Nothing is entered until the first tap; that tap starts from the
-// frame's own figures (165 lb, 5’9”) rather than from zero.
+// frame's own figures (165 lb, 5’9”) rather than from zero. Tapping the weight itself
+// opens the Number Sheet (Justin, 2026-09-04) — typed in the chosen unit, stored in
+// pounds. Height stays on the steppers: feet-and-inches has no single number to type.
 
 const UNITS = [
   { value: 'kg', label: 'Metric' },
@@ -41,6 +45,7 @@ const EXPERIENCE: { value: Experience; title: string; description: string }[] = 
 
 export function PersonalInfoScreen() {
   const [profile, update] = useProfile();
+  const [typingWeight, setTypingWeight] = useState(false);
   const unit = profile?.unit ?? 'lb';
   const weight = profile?.bodyweight ?? null;
   const height = profile?.heightCm ?? null;
@@ -60,7 +65,20 @@ export function PersonalInfoScreen() {
         label={`Your Weight (${unit === 'lb' ? 'Lbs' : 'Kgs'})`}
         onDecrement={() => bumpWeight(-1)}
         onIncrement={() => bumpWeight(1)}
+        onPressValue={() => setTypingWeight(true)}
         value={weight === null ? '—' : String(displayWeight(weight, unit))}
+      />
+      <NumberSheet
+        initial={displayWeight(weight ?? FIRST_WEIGHT_LB, unit)}
+        label={`Your Weight (${unit === 'lb' ? 'Lbs' : 'Kgs'})`}
+        max={999}
+        mode="decimal"
+        onCancel={() => setTypingWeight(false)}
+        onSet={(typed) => {
+          setTypingWeight(false);
+          update({ bodyweight: storedWeight(typed, unit) });
+        }}
+        visible={typingWeight}
       />
       <Stepper
         label="Your Height"

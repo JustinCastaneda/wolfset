@@ -312,6 +312,25 @@ export default function DesignKit() {
       <Text style={styles.section}>Keypad</Text>
       <Keypad onKey={() => {}} />
 
+      <Text style={styles.section}>Brand — mark · watermark logo · slashes (opacity baked in)</Text>
+      <View style={styles.chipRow}>
+        <Image
+          contentFit="contain"
+          source={require('../../assets/brand/wolfset-mark.svg')}
+          style={styles.mark}
+        />
+        <Image
+          contentFit="contain"
+          source={require('../../assets/brand/wolfset-watermark-logo.svg')}
+          style={styles.watermark}
+        />
+        <Image
+          contentFit="contain"
+          source={require('../../assets/brand/wolfset-watermark-slashes.svg')}
+          style={styles.watermark}
+        />
+      </View>
+
       <Text style={styles.section}>Type scale — Geom</Text>
       {Object.entries(type).map(([name, style]) => (
         <Text key={name} numberOfLines={1} style={[style, styles.sample]}>
@@ -471,6 +490,7 @@ const styles = StyleSheet.create({
   // The strip pads its own 24 sides for a screen; the kit's 16 gutters take it back.
   kitWeek: { marginHorizontal: -8, gap: 12 },
   mark: { width: 36, height: 44 },
+  watermark: { width: 140, height: 140 },
   sample: { color: color.text.primary },
   swatch: { width: 28, height: 28, borderRadius: 4 },
   swatchLabel: { ...type.caption, color: color.text.muted },

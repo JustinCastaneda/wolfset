@@ -30,6 +30,16 @@ Documentation swatches only. **Do not read values from here** — the Variables 
 | Neutral | `23:14` |
 | Blue | `30:94` |
 
+### Brand assets — committed under `mobile/assets/brand/` (2026-09-04)
+
+| Asset | File | Notes |
+|---|---|---|
+| Mark (the top-bar claw, Top Bar "Property 1=Mark") | `wolfset-mark.svg` | 36×44 in the 48px slot |
+| Watermark logo (the wolf head behind Settings, `550:19079`) | `wolfset-watermark-logo.svg` | Justin's export, opacity 0.12 baked in |
+| Watermark slashes (the "Slashes" layers on the subscreens) | `wolfset-watermark-slashes.svg` | same; two placements per frame, the right one turned 105° |
+
+Drawn with `expo-image` (renders SVG). Run through ImageOptim; SVGOMG could shave more.
+
 ### Typography Scale — frame `51:279`
 
 | Style | ID | Spec (from the frame label) |
