@@ -11,7 +11,7 @@ import { session } from './session-controller';
 export const WORKOUT_TASK = 'WolfsetWorkout';
 
 export async function runWorkoutTask(data: { watchAction?: string | null }): Promise<void> {
-  if (data.watchAction === 'startWorkout') session.start();
+  if (data.watchAction === 'startWorkout') session.start(Date.now(), 'headless');
   if (!session.get()) {
     // Nothing to run (no plan day) or nothing was asked: the service needs no holding.
     releaseWorkout();

@@ -46,6 +46,10 @@ jest.mock('@/lib/db/progress-store', () => ({
   loadAllProgress: jest.fn(() => ({})),
   saveProgress: jest.fn(),
 }));
+jest.mock('@/lib/db/session-log', () => ({
+  appendDiary: jest.fn(),
+  pruneDiaries: jest.fn(),
+}));
 jest.mock('@/lib/db/session-store', () => ({
   loadSnapshot: jest.fn(() => null),
   saveSnapshot: jest.fn(),
@@ -383,6 +387,52 @@ describe('taps the watch kept for the phone', () => {
     native.emit('onHrSample', sample());
     jest.advanceTimersByTime(3 * 60 * MIN + 1);
     expect(session.get()).toBeNull();
+  });
+});
+
+describe('the workout diary', () => {
+  const log = jest.requireMock('@/lib/db/session-log') as { appendDiary: Fn };
+  const kinds = () => log.appendDiary.mock.calls.map((c) => c[2]);
+  const entry = (kind: string) =>
+    log.appendDiary.mock.calls.filter((c) => c[2] === kind).map((c) => c[3])[0] as Record<
+      string,
+      unknown
+    >;
+
+  it('writes the session, its events, the watch taps with their lag, and the rest', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now(), 'watch');
+    expect(entry('session')).toMatchObject({ via: 'watch', day: 'Workout A', resumed: false });
+    jest.setSystemTime(1_000_000 + 5_000);
+    native.emit('onWatchAction', {
+      type: 'logSet',
+      reps: 5,
+      day: -1,
+      id: 3,
+      at: 1_000_000 + 3_800,
+    });
+    expect(entry('watch')).toMatchObject({ type: 'logSet', id: 3, lag: 1.2, outcome: 'taken' });
+    expect(entry('event')).toMatchObject({
+      type: 'setLogged',
+      taken: true,
+      phase: 'logging>resting',
+    });
+    expect(entry('rest-armed')).toMatchObject({ native: true });
+    expect(entry('watch-view')).toMatchObject({ screen: 'set' });
+    expect(kinds()).toEqual(
+      expect.arrayContaining(['session', 'watch', 'event', 'rest-armed', 'watch-view']),
+    );
+    expect(log.appendDiary.mock.calls.every((c) => c[0] === 1_000_000)).toBe(true);
+  });
+
+  it('a diary that cannot be written never stops a set', () => {
+    log.appendDiary.mockImplementation(() => {
+      throw new Error('disk');
+    });
+    session.start(1_000);
+    session.dispatch({ type: 'setLogged', reps: 5, at: 1_500 });
+    expect(session.get()?.state.sets).toHaveLength(1);
+    log.appendDiary.mockReset();
   });
 });
 

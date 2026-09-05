@@ -1,4 +1,5 @@
 import { WolfsetHr, type HrSample, type WatchAction } from '@modules/wolfset-hr';
+import { AppState, type AppStateStatus } from 'react-native';
 
 import {
   EMPTY_STREAM,
@@ -12,6 +13,7 @@ import { isRecovered } from '@/features/hr/recovered';
 import { onWatchAction, showOnWatch, startWatch, stopWatch } from '@/features/hr/watch-control';
 import { advanceNextDay, loadActivePlan, setNextDay } from '@/lib/db/plan-store';
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
+import { appendDiary, pruneDiaries } from '@/lib/db/session-log';
 import { loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { abandonSavedSession, endSessionNow, storeFinishedSession } from './end-session';
 import {
@@ -60,6 +62,10 @@ import { watchActionToEvent, watchView } from './watch-view';
 // in reach, at the moment it was tapped, once. So a queued tap is applied against the
 // session as it stood at that moment — a rest that had run out by then is ended first —
 // and the highest id taken rides in the watch's view as the ack.
+//
+// Everything it does goes in the workout diary (lib/db/session-log.ts) as it happens,
+// so a real gym session can be read afterwards: events, watch taps and their lag, the
+// rest timer, the stream minute by minute, the clock, the app's comings and goings.
 
 /** The session as the screen sees it; a new object on every change, so React can tell. */
 export type LiveSession = {
@@ -96,12 +102,34 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null;
 /** Set when the workout ended by itself: history ends at the last activity, not now. */
 let autoEndedAt: number | null = null;
 let lastPublished: string | null = null;
+let lastPublishedScreen: string | null = null;
+/** The stream, one minute at a time, for the diary. */
+let hrMinute: {
+  minute: number;
+  n: number;
+  min: number;
+  max: number;
+  sum: number;
+  ambient: number;
+} | null = null;
+let awayNoted = false;
 let unsubscribers: (() => void)[] = [];
 const listeners = new Set<() => void>();
 let closedWaiters: (() => void)[] = [];
 
 function notify() {
   listeners.forEach((l) => l());
+}
+
+/** One line in the workout diary. Never throws into the workout: a diary that cannot be
+ *  written is dropped, the set is not (conventions §5). */
+function diary(kind: string, detail: Record<string, unknown>, at = Date.now()) {
+  if (!live) return;
+  try {
+    appendDiary(live.startedAt, at, kind, detail);
+  } catch {
+    // The diary is a nicety for reading a workout afterwards; the workout goes on.
+  }
 }
 
 function publish() {
@@ -122,6 +150,11 @@ function publish() {
   if (json === lastPublished) return;
   lastPublished = json;
   showOnWatch(json);
+  const screen = (JSON.parse(json) as { screen: string }).screen;
+  if (screen !== lastPublishedScreen) {
+    lastPublishedScreen = screen;
+    diary('watch-view', { screen, tapAck: live.watchTapAck });
+  }
 }
 
 /** Every rest is handed to the native timer with its end, and disarmed however the rest
@@ -136,6 +169,7 @@ function syncRest() {
   armedRest = endsAt;
   if (endsAt === null) return;
   if (nativeRest) armRestTimer(endsAt);
+  diary('rest-armed', { endsIn: Math.round((endsAt - Date.now()) / 100) / 10, native: nativeRest });
   jsRestTimer = setTimeout(
     () => dispatch({ type: 'restEnded', reason: 'timer', at: Date.now() }),
     Math.max(0, endsAt - Date.now()),
@@ -154,6 +188,12 @@ function settle(now: number) {
   // Multi-day plans rotate: the next Start Workout runs the following day.
   advanceNextDay(live.day.dayId);
   live = { ...live, summary };
+  diary('settled', {
+    endedAt: new Date(endedAt).toISOString(),
+    autoEnded: autoEndedAt !== null,
+    sets: live.state.sets.length,
+    endedEarly: live.state.phase.name === 'done' && live.state.phase.endedEarly,
+  });
 }
 
 function afterChange() {
@@ -170,6 +210,25 @@ function afterChange() {
 function dispatch(event: SessionEvent) {
   if (!live) return;
   const state = reduce(live.state, event);
+  const at = 'at' in event ? event.at : Date.now();
+  diary(
+    'event',
+    {
+      type: event.type,
+      ...('reps' in event ? { reps: event.reps } : {}),
+      ...('reason' in event ? { reason: event.reason } : {}),
+      ...('recovered' in event ? { recovered: event.recovered } : {}),
+      // A rest ending: how far past its end the "rest over" landed.
+      ...(event.type === 'restEnded' && armedRest !== null
+        ? { late: Math.round((event.at - armedRest) / 100) / 10 }
+        : {}),
+      taken: state !== live.state,
+      phase: `${live.state.phase.name}>${state.phase.name}`,
+      ex: state.exerciseIndex + 1,
+      set: state.setIndex + 1,
+    },
+    at,
+  );
   if (state === live.state) return;
   live = { ...live, state };
   if (isLifterActivity(event)) touch('at' in event ? event.at : Date.now());
@@ -211,6 +270,10 @@ function checkIdle() {
   if (!live) return;
   const now = Date.now();
   if (isWatchAway(now) && now < live.startedAt + MAX_WORKOUT_MS) {
+    if (!awayNoted) {
+      awayNoted = true;
+      diary('watch-away', { since: stream.at, holdingClock: true });
+    }
     scheduleIdleCheck();
     return;
   }
@@ -226,6 +289,7 @@ function checkIdle() {
       }
       const endsAt = idleEndsAt(live.lastActivityAt, live.startedAt);
       live = { ...live, idlePromptEndsAt: endsAt };
+      diary('idle-prompt', { endsAt: new Date(endsAt).toISOString() });
       askStillLifting(endsAt);
       afterChange();
       return;
@@ -242,6 +306,7 @@ function checkIdle() {
  *  early by hand (decisions 2026-09-05). No Session Done to read — history has it. */
 function autoEnd(at: number) {
   if (!live) return;
+  diary('idle-end', { lastActivity: new Date(at).toISOString() });
   autoEndedAt = at;
   live = { ...live, state: endSessionNow(live.state, at), idlePromptEndsAt: null };
   dismissStillLifting();
@@ -257,11 +322,18 @@ function onSample(sample: HrSample) {
   const wasAway = isWatchAway(now);
   stream = ingest(stream, sample, now);
   live = { ...live, avgBpm: meanBpm(stream) };
+  noteHrMinute(sample, now);
   if (wasAway && silentFrom !== null) {
+    const before = live.lastActivityAt;
     live = {
       ...live,
       lastActivityAt: activityAfterOutage(live.lastActivityAt, silentFrom, now),
     };
+    diary('watch-back', {
+      silentFor: Math.round((now - silentFrom) / 1000),
+      clockMoved: Math.round((live.lastActivityAt - before) / 1000),
+    });
+    awayNoted = false;
     // A "Still lifting?" posted during the outage was aimed at nobody: withdraw it if
     // the moved clock no longer calls for it, and re-aim the timer either way.
     if (
@@ -294,20 +366,33 @@ function onWatch(action: WatchAction) {
   if (!live) return;
   // Next Workout is the entry handler's (installWatchStart); here the session is live.
   if (action.type === 'startWorkout') return;
+  const now = Date.now();
+  const queued = action.id > 0;
+  const note = (outcome: string) =>
+    diary('watch', {
+      type: action.type,
+      ...(action.reps ? { reps: action.reps } : {}),
+      ...(queued ? { id: action.id, lag: Math.round((now - action.at) / 100) / 10 } : {}),
+      outcome,
+    });
   // A queued tap: taken once, by id, and acked in the next view even when it changes
   // nothing — the watch keeps it until then. One from before this session (a leftover
   // of a workout the phone closed while the watch was away) is acked and dropped.
-  const queued = action.id > 0;
   if (queued) {
-    if (action.id <= live.watchTapAck) return;
+    if (action.id <= live.watchTapAck) {
+      note('duplicate');
+      return;
+    }
     live = { ...live, watchTapAck: action.id };
     if (action.at < live.startedAt) {
+      note('stale');
       afterChange();
       return;
     }
   }
   const before = live.state;
-  const at = queued ? Math.min(action.at, Date.now()) : Date.now();
+  const at = queued ? Math.min(action.at, now) : now;
+  note('taken');
   applyWatchTap(action, at);
   if (live && live.state === before && queued) afterChange();
 }
@@ -352,6 +437,8 @@ const CLOCK_SKEW_MS = 2_000;
 
 function close() {
   if (!live) return;
+  flushHrMinute();
+  diary('closed', { sets: live.state.sets.length });
   if (jsRestTimer !== null) clearTimeout(jsRestTimer);
   jsRestTimer = null;
   if (idleTimer !== null) clearTimeout(idleTimer);
@@ -364,6 +451,8 @@ function close() {
   void stopWatch();
   showOnWatch(JSON.stringify({ screen: 'none' }));
   lastPublished = null;
+  lastPublishedScreen = null;
+  awayNoted = false;
   releaseWorkout();
   live = null;
   stream = EMPTY_STREAM;
@@ -385,8 +474,9 @@ export const session = {
   },
 
   /** Start the plan's up-next day, or resume the workout under way. True when a session
-   *  is live afterwards; false with no plan day to run. Idempotent. */
-  start(now = Date.now()): boolean {
+   *  is live afterwards; false with no plan day to run. Idempotent. `via` is for the
+   *  diary: the screen, Next Workout on the watch, or the headless boot. */
+  start(now = Date.now(), via: 'screen' | 'watch' | 'headless' = 'screen'): boolean {
     if (live) return true;
     // The day comes from the stored plan: the active plan's next day. A fresh session
     // starts from the stored progress: yesterday's hits moved today's weights
@@ -417,10 +507,31 @@ export const session = {
       watchTapAck: resumed ? resumed.watchTapAck : 0,
     };
     stream = EMPTY_STREAM;
+    try {
+      pruneDiaries();
+    } catch {
+      // Same as diary(): never in the way of the workout.
+    }
+    diary('session', {
+      via,
+      day: day.name,
+      resumed: resumed !== null,
+      startedAt: new Date(live.startedAt).toISOString(),
+      lifts: live.day.exercises.map((e) => `${e.name} ${e.weight}x${e.targetReps}`).join(', '),
+      appState: AppState.currentState,
+    });
     // The watch streams for the whole session (a resumed session starts it again —
     // harmless, the watch ignores a second start) and its taps are this session's events.
-    void startWatch();
-    unsubscribers = [onWatchAction(onWatch), onNativeRestEnded(onRestEnded), onHrSample(onSample)];
+    void startWatch().then((reach) => diary('watch-stream', { start: reach }));
+    const appState = AppState.addEventListener('change', (state: AppStateStatus) =>
+      diary('app', { state }),
+    );
+    unsubscribers = [
+      onWatchAction(onWatch),
+      onNativeRestEnded(onRestEnded),
+      onHrSample(onSample),
+      () => appState.remove(),
+    ];
     holdWorkout(day.name);
     void ensureNativeRest();
     afterChange();
@@ -434,6 +545,7 @@ export const session = {
    *  notification leads here) and ask the rest timer's permissions. */
   async onScreenOpened(): Promise<void> {
     if (!live) return;
+    diary('screen', { opened: true });
     if (!isSessionOver(live.state)) {
       touch(Date.now());
       afterChange();
@@ -456,6 +568,7 @@ export const session = {
       abandonSavedSession(now);
       return;
     }
+    diary('abandoned', {}, now);
     storeFinishedSession(endSessionNow(live.state, now), live.startedAt, now, live.day.dayId);
     close();
   },
@@ -488,7 +601,33 @@ export const session = {
 async function ensureNativeRest(): Promise<void> {
   if (nativeRest) return;
   nativeRest = await ensureRestPermissions();
+  diary('native-rest', { granted: nativeRest });
   if (nativeRest && armedRest !== null) armRestTimer(armedRest);
+}
+
+/** The stream for the diary, a minute at a time: how many samples, the range and the
+ *  mean, how many came in ambient — enough to see gaps and bursts without a line per
+ *  sample. Flushed when the minute turns and when the session closes. */
+function noteHrMinute(sample: HrSample, now: number) {
+  const minute = Math.floor(now / 60_000);
+  if (hrMinute && hrMinute.minute !== minute) flushHrMinute();
+  if (!hrMinute) hrMinute = { minute, n: 0, min: Infinity, max: -Infinity, sum: 0, ambient: 0 };
+  hrMinute.n += 1;
+  hrMinute.min = Math.min(hrMinute.min, sample.bpm);
+  hrMinute.max = Math.max(hrMinute.max, sample.bpm);
+  hrMinute.sum += sample.bpm;
+  if (sample.amb === 1) hrMinute.ambient += 1;
+}
+
+function flushHrMinute() {
+  if (!hrMinute) return;
+  const m = hrMinute;
+  hrMinute = null;
+  diary(
+    'hr',
+    { n: m.n, min: m.min, max: m.max, avg: Math.round(m.sum / m.n), ambient: m.ambient },
+    (m.minute + 1) * 60_000,
+  );
 }
 
 function onRestEnded(event: { at: number; endsAt: number }) {
@@ -510,6 +649,6 @@ function onHrSample(handler: (sample: HrSample) => void): () => void {
  *  rendering anything. The session screen navigates to it separately (use-watch-start). */
 export function installWatchStart(): () => void {
   return onWatchAction((action) => {
-    if (action.type === 'startWorkout') session.start();
+    if (action.type === 'startWorkout') session.start(Date.now(), 'watch');
   });
 }
