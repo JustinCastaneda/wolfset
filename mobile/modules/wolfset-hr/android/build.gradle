@@ -22,4 +22,7 @@ dependencies {
   implementation 'com.google.android.gms:play-services-wearable:19.0.0'
   // ServiceCompat.startForeground with a type, NotificationCompat.CATEGORY_WORKOUT.
   implementation 'androidx.core:core-ktx:1.13.1'
+  // The React host and its headless tasks (WorkoutService boots and holds the session's
+  // JavaScript). Version resolved by the React Native Gradle plugin, as every Expo module.
+  implementation 'com.facebook.react:react-android'
 }

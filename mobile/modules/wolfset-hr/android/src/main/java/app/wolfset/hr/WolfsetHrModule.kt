@@ -12,7 +12,8 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 /** The bridge face of the native seam: heart-rate samples and watch taps arrive in JS as
  *  events, the session starts and stops the watch's stream and shows itself on the wrist
- *  through it (WatchControl), and it arms the doze-proof rest timer (RestTimerService). */
+ *  through it (WatchControl), and it holds the workout's foreground service — which is
+ *  also the doze-proof rest timer (WorkoutService). */
 class WolfsetHrModule : Module() {
 
     private val busListener = HrBus.Listener { name, payload -> sendEvent(name, payload) }
@@ -62,12 +63,22 @@ class WolfsetHrModule : Module() {
             )
         }
 
+        // The workout's foreground service: held from the session's start to its close so
+        // the workout keeps running with the app off screen (WorkoutService).
+        Function("startWorkout") { title: String ->
+            WorkoutService.start(context, title)
+        }
+
+        Function("endWorkout") {
+            WorkoutService.stop(context)
+        }
+
         Function("startRest") { endsAtMs: Double ->
-            RestTimerService.start(context, endsAtMs.toLong())
+            WorkoutService.startRest(context, endsAtMs.toLong())
         }
 
         Function("endRest") {
-            RestTimerService.stop(context)
+            WorkoutService.endRest(context)
         }
 
         // Dev only: the same path a watch message takes, so the JS layer can be exercised

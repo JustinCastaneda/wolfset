@@ -568,18 +568,30 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       off the set and the timer. Skip Set is a new machine event: the next set without a
       log, so the lift scores short; Undo Skip goes back to it (no frame — same card). The
       middle card is Change Workout while the workout is untouched, Undo Skip after a skip
-- [ ] 🤖 **Phone-less workout spike, then unit** (Justin, 2026-09-04: "I open the watch,
-      hit Next Workout and I'm in; I likely never open my phone"). Today the phone's
-      workout brain is React, which only runs while the app is on screen, so a wrist tap
-      with the app swiped away does nothing, and a backgrounded app freezes before it
-      publishes the watch's screen. Plan: a "Workout in progress" foreground service for
-      the whole session (keeps React alive in the pocket — the rest timer's service,
-      widened), plus a Headless JS boot for the one moment no React exists (Next Workout
-      with the app dead), under a single-owner rule with the session screen. Fallback:
-      the watch remote-opens the phone app (RemoteActivityHelper), at the cost of the
-      phone lighting up. Kill gate: app swiped away → tap Next Workout → watch flips to
-      the Set screen. Android 12+ background-start policy is the risk; spike on the
-      Pixel 10 Pro first
+- [x] 🤖 **Phone-less workout — built, hardware kill gate pending** (Justin, 2026-09-04:
+      "I open the watch, hit Next Workout and I'm in; I likely never open my phone";
+      built 2026-09-05). The workout brain left React: `features/set-loop/session-controller.ts`
+      owns the live session (machine, snapshot, watch view and taps, rest timer, recovered
+      verdict, settlement) and the session screen only draws it — leaving the screen no
+      longer stops the workout. The rest timer's service widened into `WorkoutService`,
+      the one "Workout in progress" foreground service held from start to Finish, which
+      also runs a React Native headless task (`mobile/index.ts`) so React's timers keep
+      going in a pocket, and boots JavaScript when Next Workout arrives with the app dead
+      (`HrListenerService` → service → task → `session.start()`). Fallback when Android
+      12+ refuses the background start: a "Workout A is ready — tap to start it on your
+      watch" notification, never a dead end (RemoteActivityHelper not built — it would
+      light the phone up too, and needs a watch-side change).
+      **Kill gate still to run on the Pixel 10 Pro**: app swiped away → tap Next Workout →
+      the watch flips to the Set screen. Proven on the phone emulator with the debug
+      broadcast (`HrListenerService.DebugWatchAction`, debuggable builds only) on the dev
+      build with Metro up: a watch tap with the app on screen, backgrounded, and killed —
+      from dead, JavaScript booted and the session was live and published in ~2 s. The
+      emulator refuses the foreground-service start for a background-woken app once the
+      app has been off screen for ~10 s (the Android 12+ rule), and the tap-to-open
+      fallback showed; with the app on the battery allowlist (`dumpsys deviceidle
+      whitelist +app.wolfset`, the same exemption as Settings → Battery → Unrestricted)
+      the start is allowed and the whole path runs. Whether a Play services delivery
+      counts as background on the real phone is what the hardware run answers
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
 - [x] 🤖 **Change Workout** (`164:4192` → `123:3251`, 2026-09-03) — the plan's days, the
       running one marked Current, the others with the arrow button to a preview whose

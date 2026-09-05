@@ -11,9 +11,11 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application>
-        <!-- Holds the rest between sets while the screen is off (docs/rest-timer.md). -->
+        <!-- The workout's foreground service: keeps the session alive in a pocket, boots
+             JavaScript when the watch starts a workout with the app dead, and holds each
+             rest while the screen is off (docs/rest-timer.md). -->
         <service
-            android:name="app.wolfset.hr.RestTimerService"
+            android:name="app.wolfset.hr.WorkoutService"
             android:exported="false"
             android:foregroundServiceType="health" />
 
@@ -31,5 +33,15 @@
                     android:pathPrefix="/wolfset" />
             </intent-filter>
         </service>
+
+        <!-- Dev only (debuggable builds; ignored otherwise): a watch tap over ADB, for an
+             emulator with no watch. See HrListenerService.DebugWatchAction. -->
+        <receiver
+            android:name="app.wolfset.hr.HrListenerService$DebugWatchAction"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="app.wolfset.hr.WATCH_ACTION" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

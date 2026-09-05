@@ -14,7 +14,7 @@ import { loadAllProgress } from '@/lib/db/progress-store';
 import { loadSnapshot } from '@/lib/db/session-store';
 import { color, type } from '@/theme/tokens';
 import { startAction, startLabel, type StartAction } from './day-overview';
-import { abandonSavedSession } from './end-session';
+import { session } from './session-controller';
 import { applyProgress } from './plan-day';
 import { estimatedMinutes, formatClock } from './session-ui';
 import type { SessionExercise } from './types';
@@ -71,7 +71,7 @@ export function DayOverviewScreen() {
   const replace = () => {
     if (!view) return;
     setConfirmingReplace(false);
-    abandonSavedSession(Date.now());
+    session.abandon(Date.now());
     setNextDay(view.dayId);
     open();
   };

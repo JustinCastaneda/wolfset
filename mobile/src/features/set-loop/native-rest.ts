@@ -1,13 +1,15 @@
 import { WolfsetHr, type RestEnded } from '@modules/wolfset-hr';
 import type { Phase } from './types';
 
-// The doze-proof rest timer's JS face. The machine keeps the truth (absolute timestamps),
-// so when the screen is on nothing here is needed; when the phone is in a pocket Android
-// throttles JS and the native service (RestTimerService) holds the rest instead: countdown
-// in the shade, a buzz and a ding at the end — the only alert; recovering early shows on
-// the ring and never sounds (Justin, 2026-09-03). Its "rest over" comes back as an event
-// and the machine advances there — native never moves the loop.
-// Without the module (iOS, tests) or without permissions, the on-screen timer alone runs.
+// The workout service's JS face (WorkoutService in the native module): the foreground
+// service the session holds from start to close so the workout keeps running with the app
+// off screen, which is also the doze-proof rest timer. The machine keeps the truth
+// (absolute timestamps), so when the screen is on nothing here is needed; when the phone
+// is in a pocket Android throttles JS and the native service holds the rest instead:
+// countdown in the shade, a buzz and a ding at the end — the only alert; recovering early
+// shows on the ring and never sounds (Justin, 2026-09-03). Its "rest over" comes back as
+// an event and the machine advances there — native never moves the loop.
+// Without the module (iOS, tests) or without permissions, the JS timer alone runs.
 
 /** Pure: when a rest ends, in wall-clock ms; null outside a rest. */
 export function restEndsAt(phase: Phase): number | null {
@@ -30,6 +32,15 @@ export async function ensureRestPermissions(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Hold the workout's foreground service under this title; no module: no-op. */
+export function holdWorkout(title: string) {
+  WolfsetHr?.startWorkout(title);
+}
+
+export function releaseWorkout() {
+  WolfsetHr?.endWorkout();
 }
 
 export function armRestTimer(endsAtMs: number) {
