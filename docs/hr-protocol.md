@@ -66,7 +66,7 @@ Layer only delivers changes, so republishing the same view costs nothing. Built 
 
 | Field | Type | Meaning |
 |---|---|---|
-| `screen` | `set` / `rest` / `done` / `none` | Which watch screen. `done` is Session Done; `none` clears the watch (screen left, poke grid up on the phone). |
+| `screen` | `set` / `rest` / `idle` / `done` / `none` | Which watch screen. `idle` is "Still lifting?" over the set or rest (the loop is unchanged underneath); `done` is Session Done; `none` clears the watch (Finish, poke grid up on the phone). |
 | `exerciseNo` | int | 1-based position of the exercise — the "01" in "01 • Squat". |
 | `exercise` | string | Exercise name. |
 | `setsDone`, `setsTotal` | int | This exercise's sets — the pips across the top. |
@@ -81,6 +81,7 @@ Layer only delivers changes, so republishing the same view costs nothing. Built 
 | `restSeconds` | int | Length of the rest, for the ring's fraction. |
 | `recovered` | bool | The gate's verdict for this rest: turns the watch's Continue solid. |
 | `recoveredBelowBpm`, `approachingUpToBpm` | number | The thresholds, so the watch colours its ring from its own fresh reading (same rule as `features/hr/recovered.ts`). |
+| `idleEndsAt` | int | `idle` only: wall-clock ms (phone clock) when the workout ends by itself — the watch shows "ends in N min". 0 otherwise. |
 
 `done` carries the summary instead (Figma `164:4712`):
 
@@ -115,6 +116,9 @@ soon as the phone publishes a different set.
   confirm, so the phone ends the session on it without asking again;
 - `finish` — Finish on Session Done. Not a machine event: the phone leaves the session
   screen, exactly as its own Finish does, which clears the watch;
+- `stillLifting` — Continue on the watch's "Still lifting?" (`idle` screen). Not a machine
+  event: the phone restarts its forgotten-workout clock and the loop comes back where it
+  was. End on that screen is the usual "End Workout?" confirm, then `endWorkout`;
 - `startWorkout` — Next Workout on the Watch Tile (`123:3440`), the watch's opening screen
   whenever there is no session. Not a machine event either: the phone starts the session
   on the plan's up-next day (the hub's arrow) — or resumes the one under way — and the
@@ -145,6 +149,19 @@ The phone's session turns each into the same machine event its own button sends
 `logSet` during a rest and a `continue` while logging both change nothing. The watch waits
 up to 4 s for the next view before re-enabling its buttons; the phone answers by publishing
 the new session item, which is what moves the watch screen on.
+
+## The forgotten workout (2026-09-05)
+
+The phone keeps a clock from the last thing the lifter did — a set logged or skipped, a
+Continue, a weight edit, opening the session screen; a rest running out on its own and the
+heart-rate gate do not count (`features/set-loop/idle.ts`). **Twenty idle minutes** publish
+the `idle` screen (one buzz on the wrist) and post "Still lifting?" in the phone's shade;
+**thirty** end the workout as it stands — every logged set is credit, untouched lifts are
+failures, exactly as ending early by hand — **at the last activity's time**, so the drive
+home never counts, and the session closes on both surfaces without a Session Done to read.
+A finished workout nobody tapped Finish on closes the same way after thirty quiet minutes,
+settled as it stands. **Three hours** is the ceiling regardless, matching the watch stream's
+own backstop. Never motion-based: lifting is standing still.
 
 ## Expectations on the receiver (from `docs/spike-findings.md`)
 

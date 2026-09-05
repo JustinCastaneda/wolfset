@@ -58,8 +58,10 @@ import com.facebook.react.jstasks.HeadlessJsTaskContext
  *
  * Commands arrive as intents (the companion functions): start the workout (with the day's
  * name, and the watch action that caused it when JavaScript has to be booted), arm a rest,
- * end a rest, end the workout. A rest armed with no workout under way — the Design Kit's
- * test button — runs alone and the service stops when it ends.
+ * end a rest, ask "Still lifting?" (the forgotten-workout card — JavaScript keeps that
+ * clock, features/set-loop/idle.ts), withdraw it, end the workout. A rest armed with no
+ * workout under way — the Design Kit's test button — runs alone and the service stops
+ * when it ends.
  */
 class WorkoutService : Service() {
 
@@ -99,9 +101,12 @@ class WorkoutService : Service() {
                 armRest()
             }
             ACTION_REST_END -> disarmRest()
+            ACTION_ASK_STILL_LIFTING -> stillLifting(intent.getLongExtra(EXTRA_ENDS_AT, 0L))
+            ACTION_DISMISS_STILL_LIFTING -> notificationManager().cancel(NOTIF_STILL_LIFTING)
             ACTION_STOP -> {
                 Log.i(TAG, "workout over")
                 workoutTitle = null
+                notificationManager().cancel(NOTIF_STILL_LIFTING)
                 disarmRest()
             }
             else -> {
@@ -198,6 +203,29 @@ class WorkoutService : Service() {
         ding()
         HrBus.restEnded(at, endsAt)
         disarmRest()
+    }
+
+    /** "Still lifting?" on the phone: a buzzing card on the alert channel that says when
+     *  the workout ends by itself and goes away on its own then; tapping it opens the
+     *  session, which counts as the lifter showing up. */
+    private fun stillLifting(endsAtMs: Long) {
+        val minutes = ((endsAtMs - System.currentTimeMillis()).coerceAtLeast(0L) + 59_999L) / 60_000L
+        val open = Intent(Intent.ACTION_VIEW, Uri.parse("wolfset://session")).setPackage(packageName)
+        val n = NotificationCompat.Builder(this, CHANNEL_ALERT)
+            .setContentTitle("Still lifting?")
+            .setContentText("${workoutTitle ?: "Your workout"} ends in $minutes min unless you log a set")
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setTimeoutAfter((endsAtMs - System.currentTimeMillis()).coerceAtLeast(1_000L))
+            .setContentIntent(
+                PendingIntent.getActivity(this, 2, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE),
+            )
+            .build()
+        notificationManager().notify(NOTIF_STILL_LIFTING, n)
+        vibrate()
+        Log.i(TAG, "still lifting? ends in $minutes min")
     }
 
     private fun stopAndRemove() {
@@ -314,10 +342,13 @@ class WorkoutService : Service() {
         private const val NOTIF_WORKOUT = 2
         private const val NOTIF_ALERT = 3
         private const val NOTIF_TAP_TO_OPEN = 4
+        private const val NOTIF_STILL_LIFTING = 5
         private const val ACTION_START = "app.wolfset.hr.WORKOUT_START"
         private const val ACTION_REST = "app.wolfset.hr.REST"
         private const val ACTION_REST_END = "app.wolfset.hr.REST_END"
         private const val ACTION_STOP = "app.wolfset.hr.WORKOUT_STOP"
+        private const val ACTION_ASK_STILL_LIFTING = "app.wolfset.hr.STILL_LIFTING"
+        private const val ACTION_DISMISS_STILL_LIFTING = "app.wolfset.hr.STILL_LIFTING_DISMISS"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_WATCH_ACTION = "watchAction"
         private const val EXTRA_ENDS_AT = "endsAt"
@@ -363,6 +394,11 @@ class WorkoutService : Service() {
         }
 
         fun endRest(context: Context) = command(context, intent(context, ACTION_REST_END))
+
+        fun askStillLifting(context: Context, endsAtMs: Long) =
+            command(context, intent(context, ACTION_ASK_STILL_LIFTING).putExtra(EXTRA_ENDS_AT, endsAtMs))
+
+        fun dismissStillLifting(context: Context) = command(context, intent(context, ACTION_DISMISS_STILL_LIFTING))
 
         fun stop(context: Context) = command(context, intent(context, ACTION_STOP))
 

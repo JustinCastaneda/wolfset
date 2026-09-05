@@ -590,8 +590,15 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       app has been off screen for ~10 s (the Android 12+ rule), and the tap-to-open
       fallback showed; with the app on the battery allowlist (`dumpsys deviceidle
       whitelist +app.wolfset`, the same exemption as Settings → Battery → Unrestricted)
-      the start is allowed and the whole path runs. Whether a Play services delivery
-      counts as background on the real phone is what the hardware run answers
+      the start is allowed and the whole path runs. **Hardware run passed (Justin,
+      2026-09-05):** the Pixel booted the dead app on the wrist tap and the whole workout
+      ran with the phone locked; Play services delivery is allowed to start the service.
+      Kept (decisions.md 2026-09-05)
+- [x] 🤖 **The forgotten workout** (2026-09-05): twenty idle minutes → "Still lifting?" on
+      the wrist (`idle` view, one buzz) and in the phone's shade; thirty → the workout ends
+      as it stands at the last activity's time and closes on both surfaces; three hours is
+      the ceiling. Everything logged is credit; a forgotten Finish is a clean finish
+      (`features/set-loop/idle.ts`, decisions.md)
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
 - [x] 🤖 **Change Workout** (`164:4192` → `123:3251`, 2026-09-03) — the plan's days, the
       running one marked Current, the others with the arrow button to a preview whose

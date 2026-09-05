@@ -13,10 +13,13 @@ import { advanceNextDay, loadActivePlan, setNextDay } from '@/lib/db/plan-store'
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
 import { loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { abandonSavedSession, endSessionNow, storeFinishedSession } from './end-session';
+import { idleEndsAt, idleVerdict, isLifterActivity, nextIdleCheckAt } from './idle';
 import { isUntouched, reduce, startSession } from './machine';
 import {
   armRestTimer,
+  askStillLifting,
   disarmRestTimer,
+  dismissStillLifting,
   ensureRestPermissions,
   holdWorkout,
   onNativeRestEnded,
@@ -40,8 +43,9 @@ import { watchActionToEvent, watchView } from './watch-view';
 // What it owns, in one place: the machine (reduce), the snapshot after every change,
 // the watch's view and taps, the native rest timer and its "rest over", the recovered
 // verdict from the heart-rate stream, the workout's foreground service (held from start
-// to close), and the settlement when the session is over. Leaving the screen changes
-// nothing; only Finish — on either surface — or starting another day closes it.
+// to close), the settlement when the session is over, and the forgotten-workout clock
+// (idle.ts): twenty idle minutes ask "Still lifting?", thirty end it. Leaving the screen
+// changes nothing; only Finish — on either surface — or starting another day closes it.
 
 /** The session as the screen sees it; a new object on every change, so React can tell. */
 export type LiveSession = {
@@ -55,6 +59,10 @@ export type LiveSession = {
   summary: SettledExercise[] | null;
   /** The stream's average this session; null before the first sample. */
   avgBpm: number | null;
+  /** When the lifter last did something (idle.ts) — the forgotten-workout clock. */
+  lastActivityAt: number;
+  /** "Still lifting?" is being asked: when the workout ends unless they answer. */
+  idlePromptEndsAt: number | null;
 };
 
 /** Every prescribed set answered and every poke grid too: the session is over. */
@@ -68,6 +76,9 @@ let nativeRest = false;
 /** The rest handed to the native timer, by its end; null outside a rest. */
 let armedRest: number | null = null;
 let jsRestTimer: ReturnType<typeof setTimeout> | null = null;
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
+/** Set when the workout ended by itself: history ends at the last activity, not now. */
+let autoEndedAt: number | null = null;
 let lastPublished: string | null = null;
 let unsubscribers: (() => void)[] = [];
 const listeners = new Set<() => void>();
@@ -86,6 +97,7 @@ function publish() {
           live.state,
           { startedAt: live.startedAt, now: Date.now(), avgBpm: live.avgBpm },
           { dayOrder: live.day.order, days: live.days },
+          live.idlePromptEndsAt ?? 0,
         )
       : { screen: 'none' },
   );
@@ -119,7 +131,9 @@ function settle(now: number) {
   if (!live || live.summary !== null) return;
   // The workout is over while the summary is read — the watch can rest now.
   void stopWatch();
-  const summary = storeFinishedSession(live.state, live.startedAt, now, live.day.dayId);
+  // A workout that ended by itself ended when the lifter last did something.
+  const endedAt = autoEndedAt ?? now;
+  const summary = storeFinishedSession(live.state, live.startedAt, endedAt, live.day.dayId);
   // Multi-day plans rotate: the next Start Workout runs the following day.
   advanceNextDay(live.day.dayId);
   live = { ...live, summary };
@@ -131,6 +145,7 @@ function afterChange() {
   if (isSessionOver(live.state)) settle(now);
   else saveSnapshot(live.state, live.startedAt, now);
   syncRest();
+  scheduleIdleCheck();
   publish();
   notify();
 }
@@ -140,7 +155,68 @@ function dispatch(event: SessionEvent) {
   const state = reduce(live.state, event);
   if (state === live.state) return;
   live = { ...live, state };
+  if (isLifterActivity(event)) touch('at' in event ? event.at : Date.now());
   afterChange();
+}
+
+/** The lifter did something: the forgotten-workout clock restarts and any "Still
+ *  lifting?" is withdrawn on both surfaces. */
+function touch(at: number) {
+  if (!live) return;
+  const asked = live.idlePromptEndsAt !== null;
+  live = { ...live, lastActivityAt: Math.max(live.lastActivityAt, at), idlePromptEndsAt: null };
+  if (asked) dismissStillLifting();
+}
+
+/** The forgotten-workout clock (idle.ts). A JS timer aims at the next boundary, and
+ *  every heart-rate sample re-checks too — with the phone asleep in a pocket the timer
+ *  may drift, but the watch's samples keep arriving as long as it streams. */
+function scheduleIdleCheck() {
+  if (idleTimer !== null) clearTimeout(idleTimer);
+  idleTimer = null;
+  if (!live) return;
+  const now = Date.now();
+  const next = nextIdleCheckAt(live.lastActivityAt, live.startedAt, now);
+  if (next === null) return;
+  idleTimer = setTimeout(checkIdle, Math.max(0, next - now));
+}
+
+function checkIdle() {
+  if (!live) return;
+  const now = Date.now();
+  switch (idleVerdict(live.lastActivityAt, live.startedAt, now)) {
+    case 'active':
+      return;
+    case 'prompt': {
+      // Session Done needs no asking: the workout is over, only Finish was forgotten —
+      // the clock just runs on to the end.
+      if (live.idlePromptEndsAt !== null || isSessionOver(live.state)) {
+        scheduleIdleCheck();
+        return;
+      }
+      const endsAt = idleEndsAt(live.lastActivityAt, live.startedAt);
+      live = { ...live, idlePromptEndsAt: endsAt };
+      askStillLifting(endsAt);
+      afterChange();
+      return;
+    }
+    case 'end':
+      // On Session Done, the forgotten tap is Finish — the summary stands as settled.
+      if (isSessionOver(live.state)) close();
+      else autoEnd(live.lastActivityAt);
+  }
+}
+
+/** Nobody answered: the workout ends as it stands, at the last thing the lifter did.
+ *  Every logged set is credit; untouched lifts are failures, as when a workout is ended
+ *  early by hand (decisions 2026-09-05). No Session Done to read — history has it. */
+function autoEnd(at: number) {
+  if (!live) return;
+  autoEndedAt = at;
+  live = { ...live, state: endSessionNow(live.state, at), idlePromptEndsAt: null };
+  dismissStillLifting();
+  afterChange();
+  close();
 }
 
 function onSample(sample: HrSample) {
@@ -148,6 +224,11 @@ function onSample(sample: HrSample) {
   const now = Date.now();
   stream = ingest(stream, sample, now);
   live = { ...live, avgBpm: meanBpm(stream) };
+  // The stream is a heartbeat for the forgotten-workout clock (scheduleIdleCheck).
+  if (idleVerdict(live.lastActivityAt, live.startedAt, now) !== 'active') {
+    checkIdle();
+    if (!live) return;
+  }
   // While resting, the recovered rule's verdict becomes the machine's flag — an input
   // that colors the ring and arms Continue, never a transition. A lost signal never flips
   // it back: stale data must not change the gate.
@@ -164,6 +245,12 @@ function onWatch(action: WatchAction) {
   if (action.type === 'startWorkout') return;
   if (action.type === 'finish') {
     if (isSessionOver(live.state)) close();
+    return;
+  }
+  // Continue on the watch's "Still lifting?": back to the loop, clock restarted.
+  if (action.type === 'stillLifting') {
+    touch(Date.now());
+    afterChange();
     return;
   }
   const event = watchActionToEvent(action, Date.now(), live.days);
@@ -184,6 +271,9 @@ function close() {
   if (!live) return;
   if (jsRestTimer !== null) clearTimeout(jsRestTimer);
   jsRestTimer = null;
+  if (idleTimer !== null) clearTimeout(idleTimer);
+  idleTimer = null;
+  autoEndedAt = null;
   if (armedRest !== null) disarmRestTimer();
   armedRest = null;
   unsubscribers.forEach((off) => off());
@@ -238,28 +328,34 @@ export const session = {
       days,
       summary: null,
       avgBpm: null,
+      // A resumed workout's clock starts now: the lifter just came back to it.
+      lastActivityAt: now,
+      idlePromptEndsAt: null,
     };
     stream = EMPTY_STREAM;
     // The watch streams for the whole session (a resumed session starts it again —
     // harmless, the watch ignores a second start) and its taps are this session's events.
     void startWatch();
     unsubscribers = [onWatchAction(onWatch), onNativeRestEnded(onRestEnded), onHrSample(onSample)];
-    void session.onScreenOpened();
+    holdWorkout(day.name);
+    void ensureNativeRest();
     afterChange();
     return true;
   },
 
-  /** What only a screen can do for a live session — so it runs at start, and again
-   *  whenever the session screen opens on a session the watch started with no screen:
-   *  hold the workout service from the foreground (Android may have refused it from the
-   *  background — the "tap to open" notification leads here), and ask the rest timer's
-   *  permissions, once; a refusal leaves the JS timer alone. */
+  /** The session screen opened on a live session. Opening it is the lifter showing up,
+   *  so the forgotten-workout clock restarts; and only a screen can do two things a
+   *  session the watch started had no screen for: hold the workout service from the
+   *  foreground (Android may have refused it from the background — the "tap to open"
+   *  notification leads here) and ask the rest timer's permissions. */
   async onScreenOpened(): Promise<void> {
     if (!live) return;
+    if (!isSessionOver(live.state)) {
+      touch(Date.now());
+      afterChange();
+    }
     holdWorkout(live.day.name);
-    if (nativeRest) return;
-    nativeRest = await ensureRestPermissions();
-    if (nativeRest && armedRest !== null) armRestTimer(armedRest);
+    await ensureNativeRest();
   },
 
   dispatch,
@@ -301,6 +397,15 @@ export const session = {
     return new Promise((resolve) => closedWaiters.push(resolve));
   },
 };
+
+/** The native rest timer needs permissions, asked once at the first workout; a refusal
+ *  leaves the JS timer alone. Asked again from the screen, because a session the watch
+ *  started headless had no screen to ask on. */
+async function ensureNativeRest(): Promise<void> {
+  if (nativeRest) return;
+  nativeRest = await ensureRestPermissions();
+  if (nativeRest && armedRest !== null) armRestTimer(armedRest);
+}
 
 function onRestEnded(event: { at: number; endsAt: number }) {
   if (restEndedMatches(event, armedRest)) {

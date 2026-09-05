@@ -3,6 +3,8 @@
 
     <uses-feature android:name="android.hardware.type.watch" />
 
+    <!-- "Still lifting?" buzzes the wrist once when it appears (IdleScreen). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <!-- Wear OS 6 (Android 16) moved heart rate under Health Connect: Health Services
          refuses to start an exercise without this one (seen on the Pixel Watch 4,

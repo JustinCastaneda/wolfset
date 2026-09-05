@@ -9,8 +9,8 @@ import org.json.JSONObject
  * never decides anything about the workout itself.
  */
 data class SessionView(
-    /** "set" = log the next set; "rest" = the timer; "done" = the summary. Anything
-     *  else means no session. */
+    /** "set" = log the next set; "rest" = the timer; "idle" = "Still lifting?" over
+     *  either; "done" = the summary. Anything else means no session. */
     val screen: String,
     /** 1-based position of the exercise in the workout — the "01" in "01 • Squat". */
     val exerciseNo: Int,
@@ -46,9 +46,12 @@ data class SessionView(
     val volume: Double,
     val avgBpm: Double,
     val exercisesDone: Int,
+    /** "idle" only: wall-clock ms (the phone's clock) when the workout ends by itself. */
+    val idleEndsAt: Long,
 ) {
     val isRest: Boolean get() = screen == SCREEN_REST
     val isDone: Boolean get() = screen == SCREEN_DONE
+    val isIdle: Boolean get() = screen == SCREEN_IDLE
 
     /** One plan day: its lifts as they would start, weights already progressed. */
     data class DayView(val order: Int, val name: String, val lifts: List<LiftView>)
@@ -59,13 +62,14 @@ data class SessionView(
         const val SCREEN_SET = "set"
         const val SCREEN_REST = "rest"
         const val SCREEN_DONE = "done"
+        const val SCREEN_IDLE = "idle"
 
         /** null for a missing or malformed item, or a "none" screen — the watch goes idle. */
         fun fromJson(json: String?): SessionView? {
             if (json == null) return null
             val o = runCatching { JSONObject(json) }.getOrNull() ?: return null
             val screen = o.optString("screen")
-            if (screen != SCREEN_SET && screen != SCREEN_REST && screen != SCREEN_DONE) return null
+            if (screen != SCREEN_SET && screen != SCREEN_REST && screen != SCREEN_DONE && screen != SCREEN_IDLE) return null
             val setsDone = o.optInt("setsDone", 0)
             return SessionView(
                 screen = screen,
@@ -93,6 +97,7 @@ data class SessionView(
                 // JSON null (no watch streamed) falls back like a missing field.
                 avgBpm = o.optDouble("avgBpm", 0.0),
                 exercisesDone = o.optInt("exercisesDone", 0),
+                idleEndsAt = o.optLong("idleEndsAt", 0L),
             )
         }
 

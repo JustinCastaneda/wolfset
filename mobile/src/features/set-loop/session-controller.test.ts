@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { WolfsetHr } from '@modules/wolfset-hr';
 
 import { loadActivePlan, setNextDay, advanceNextDay } from '@/lib/db/plan-store';
@@ -28,6 +28,8 @@ jest.mock('@modules/wolfset-hr', () => {
       publishWatchView: jest.fn(),
       startWorkout: jest.fn(),
       endWorkout: jest.fn(),
+      askStillLifting: jest.fn(),
+      dismissStillLifting: jest.fn(),
       hasRestPermissions: jest.fn(() => true),
       requestRestPermissions: jest.fn(async () => true),
       startRest: jest.fn(),
@@ -81,6 +83,9 @@ function lastView(): { screen: string } & Record<string, unknown> {
 }
 
 beforeEach(() => {
+  // One clock for the controller and the tests: the forgotten-workout rule compares
+  // the session's timestamps with Date.now(), so both come from the fake timers.
+  jest.useFakeTimers({ now: 1_000 });
   // Close whatever the previous test left live, then start counting.
   session.abandon(0);
   jest.clearAllMocks();
@@ -90,6 +95,10 @@ beforeEach(() => {
     days: [day('A', 0, true), day('B', 1, false)],
   });
   snapshot.mockReturnValue(null);
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 describe('starting the live session', () => {
@@ -216,6 +225,94 @@ describe('the watch driving the session', () => {
     session.start(1_000);
     native.emit('onWatchAction', { type: 'finish', reps: 0, day: -1 });
     expect(session.get()).not.toBeNull();
+  });
+});
+
+describe('the forgotten-workout clock', () => {
+  const MIN = 60_000;
+  const finalize = jest.requireMock('@/lib/db/session-store') as { finalizeSession: Fn };
+
+  it('asks "Still lifting?" on both surfaces after twenty idle minutes', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    jest.advanceTimersByTime(19 * MIN);
+    expect(native.askStillLifting).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1 * MIN + 1);
+    expect(native.askStillLifting).toHaveBeenCalledTimes(1);
+    expect(lastView()).toMatchObject({ screen: 'idle', idleEndsAt: 1_000_000 + 30 * MIN });
+  });
+
+  it('a rest running out on its own is not the lifter; Continue on the watch is', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    jest.advanceTimersByTime(2 * MIN); // the 90 s rest ended by its timer
+    expect(session.get()?.state.phase.name).toBe('logging');
+    jest.advanceTimersByTime(18 * MIN + 1);
+    expect(lastView().screen).toBe('idle');
+    native.emit('onWatchAction', { type: 'stillLifting', reps: 0, day: -1 });
+    expect(lastView().screen).toBe('set');
+    expect(native.dismissStillLifting).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(19 * MIN);
+    expect(native.askStillLifting).toHaveBeenCalledTimes(1);
+  });
+
+  it('unanswered, the workout ends at the last thing the lifter did and closes', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: 1_000_000 + 5 * MIN });
+    jest.advanceTimersByTime(35 * MIN + 1);
+    expect(session.get()).toBeNull();
+    const [, startedAt, endedAt] = finalize.finalizeSession.mock.calls[0] as unknown as number[];
+    expect(startedAt).toBe(1_000_000);
+    expect(endedAt).toBe(1_000_000 + 5 * MIN);
+    expect(lastView().screen).toBe('none');
+    expect(native.endWorkout).toHaveBeenCalledTimes(1);
+  });
+
+  it('three hours is the ceiling even for a lifter who keeps logging', () => {
+    jest.setSystemTime(1_000_000);
+    plan.mockReturnValue({
+      planId: 'p',
+      planName: 'Plan A',
+      days: [day('A', 0, true, [{ ...squat, prescribedSets: 50 }])],
+    });
+    session.start(Date.now());
+    for (let i = 0; i < 11; i += 1) {
+      jest.advanceTimersByTime(15 * MIN);
+      session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    }
+    expect(session.get()).not.toBeNull();
+    jest.advanceTimersByTime(15 * MIN + 1);
+    expect(session.get()).toBeNull();
+  });
+
+  it('opening the session screen counts as showing up', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    jest.advanceTimersByTime(20 * MIN + 1);
+    expect(lastView().screen).toBe('idle');
+    void session.onScreenOpened();
+    expect(lastView().screen).toBe('set');
+  });
+});
+
+describe('a finished workout nobody tapped Finish on', () => {
+  it('closes after thirty quiet minutes on Session Done, settled as it stands', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    jest.advanceTimersByTime(2 * 60_000);
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    expect(session.get()?.state.phase).toEqual({ name: 'done', endedEarly: false });
+    expect(session.get()?.summary?.[0].outcome).toBe('hit');
+    jest.advanceTimersByTime(29 * 60_000);
+    expect(session.get()).not.toBeNull();
+    expect(native.askStillLifting).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(60_000 + 1);
+    expect(session.get()).toBeNull();
+    expect(lastView().screen).toBe('none');
   });
 });
 
