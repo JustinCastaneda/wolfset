@@ -44,3 +44,11 @@ export function isLifterActivity(event: SessionEvent): boolean {
   if (event.type === 'restEnded') return event.reason === 'continue';
   return true;
 }
+
+/** The watch went quiet — out of the phone's reach, in a locker's worth of concrete —
+ *  and has just come back. Whatever the lifter did meanwhile is on its way as queued
+ *  taps, so the silence must not count as idleness: the clock is moved on by the length
+ *  of the outage. `silentFrom` is the last sample before it. */
+export function activityAfterOutage(lastActivityAt: number, silentFrom: number, now: number) {
+  return lastActivityAt + Math.max(0, now - Math.max(silentFrom, lastActivityAt));
+}

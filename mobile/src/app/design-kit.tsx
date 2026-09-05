@@ -538,6 +538,8 @@ function RadioCardDemo() {
 /** The set the kit shows on the watch — the first set of a 5×5 Squat. */
 const KIT_SET: WatchView = {
   screen: 'set',
+  tapAck: 0,
+  startedAt: 0,
   exerciseNo: 1,
   exercise: 'Squat',
   setsDone: 0,

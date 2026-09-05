@@ -29,8 +29,12 @@ export type RestEnded = { at: number; endsAt: number };
 
 /** A tap on the watch, as it arrives (docs/hr-protocol.md): `logSet` carries the reps,
  *  `changeDay` the plan day's order; the rest carry nothing (0 and -1). The session turns
- *  it into a machine event. */
-export type WatchAction = { type: string; reps: number; day: number };
+ *  it into a machine event. A tap the watch kept for the phone (`/wolfset/taps` — the
+ *  phone was out of range, or simply slower than the wrist) also carries the watch's
+ *  `id` for it (increasing; the session acks the highest it took in its view) and `at`,
+ *  when it was tapped, so a set logged with the phone in a locker is logged at that
+ *  moment. Both 0 for a tap that came as a plain message (Next Workout, the debug path). */
+export type WatchAction = { type: string; reps: number; day: number; id: number; at: number };
 
 type WolfsetHrEvents = {
   onHrSample: (sample: HrSample) => void;

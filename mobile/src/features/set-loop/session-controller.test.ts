@@ -228,6 +228,164 @@ describe('the watch driving the session', () => {
   });
 });
 
+describe('taps the watch kept for the phone', () => {
+  const MIN = 60_000;
+  const tap = (type: string, id: number, at: number, reps = 5) => ({ type, reps, day: -1, id, at });
+  let seq = 0;
+  const sample = (bpm = 100) => ({
+    seq: ++seq,
+    bpm,
+    acc: 'ACCURACY_HIGH',
+    watchWallMs: Date.now(),
+    phoneRecvMs: Date.now(),
+    amb: 0,
+    bm: 1,
+  });
+  /** The watch streaming as it does: a sample every five seconds for this long. */
+  const stream = (minutes: number) => {
+    for (let t = 0; t < minutes * MIN; t += 5_000) {
+      jest.advanceTimersByTime(5_000);
+      native.emit('onHrSample', sample());
+    }
+  };
+
+  it('logs a queued set at the moment it was tapped, acks it, and never takes it twice', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    // Tapped two minutes in, delivered when the phone was back in reach at ten.
+    jest.setSystemTime(1_000_000 + 10 * MIN);
+    native.emit('onWatchAction', tap('logSet', 7, 1_000_000 + 2 * MIN));
+    expect(session.get()?.state.sets[0].loggedAt).toBe(1_000_000 + 2 * MIN);
+    expect(lastView()).toMatchObject({ screen: 'rest', tapAck: 7 });
+    expect(saveSnapshot).toHaveBeenLastCalledWith(
+      expect.anything(),
+      1_000_000,
+      1_000_000 + 10 * MIN,
+      7,
+    );
+    // Delivered again (the watch re-sent its queue before trimming it): nothing.
+    native.emit('onWatchAction', tap('logSet', 7, 1_000_000 + 2 * MIN));
+    expect(session.get()?.state.sets).toHaveLength(1);
+  });
+
+  it('replays a whole locker: rests that ran out in between end first, no set is lost', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    // Two sets tapped three minutes apart while the phone was away; the 90 s rest
+    // between them had long run out when they arrive together.
+    jest.setSystemTime(1_000_000 + 10 * MIN);
+    native.emit('onWatchAction', tap('logSet', 1, 1_000_000 + 1 * MIN));
+    native.emit('onWatchAction', tap('logSet', 2, 1_000_000 + 4 * MIN));
+    const sets = session.get()?.state.sets ?? [];
+    expect(sets).toHaveLength(2);
+    expect(sets[0]).toMatchObject({
+      restEndedAt: 1_000_000 + 1 * MIN + 90_000,
+      restEndReason: 'timer',
+    });
+    // The second set was the last of the 2×5: the workout finished itself, as on the phone.
+    expect(lastView()).toMatchObject({ screen: 'done', tapAck: 2 });
+  });
+
+  it('a tap that changes nothing is still acked, so the watch lets go of it', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    native.emit('onWatchAction', tap('unskipSet', 3, 1_000_000 + 10));
+    expect(lastView()).toMatchObject({ screen: 'set', tapAck: 3 });
+  });
+
+  it('a leftover from an earlier workout is acked and dropped, never logged into this one', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    jest.setSystemTime(1_000_000 + 10);
+    native.emit('onWatchAction', tap('logSet', 9, 1_000_000 - 5 * MIN));
+    expect(session.get()?.state.sets).toHaveLength(0);
+    expect(lastView()).toMatchObject({ screen: 'set', tapAck: 9 });
+  });
+
+  it('a resumed session remembers the ack, so a kill cannot double a set', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    native.emit('onWatchAction', tap('logSet', 5, 1_000_000 + 10));
+    const saved = session.get()!;
+    session.abandon(Date.now());
+    snapshot.mockReturnValue({ state: saved.state, startedAt: 1_000_000, watchTapAck: 5 });
+    session.start(Date.now());
+    native.emit('onWatchAction', tap('logSet', 5, 1_000_000 + 10));
+    expect(session.get()?.state.sets).toHaveLength(1);
+    expect(lastView().tapAck).toBe(5);
+  });
+
+  it('a live tap during a rest that already ran out logs the set instead of being dropped', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    // The clock moved but no timer fired yet (a phone asleep in a pocket).
+    jest.setSystemTime(1_000_000 + 2 * MIN);
+    native.emit('onWatchAction', tap('logSet', 0, 0));
+    expect(session.get()?.state.sets).toHaveLength(2);
+  });
+
+  it('a watch clock a second ahead cannot make a Log at the end of a rest vanish', () => {
+    jest.setSystemTime(1_000_000);
+    plan.mockReturnValue({
+      planId: 'p',
+      planName: 'Plan A',
+      days: [day('A', 0, true, [{ ...squat, prescribedSets: 5 }])],
+    });
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    // The wrist saw 0:00 and logged; on the phone's clock the rest had a second left.
+    jest.setSystemTime(1_000_000 + 89_000);
+    native.emit('onWatchAction', tap('logSet', 4, 1_000_000 + 89_000));
+    expect(session.get()?.state.sets).toHaveLength(2);
+    expect(session.get()?.state.sets[0].restEndedAt).toBe(1_000_000 + 89_000);
+  });
+
+  it('a watch out of reach holds the forgotten-workout clock; its return moves the clock on', () => {
+    jest.setSystemTime(1_000_000);
+    plan.mockReturnValue({
+      planId: 'p',
+      planName: 'Plan A',
+      days: [day('A', 0, true, [{ ...squat, prescribedSets: 5 }])],
+    });
+    session.start(Date.now());
+    session.dispatch({ type: 'setLogged', reps: 5, at: Date.now() });
+    native.emit('onHrSample', sample());
+    // Silence from now on: the phone is in the locker. No prompt, no end.
+    jest.advanceTimersByTime(45 * MIN);
+    expect(native.askStillLifting).not.toHaveBeenCalled();
+    expect(session.get()).not.toBeNull();
+    // The watch is back, with its queued set: the 45 quiet minutes were the locker's.
+    native.emit('onHrSample', sample());
+    native.emit('onWatchAction', tap('logSet', 1, Date.now() - 1 * MIN));
+    expect(session.get()?.state.sets).toHaveLength(2);
+    stream(18);
+    expect(native.askStillLifting).not.toHaveBeenCalled();
+    stream(2);
+    expect(native.askStillLifting).toHaveBeenCalledTimes(1);
+  });
+
+  it('a watch that comes back with nothing to say leaves the clock where the outage began', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    stream(5);
+    jest.advanceTimersByTime(40 * MIN);
+    // Five idle minutes before the outage carry over: the prompt lands 15 minutes on.
+    stream(14);
+    expect(native.askStillLifting).not.toHaveBeenCalled();
+    stream(2);
+    expect(native.askStillLifting).toHaveBeenCalledTimes(1);
+  });
+
+  it('the three-hour ceiling holds even with the watch away', () => {
+    jest.setSystemTime(1_000_000);
+    session.start(Date.now());
+    native.emit('onHrSample', sample());
+    jest.advanceTimersByTime(3 * 60 * MIN + 1);
+    expect(session.get()).toBeNull();
+  });
+});
+
 describe('the forgotten-workout clock', () => {
   const MIN = 60_000;
   const finalize = jest.requireMock('@/lib/db/session-store') as { finalizeSession: Fn };

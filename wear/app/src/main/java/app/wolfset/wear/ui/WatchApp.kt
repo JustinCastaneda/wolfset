@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.wolfset.wear.PendingTaps
 import app.wolfset.wear.WatchState
 import kotlinx.coroutines.delay
 
@@ -20,7 +21,9 @@ import kotlinx.coroutines.delay
  * moment the phone publishes a different set or day. The clock ticks here — four times a
  * second while a rest counts down on a lit screen, once a second otherwise — so the
  * countdown and the staleness rule (WatchState.freshBpm) both follow it and no screen
- * reads the time itself.
+ * reads the time itself. What is drawn is the phone's view with the taps the phone has
+ * not taken yet applied on top (PendingTaps.project) — so a Log moves the pips at once,
+ * and a phone out of reach leaves the wrist able to keep lifting.
  */
 @Composable
 fun WatchApp(
@@ -35,14 +38,7 @@ fun WatchApp(
     onFinish: () -> Unit,
 ) {
     val state by WatchState.snapshot.collectAsStateWithLifecycle()
-    val session = state.session
-    // "Which set" as one key: a new set or day from the phone resets what the watch kept.
-    val setKey = "${session?.screen}/${session?.dayOrder}/${session?.exerciseNo}/${session?.setNo}"
-    var confirmEnd by remember(setKey) { mutableStateOf(false) }
-    var changing by remember(setKey) { mutableStateOf(false) }
-    /** The day whose preview is open (its order), while Change It Up is up. */
-    var previewOrder by remember(setKey) { mutableStateOf<Int?>(null) }
-    val counting = session?.isRest == true && !state.isAmbient
+    val counting = state.session?.isRest == true && !state.isAmbient
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(counting) {
         while (true) {
@@ -51,6 +47,15 @@ fun WatchApp(
         }
     }
     val bpm = state.freshBpm(now)
+    val session = PendingTaps.project(state.session, state.pending, now, bpm)
+    /** When the oldest tap still waiting for the phone was made — the "out of reach" line. */
+    val waitingSince = state.pending.firstOrNull { it.id > (state.session?.tapAck ?: 0L) }?.at
+    // "Which set" as one key: a new set or day from the phone resets what the watch kept.
+    val setKey = "${session?.screen}/${session?.dayOrder}/${session?.exerciseNo}/${session?.setNo}"
+    var confirmEnd by remember(setKey) { mutableStateOf(false) }
+    var changing by remember(setKey) { mutableStateOf(false) }
+    /** The day whose preview is open (its order), while Change It Up is up. */
+    var previewOrder by remember(setKey) { mutableStateOf<Int?>(null) }
     val preview = previewOrder?.let { order -> session?.days?.firstOrNull { it.order == order } }
 
     when {
@@ -79,6 +84,7 @@ fun WatchApp(
                 view = session,
                 bpm = bpm,
                 now = now,
+                waitingSince = waitingSince,
                 ambient = state.isAmbient,
                 onLog = onLog,
                 onContinue = onContinue,

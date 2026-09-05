@@ -26,7 +26,9 @@ import kotlin.math.roundToLong
 /**
  * Session Done (Figma 164:4712): the title, the four stat rows, and Finish along the
  * bottom edge. The rows scroll under the button behind the frame's fade, as drawn.
- * Finish tells the phone, which leaves the session and clears the watch.
+ * Finish tells the phone, which leaves the session and clears the watch. A summary the
+ * watch worked out itself (the phone out of reach for the last set, PendingTaps) knows
+ * only the time — the other rows read "––" until the phone's own arrives.
  */
 @Composable
 fun DoneScreen(view: SessionView, ambient: Boolean, onFinish: () -> Unit) {
@@ -44,9 +46,9 @@ fun DoneScreen(view: SessionView, ambient: Boolean, onFinish: () -> Unit) {
             Text("Session Done", style = type.h1, color = WolfsetColor.TextPrimary, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(s.dp(21)))
             StatRow("Time", formatClock(view.durationSeconds.toDouble()))
-            StatRow("Total Weight", String.format(Locale.US, "%,d", view.volume.roundToLong()))
-            StatRow("Avg. Heart rate", if (view.avgBpm > 0) view.avgBpm.roundToLong().toString() else "––")
-            StatRow("Exercises", view.exercisesDone.toString())
+            StatRow("Total Weight", if (view.synced) String.format(Locale.US, "%,d", view.volume.roundToLong()) else "––")
+            StatRow("Avg. Heart rate", if (view.synced && view.avgBpm > 0) view.avgBpm.roundToLong().toString() else "––")
+            StatRow("Exercises", if (view.synced) view.exercisesDone.toString() else "––")
         }
         // The frame's fade (164:4713): rows scrolled under Finish dim into the background.
         Box(

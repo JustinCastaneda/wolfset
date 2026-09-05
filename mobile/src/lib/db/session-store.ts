@@ -6,15 +6,24 @@ import type { SessionState } from '@/features/set-loop/types';
 // write (a session state is a few KB — cheap, and gyms have no signal, so the write
 // must always be local, decision #1). Finishing turns the snapshot into history rows.
 
-export type SavedSession = { state: SessionState; startedAt: number };
+export type SavedSession = {
+  state: SessionState;
+  startedAt: number;
+  /** The highest watch tap id applied (session-controller.ts); 0 before any. */
+  watchTapAck: number;
+};
 
 export function loadSnapshot(): SavedSession | null {
-  const row = getDb().getFirstSync<{ state: string; started_at: number }>(
-    'SELECT state, started_at FROM session_snapshot WHERE id = 1',
+  const row = getDb().getFirstSync<{ state: string; started_at: number; watch_tap_ack: number }>(
+    'SELECT state, started_at, watch_tap_ack FROM session_snapshot WHERE id = 1',
   );
   if (!row) return null;
   try {
-    return { state: migrateSnapshot(JSON.parse(row.state)), startedAt: row.started_at };
+    return {
+      state: migrateSnapshot(JSON.parse(row.state)),
+      startedAt: row.started_at,
+      watchTapAck: row.watch_tap_ack,
+    };
   } catch {
     // A corrupt snapshot must never block starting a workout (conventions §5) —
     // drop it and start fresh.
@@ -43,11 +52,11 @@ export function migrateSnapshot(raw: unknown): SessionState {
   };
 }
 
-export function saveSnapshot(state: SessionState, startedAt: number, now: number) {
+export function saveSnapshot(state: SessionState, startedAt: number, now: number, watchTapAck = 0) {
   getDb().runSync(
-    `INSERT INTO session_snapshot (id, state, started_at, updated_at) VALUES (1, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET state = excluded.state, updated_at = excluded.updated_at`,
-    [JSON.stringify(state), startedAt, now],
+    `INSERT INTO session_snapshot (id, state, started_at, updated_at, watch_tap_ack) VALUES (1, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET state = excluded.state, updated_at = excluded.updated_at, watch_tap_ack = excluded.watch_tap_ack`,
+    [JSON.stringify(state), startedAt, now, watchTapAck],
   );
 }
 

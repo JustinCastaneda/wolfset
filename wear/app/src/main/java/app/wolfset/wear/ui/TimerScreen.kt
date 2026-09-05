@@ -1,5 +1,6 @@
 package app.wolfset.wear.ui
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +25,8 @@ import kotlin.math.ceil
  * countdown inside, the heart line, Continue along the bottom edge. Ring length is time
  * left; ring colour is the heart-rate zone (RestZone). Recovered turns Continue solid
  * brand — the gate arms the button, it never presses it (brief §01). Continue is the
- * BottomEdgeButton, inside the ring.
+ * BottomEdgeButton, inside the ring. `notice` is the line under the title — "Phone out
+ * of reach" while a tap waits for the phone.
  */
 @Composable
 fun TimerScreen(
@@ -33,6 +35,7 @@ fun TimerScreen(
     now: Long,
     ambient: Boolean,
     onContinue: () -> Unit,
+    notice: @Composable BoxScope.() -> Unit = {},
 ) {
     val s = LocalScale.current
     val type = LocalType.current
@@ -49,6 +52,7 @@ fun TimerScreen(
     Face(ambient) {
         RestRing(fractionLeft = fraction, colour = zoneColour)
         ExerciseTitle(view.exerciseNo, view.exercise)
+        notice()
 
         Column(
             modifier = Modifier.align(Alignment.Center).offset(y = s.dp(-26.5f)),

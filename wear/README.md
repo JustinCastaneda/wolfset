@@ -3,7 +3,8 @@
 The watch mirrors the loop. The phone's session is the truth: it streams the heart rate from
 here (`HrStreamService`), publishes what it is doing (`PhoneListenerService` → `WatchState`),
 and this app draws the designed screens (Figma `node-id=123-3945`, package `ui/`) and sends
-taps back (`PhoneActions`). The contract is `docs/hr-protocol.md`.
+taps back (`PhoneActions`), kept on the wrist until the phone takes them (`PendingTaps`) so a
+set logged out of the phone's reach is never lost. The contract is `docs/hr-protocol.md`.
 
 - `ui/WolfsetTheme.kt` — the phone's tokens and Geom, scaled from the 456-wide frames to the
   watch (open decision #9: no watch token set yet, so nothing here invents one).

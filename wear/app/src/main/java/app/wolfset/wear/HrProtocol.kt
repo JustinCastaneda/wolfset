@@ -36,4 +36,12 @@ object HrProtocol {
     const val ACTION_START_WORKOUT = "startWorkout"
     /** Continue on "Still lifting?": the phone restarts its forgotten-workout clock. */
     const val ACTION_STILL_LIFTING = "stillLifting"
+
+    /** Watch → phone: the loop's taps travel as this Data Layer item, not as messages —
+     *  the Data Layer keeps it until the phone is in reach, so a Log tapped with the phone
+     *  in a locker still lands, in order. One string field: a JSON array of
+     *  `{ id, type, reps, day, at }`, oldest first (PendingTaps). The phone acks the
+     *  highest id it took in its session view (`tapAck`) and the watch drops up to it. */
+    const val PATH_TAPS = "/wolfset/taps"
+    const val KEY_TAPS = "taps"
 }

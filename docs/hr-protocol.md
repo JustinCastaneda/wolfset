@@ -75,10 +75,12 @@ Layer only delivers changes, so republishing the same view costs nothing. Built 
 | `canUnskip` | bool | This lift has a skipped set to go back to — the Actions panel shows Undo Skip. |
 | `dayOrder` | int | The plan day this session runs (0-based order) — "Current" on Change It Up (`164:4192`). |
 | `canChange` | bool | The workout is untouched (nothing logged, skipped or jumped) and the plan has another day — the Actions panel shows Change Workout instead of Undo Skip. |
-| `days` | array | Every day of the plan, for Change It Up and the day preview (`123:3251`): `{ order, name, lifts: [{ name, weight, sets, reps }] }`, weights already progressed — what that day would start with. |
+| `days` | array | Every day of the plan, for Change It Up and the day preview (`123:3251`): `{ order, name, lifts: [{ name, weight, sets, reps, rest }] }`, weights already progressed — what that day would start with. `rest` is the lift's rest in seconds, for the watch's own count when the phone is out of reach. |
 | `weight`, `unit`, `reps` | number, `Lbs`, int | The set to log; `reps` is the target the watch counts down from. |
 | `restEndsAt` | int | Wall-clock ms (phone clock) when the rest ends; the watch counts down on its own clock. 0 outside a rest. |
-| `restSeconds` | int | Length of the rest, for the ring's fraction. |
+| `restSeconds` | int | Length of the rest — the running one, or on the set screen the one the next Log would start, so a watch out of the phone's reach can count its own (the taps item below). |
+| `tapAck` | int | The highest of the watch's tap ids the session has taken (the taps item below); the watch drops its queue up to it. On every screen, `done` included. |
+| `startedAt` | int | Wall-clock ms (phone clock) when the session started — the watch's own Session Done clock while the phone is out of reach. |
 | `recovered` | bool | The gate's verdict for this rest: turns the watch's Continue solid. |
 | `recoveredBelowBpm`, `approachingUpToBpm` | number | The thresholds, so the watch colours its ring from its own fresh reading (same rule as `features/hr/recovered.ts`). |
 | `idleEndsAt` | int | `idle` only: wall-clock ms (phone clock) when the workout ends by itself — the watch shows "ends in N min". 0 otherwise. |
@@ -96,10 +98,51 @@ The watch is a display: it never decides anything about the workout. The one thi
 keeps for itself is whether its own "End Workout?" question is up, and it drops that as
 soon as the phone publishes a different set.
 
+## Taps item (watch → phone)
+
+Every tap on the loop travels as a **Data Layer item the watch owns**, path
+**`/wolfset/taps`** — one string field, `taps`, a JSON array of
+`{ "id", "type", "reps", "day", "at" }`, oldest first (2026-09-05, "never lose a set": the
+first watch sent messages, and a Log tapped with the phone in a locker vanished). An item,
+because the Data Layer keeps it and delivers it the moment the phone is in reach — in order,
+whether that is now or twenty minutes on. `id` is the watch's, increasing; `at` is when the
+tap was made on the watch's clock (paired watches keep the phone's time).
+
+- **The phone** (`HrListenerService.onDataChanged` → the bus → `session-controller.ts`)
+  takes each tap once — by id, above the ack it already holds, which the snapshot keeps
+  across a kill — and applies it **as of `at`**: the set is logged at the moment it was
+  tapped, and a rest that had run out by then is ended first (the machine's guard would
+  otherwise drop the Log as "during a rest"; live taps get the same courtesy, with two
+  seconds' slack for the two clocks). A tap from before the session started is a leftover
+  of a workout the phone closed while the watch was away: acked and dropped. Every tap
+  taken — applied or ignored by the machine — moves `tapAck`, published in the next view.
+- **The watch** (`PendingTaps`) keeps the queue in the item and in memory, drops everything
+  up to `tapAck` on each view, and drops all of it when the session closes (`none`).
+  Meanwhile it draws the loop **as the queued taps leave it** — the same steps the phone's
+  machine takes, worked out on the wrist from the view it has: a Log moves the pips and
+  starts the rest from the tap's time; a rest that runs out moves on to the next set, the
+  next lift (from `days`), or Session Done (time only, the other rows "––"); Continue and
+  Skip advance; Change Workout swaps the day; End is Session Done; Finish clears. Its own
+  fresh reading against the thresholds arms Continue. The phone's view replaces the guess
+  when it answers. After four seconds without an answer the set and timer screens say
+  **"Phone out of reach · saved on watch"** — nothing is lost, the line only says why.
+- **The forgotten-workout clock** does not run against a watch that is out of reach: while
+  the stream has gone quiet after streaming this session, the phone neither asks nor ends
+  (only the three-hour ceiling holds), and when the watch comes back the quiet stretch is
+  taken off the clock (`idle.ts`, `activityAfterOutage`). The cost: a watch whose battery
+  dies mid-workout holds the workout open until the ceiling or a tap on the phone — history
+  still ends at the last activity, so nothing is counted that was not lifted.
+
+Not queued: `startWorkout` (below) — with no session there is nothing to keep a tap for,
+and a start that fired hours later would be a surprise. Dev: the debug broadcast takes a
+JSON array too, playing the item.
+
 ## Action message (watch → phone)
 
 `MessageClient` message, path **`/wolfset/action`**, JSON body `{ "type": ..., "reps": n, "day": n }`
-(`reps` is 0 and `day` is -1 unless the action says otherwise):
+(`reps` is 0 and `day` is -1 unless the action says otherwise). Since 2026-09-05 only
+`startWorkout` still travels this way; the loop's taps are the item above, with the same
+`type`s:
 
 - `logSet` with `reps` — the Log button on the watch's set screen;
 - `continue` — the Continue button on the watch's timer;
@@ -146,9 +189,9 @@ soon as the phone publishes a different set.
 
 The phone's session turns each into the same machine event its own button sends
 (`watchActionToEvent`), so a late or repeated tap is a no-op by the machine's guards: a
-`logSet` during a rest and a `continue` while logging both change nothing. The watch waits
-up to 4 s for the next view before re-enabling its buttons; the phone answers by publishing
-the new session item, which is what moves the watch screen on.
+`logSet` during a rest and a `continue` while logging both change nothing. The watch's
+buttons come back as soon as its own picture moves (the taps item above); a tap that moves
+nothing waits up to 4 s for the phone's next view.
 
 ## The forgotten workout (2026-09-05)
 

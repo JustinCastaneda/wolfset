@@ -1,5 +1,6 @@
 package app.wolfset.wear.ui
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -24,10 +25,17 @@ import java.util.Locale
  * Log a Set: tap the number to decrease reps, it wraps back to the target; a reduced count
  * reads "3/5 reps" in brand. Log sends the reps to the phone, which logs the set and
  * publishes the rest — until that arrives the buttons wait (PhoneWait, shared with the
- * Actions panel beside this screen), so a second tap cannot log twice.
+ * Actions panel beside this screen), so a second tap cannot log twice. `notice` is the
+ * line under the title — "Phone out of reach" while a tap waits for the phone.
  */
 @Composable
-fun SetScreen(view: SessionView, ambient: Boolean, wait: PhoneWait, onLog: (reps: Int) -> Unit) {
+fun SetScreen(
+    view: SessionView,
+    ambient: Boolean,
+    wait: PhoneWait,
+    onLog: (reps: Int) -> Unit,
+    notice: @Composable BoxScope.() -> Unit = {},
+) {
     val s = LocalScale.current
     val type = LocalType.current
     // Keyed on the set: a new set (or exercise) from the phone resets the counter.
@@ -36,6 +44,7 @@ fun SetScreen(view: SessionView, ambient: Boolean, wait: PhoneWait, onLog: (reps
     Face(ambient) {
         SetPips(done = view.setsDone, total = view.setsTotal, ambient = ambient, current = view.setNo - 1)
         ExerciseTitle(view.exerciseNo, view.exercise)
+        notice()
 
         Column(
             modifier = Modifier.align(Alignment.Center).offset(y = s.dp(-32)),
