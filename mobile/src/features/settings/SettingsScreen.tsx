@@ -3,21 +3,27 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { ListItem } from '@/components/ListItem';
 import { TopBar } from '@/components/TopBar';
+import { formatDiary, loadLatestDiary } from '@/lib/db/session-log';
 import { color, type } from '@/theme/tokens';
 
 // Settings (Figma 433:22471): five rows into the subscreens, the wolf mark faded behind
 // them. Exercise Data (433:23207 — stat tiles, trend charts, export) is a unit of its
 // own, so its row waits, drawn but not pressable. Below the rows, the version; tapping
-// it reveals the Developer Menu (Justin's 2026-09-04 frame) — the Design Kit, and
-// whatever tooling comes later. Only in development builds: store builds never carry
-// `__DEV__`, which is the "never on production" the frame asks for. Limiting it to one
-// account by email waits on accounts (Phase 5).
+// it reveals the Developer Menu (Justin's 2026-09-04 frame) — the Design Kit, the
+// workout diary, and whatever tooling comes later. It was `__DEV__`-only; since the
+// diary (2026-09-05) it opens in every build, because the build that goes to the gym
+// is a release build (no Metro) and that is the workout worth reading. The frame's
+// "never on production" comes back as gating by account email (Phase 5), when there is
+// a production.
+
+/** Every build, until Phase 5 gates the menu by account (see above). */
+const DEVELOPER_MENU = true;
 
 const ROWS = [
   { title: 'Equipment', caption: 'What you have access to', href: '/settings/equipment' },
@@ -67,7 +73,7 @@ export function SettingsScreen() {
             />
           ))}
         </View>
-        {__DEV__ && developerMenu && (
+        {DEVELOPER_MENU && developerMenu && (
           <View style={styles.developer}>
             <Text style={styles.developerTitle}>Developer Menu</Text>
             <Button
@@ -75,11 +81,12 @@ export function SettingsScreen() {
               title="Design Kit"
               variant="outline"
             />
+            <Button onPress={shareWorkoutDiary} title="Share workout diary" variant="outline" />
           </View>
         )}
         <Pressable
-          accessibilityRole={__DEV__ ? 'button' : undefined}
-          onPress={__DEV__ ? () => setDeveloperMenu((open) => !open) : undefined}
+          accessibilityRole={DEVELOPER_MENU ? 'button' : undefined}
+          onPress={DEVELOPER_MENU ? () => setDeveloperMenu((open) => !open) : undefined}
           style={styles.version}
         >
           <Text style={styles.versionText}>Version {Constants.expoConfig?.version ?? '—'}</Text>
@@ -116,3 +123,17 @@ const styles = StyleSheet.create({
   version: { alignSelf: 'center', padding: 12 },
   versionText: { ...type.caption, color: color.text.secondary },
 });
+
+/** The newest workout's diary (lib/db/session-log.ts) out through the share sheet, as
+ *  text — a real gym session, read afterwards. */
+function shareWorkoutDiary() {
+  const diary = loadLatestDiary();
+  if (!diary) {
+    Alert.alert('No workout yet', 'The diary starts with the first workout.');
+    return;
+  }
+  void Share.share({
+    title: 'WOLFSET workout diary',
+    message: formatDiary(diary.sessionStartedAt, diary.entries),
+  });
+}

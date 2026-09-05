@@ -10,7 +10,7 @@ import { STARTER_PLAN } from './seed-plan';
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 8;
+const VERSION = 9;
 
 let db: SQLiteDatabase | null = null;
 
@@ -197,6 +197,21 @@ function migrate(database: SQLiteDatabase) {
         -- the watch keeps its taps until the phone acks them, so a session resumed after
         -- a kill must still know which ones it already applied — never log a set twice.
         ALTER TABLE session_snapshot ADD COLUMN watch_tap_ack INTEGER NOT NULL DEFAULT 0;
+      `);
+    }
+    if (from < 9) {
+      database.execSync(`
+        -- The workout diary (lib/db/session-log.ts): what a session did, moment by
+        -- moment, for reading a real gym session after the fact. Grouped by the
+        -- session's start; the last few sessions are kept.
+        CREATE TABLE session_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_started_at INTEGER NOT NULL,
+          at INTEGER NOT NULL,
+          kind TEXT NOT NULL,
+          detail TEXT NOT NULL
+        );
+        CREATE INDEX session_log_session ON session_log (session_started_at, id);
       `);
     }
     database.execSync(`PRAGMA user_version = ${VERSION}`);
