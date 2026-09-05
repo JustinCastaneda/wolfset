@@ -1,5 +1,14 @@
 import { Image } from 'expo-image';
-import { ArrowRight, BookOpen, History, ListTree, Settings2, X } from 'lucide-react-native';
+import { router } from 'expo-router';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  History,
+  ListTree,
+  Settings2,
+  X,
+} from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,354 +58,359 @@ export default function DesignKit() {
   useEffect(() => onWatchAction((action) => setWatchTap(`${action.type} ${action.reps}`)), []);
   if (!__DEV__) return null;
   return (
-    <ScrollView
-      style={styles.root}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
-      ]}
-    >
-      <Text style={styles.h1}>Design Kit</Text>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      {/* The way out (Justin, 2026-09-04: #61 left no way to leave the kit). Back to the
+          Developer Menu it came from; a deep link with nothing behind it lands on home. */}
+      <TopBar
+        left={<ArrowLeft color={color.text.primary} size={24} />}
+        onPressLeft={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        title="Settings • Developer Menu"
+      />
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
+        <Text style={styles.h1}>Design Kit</Text>
 
-      {/* Dev seam for the watch pipeline: pushes a sample through the same native path a
+        {/* Dev seam for the watch pipeline: pushes a sample through the same native path a
           watch message takes, so the timer's HR states can be exercised without a watch.
           A session left open underneath (push this route from the timer) receives it. */}
-      <Text style={styles.section}>
-        Heart rate — inject a sample {WolfsetHr ? '' : '(native module not in this build)'}
-      </Text>
-      <View style={styles.chipRow}>
-        {[150, 130, 110].map((bpm) => (
+        <Text style={styles.section}>
+          Heart rate — inject a sample {WolfsetHr ? '' : '(native module not in this build)'}
+        </Text>
+        <View style={styles.chipRow}>
+          {[150, 130, 110].map((bpm) => (
+            <Button
+              disabled={!WolfsetHr}
+              key={bpm}
+              onPress={() => WolfsetHr?.debugInjectSample(bpm)}
+              size="small"
+              title={`${bpm} bpm`}
+              variant="secondary"
+            />
+          ))}
+        </View>
+
+        {/* Phone → watch: the same calls the session makes on mount and on finish. Handy for
+          a hardware check without running a workout. */}
+        <Text style={styles.section}>
+          Watch — start / stop the stream{watchReach ? ` (${watchReach})` : ''}
+        </Text>
+        <View style={styles.chipRow}>
           <Button
             disabled={!WolfsetHr}
-            key={bpm}
-            onPress={() => WolfsetHr?.debugInjectSample(bpm)}
+            onPress={() => void startWatch().then(setWatchReach)}
             size="small"
-            title={`${bpm} bpm`}
+            title="Start watch"
             variant="secondary"
           />
-        ))}
-      </View>
+          <Button
+            disabled={!WolfsetHr}
+            onPress={() => void stopWatch().then(setWatchReach)}
+            size="small"
+            title="Stop watch"
+            variant="secondary"
+          />
+        </View>
 
-      {/* Phone → watch: the same calls the session makes on mount and on finish. Handy for
-          a hardware check without running a workout. */}
-      <Text style={styles.section}>
-        Watch — start / stop the stream{watchReach ? ` (${watchReach})` : ''}
-      </Text>
-      <View style={styles.chipRow}>
-        <Button
-          disabled={!WolfsetHr}
-          onPress={() => void startWatch().then(setWatchReach)}
-          size="small"
-          title="Start watch"
-          variant="secondary"
-        />
-        <Button
-          disabled={!WolfsetHr}
-          onPress={() => void stopWatch().then(setWatchReach)}
-          size="small"
-          title="Stop watch"
-          variant="secondary"
-        />
-      </View>
-
-      {/* Phone → watch → phone: put a sample set or rest on the watch — what the session
+        {/* Phone → watch → phone: put a sample set or rest on the watch — what the session
           publishes on every change — then tap Log or Continue there; the tap shows up here.
           The whole wrist loop, without a workout. */}
-      <Text style={styles.section}>
-        Watch — show a set{watchTap ? ` · last tap: ${watchTap}` : ''}
-      </Text>
-      <View style={styles.chipRow}>
-        <Button
-          disabled={!WolfsetHr}
-          onPress={() => showOnWatch(JSON.stringify(KIT_SET))}
-          size="small"
-          title="Set 135×5"
-          variant="secondary"
-        />
-        <Button
-          disabled={!WolfsetHr}
-          onPress={() =>
-            showOnWatch(
-              JSON.stringify({
-                ...KIT_SET,
-                screen: 'rest',
-                setsDone: 1,
-                restEndsAt: Date.now() + 90_000,
-              }),
-            )
-          }
-          size="small"
-          title="Rest 90 s"
-          variant="secondary"
-        />
-        <Button
-          disabled={!WolfsetHr}
-          onPress={() => showOnWatch(JSON.stringify({ screen: 'none' }))}
-          size="small"
-          title="Clear"
-          variant="secondary"
-        />
-      </View>
-
-      {/* The native rest timer on its own: arm a short rest, lock the screen, wait for the
-          buzz and the ding at zero — the only alert. */}
-      <Text style={styles.section}>Rest timer — native, 20 s</Text>
-      <View style={styles.chipRow}>
-        <Button
-          disabled={!WolfsetHr}
-          onPress={() =>
-            void ensureRestPermissions().then((ok) => {
-              if (ok) armRestTimer(Date.now() + 20_000);
-            })
-          }
-          size="small"
-          title="Arm 20 s"
-          variant="secondary"
-        />
-        <Button
-          disabled={!WolfsetHr}
-          onPress={disarmRestTimer}
-          size="small"
-          title="Disarm"
-          variant="secondary"
-        />
-      </View>
-
-      <Text style={styles.section}>Button — Solid · Outline · Ghost · Secondary</Text>
-      {(['solid', 'outline', 'ghost', 'secondary'] as const).map((variant) => (
-        <View key={variant} style={styles.group}>
-          <Button title={`${variant} large`} variant={variant} size="large" />
-          <Button title={`${variant} small`} variant={variant} size="small" />
-          <Button title="disabled" variant={variant} size="small" disabled />
-        </View>
-      ))}
-      <Text style={styles.caption}>Icon-only — the hub row’s arrow (34:1520)</Text>
-      <View style={styles.chipRow}>
-        <Button
-          accessibilityLabel="Start"
-          leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
-          size="small"
-        />
-        <Button
-          accessibilityLabel="Start"
-          leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
-          size="small"
-          variant="secondary"
-        />
-        <Button
-          accessibilityLabel="Start"
-          disabled
-          leftIcon={<ArrowRight color={color.text.disabled} size={24} />}
-          size="small"
-          variant="secondary"
-        />
-      </View>
-
-      <Text style={styles.section}>Chip — Brand · Muted · Outline (idle / selected)</Text>
-      {(['brand', 'muted', 'outline'] as const).map((variant) => (
-        <View key={variant} style={styles.chipRow}>
-          <Chip label={variant} variant={variant} size="small" />
-          <Chip label={variant} variant={variant} size="small" selected />
-          <Chip label={variant} variant={variant} size="large" />
-          <Chip label={variant} variant={variant} size="large" selected />
-        </View>
-      ))}
-      <Text style={styles.caption}>Toggleable — tap to select, hold to see the press shade</Text>
-      <ToggleChipsDemo />
-
-      <Text style={styles.section}>Radio Card — default · selected (tap to move)</Text>
-      <RadioCardDemo />
-      <Text style={styles.caption}>Checklist — the Settings look, any number checked</Text>
-      <ChecklistDemo />
-
-      <Text style={styles.section}>Segmented Buttons — the unit toggle</Text>
-      <SegmentedDemo />
-
-      <Text style={styles.section}>Stepper — Personal Info’s weight</Text>
-      <StepperDemo />
-
-      <Text style={styles.section}>
-        Button Group — 1 · 3 · 5 · 10 · custom (pencil opens a keypad)
-      </Text>
-      <ButtonGroupDemo />
-
-      <Text style={styles.section}>List Item — leading · trailing · accent caption · tag</Text>
-      <ListItem
-        caption="Barbell • Legs, Back"
-        title="Deadlift"
-        trailing={<Button size="small" title="Go" />}
-      />
-      <ListItem
-        caption="Squat • Overhead Press • Deadlift"
-        title="Workout A"
-        titleTag="Up Next"
-        trailing={
+        <Text style={styles.section}>
+          Watch — show a set{watchTap ? ` · last tap: ${watchTap}` : ''}
+        </Text>
+        <View style={styles.chipRow}>
           <Button
-            accessibilityLabel="Start Workout A"
+            disabled={!WolfsetHr}
+            onPress={() => showOnWatch(JSON.stringify(KIT_SET))}
+            size="small"
+            title="Set 135×5"
+            variant="secondary"
+          />
+          <Button
+            disabled={!WolfsetHr}
+            onPress={() =>
+              showOnWatch(
+                JSON.stringify({
+                  ...KIT_SET,
+                  screen: 'rest',
+                  setsDone: 1,
+                  restEndsAt: Date.now() + 90_000,
+                }),
+              )
+            }
+            size="small"
+            title="Rest 90 s"
+            variant="secondary"
+          />
+          <Button
+            disabled={!WolfsetHr}
+            onPress={() => showOnWatch(JSON.stringify({ screen: 'none' }))}
+            size="small"
+            title="Clear"
+            variant="secondary"
+          />
+        </View>
+
+        {/* The native rest timer on its own: arm a short rest, lock the screen, wait for the
+          buzz and the ding at zero — the only alert. */}
+        <Text style={styles.section}>Rest timer — native, 20 s</Text>
+        <View style={styles.chipRow}>
+          <Button
+            disabled={!WolfsetHr}
+            onPress={() =>
+              void ensureRestPermissions().then((ok) => {
+                if (ok) armRestTimer(Date.now() + 20_000);
+              })
+            }
+            size="small"
+            title="Arm 20 s"
+            variant="secondary"
+          />
+          <Button
+            disabled={!WolfsetHr}
+            onPress={disarmRestTimer}
+            size="small"
+            title="Disarm"
+            variant="secondary"
+          />
+        </View>
+
+        <Text style={styles.section}>Button — Solid · Outline · Ghost · Secondary</Text>
+        {(['solid', 'outline', 'ghost', 'secondary'] as const).map((variant) => (
+          <View key={variant} style={styles.group}>
+            <Button title={`${variant} large`} variant={variant} size="large" />
+            <Button title={`${variant} small`} variant={variant} size="small" />
+            <Button title="disabled" variant={variant} size="small" disabled />
+          </View>
+        ))}
+        <Text style={styles.caption}>Icon-only — the hub row’s arrow (34:1520)</Text>
+        <View style={styles.chipRow}>
+          <Button
+            accessibilityLabel="Start"
             leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
             size="small"
           />
-        }
-      />
-      <ListItem caption="Reps First • Plan Default" title="Progression" />
-      <ListItem
-        caption="1:30 Rest"
-        captionAccent="Progression Override"
-        title="Bulgarian Split Squat"
-      />
-      <ListItem
-        caption="Press me: the chevron turns brand"
-        chevron
-        onPress={() => {}}
-        title="Equipment"
-      />
-      <ListItem caption="Goes nowhere yet" chevron title="Exercise Data" />
+          <Button
+            accessibilityLabel="Start"
+            leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
+            size="small"
+            variant="secondary"
+          />
+          <Button
+            accessibilityLabel="Start"
+            disabled
+            leftIcon={<ArrowRight color={color.text.disabled} size={24} />}
+            size="small"
+            variant="secondary"
+          />
+        </View>
 
-      <Text style={styles.section}>Exercise Row — defaults · progression override · current</Text>
-      <ExerciseRow
-        caption={
-          <>
-            <CaptionLead overrides={false} /> • 1:30 Rest
-          </>
-        }
-        indicator={<RowNumber n={1} />}
-        rx="5x5"
-        title="Bulgarian Split Squat"
-        weight={85}
-      />
-      <ExerciseRow
-        caption={
-          <>
-            <CaptionLead overrides /> • 1:30 Rest
-          </>
-        }
-        indicator={<RowNumber n={2} />}
-        rx="4x10"
-        title="Goblet Squat"
-        weight={50}
-      />
-      <ExerciseRow
-        caption={
-          <>
-            <CaptionLead overrides={false} /> • <Text style={styles.brand}>Up Next</Text>
-          </>
-        }
-        current
-        indicator={<RowNumber n={3} />}
-        onPress={() => {}}
-        rx="5x6"
-        title="Front Squat"
-        weight={90}
-      />
+        <Text style={styles.section}>Chip — Brand · Muted · Outline (idle / selected)</Text>
+        {(['brand', 'muted', 'outline'] as const).map((variant) => (
+          <View key={variant} style={styles.chipRow}>
+            <Chip label={variant} variant={variant} size="small" />
+            <Chip label={variant} variant={variant} size="small" selected />
+            <Chip label={variant} variant={variant} size="large" />
+            <Chip label={variant} variant={variant} size="large" selected />
+          </View>
+        ))}
+        <Text style={styles.caption}>Toggleable — tap to select, hold to see the press shade</Text>
+        <ToggleChipsDemo />
 
-      <Text style={styles.section}>Confirm sheet — the drawer every workout-ender opens</Text>
-      <ConfirmSheetDemo />
+        <Text style={styles.section}>Radio Card — default · selected (tap to move)</Text>
+        <RadioCardDemo />
+        <Text style={styles.caption}>Checklist — the Settings look, any number checked</Text>
+        <ChecklistDemo />
 
-      <Text style={styles.section}>Input — default · filled · error · required + count</Text>
-      <View style={styles.group}>
-        <Input label="Label" placeholder="Placeholder Text" />
-        <Input label="Email" value="justin@brethrenstudios.com" onChangeText={() => {}} />
-        <Input label="Weight" required error helperText="Enter a weight" placeholder="0" />
-        <CountedInputDemo />
-      </View>
+        <Text style={styles.section}>Segmented Buttons — the unit toggle</Text>
+        <SegmentedDemo />
 
-      <Text style={styles.section}>Top Bar — mark · centered · left-aligned (lucide chrome)</Text>
-      <TopBar
-        left={
+        <Text style={styles.section}>Stepper — Personal Info’s weight</Text>
+        <StepperDemo />
+
+        <Text style={styles.section}>
+          Button Group — 1 · 3 · 5 · 10 · custom (pencil opens a keypad)
+        </Text>
+        <ButtonGroupDemo />
+
+        <Text style={styles.section}>List Item — leading · trailing · accent caption · tag</Text>
+        <ListItem
+          caption="Barbell • Legs, Back"
+          title="Deadlift"
+          trailing={<Button size="small" title="Go" />}
+        />
+        <ListItem
+          caption="Squat • Overhead Press • Deadlift"
+          title="Workout A"
+          titleTag="Up Next"
+          trailing={
+            <Button
+              accessibilityLabel="Start Workout A"
+              leftIcon={<ArrowRight color={color.text.onButton} size={24} />}
+              size="small"
+            />
+          }
+        />
+        <ListItem caption="Reps First • Plan Default" title="Progression" />
+        <ListItem
+          caption="1:30 Rest"
+          captionAccent="Progression Override"
+          title="Bulgarian Split Squat"
+        />
+        <ListItem
+          caption="Press me: the chevron turns brand"
+          chevron
+          onPress={() => {}}
+          title="Equipment"
+        />
+        <ListItem caption="Goes nowhere yet" chevron title="Exercise Data" />
+
+        <Text style={styles.section}>Exercise Row — defaults · progression override · current</Text>
+        <ExerciseRow
+          caption={
+            <>
+              <CaptionLead overrides={false} /> • 1:30 Rest
+            </>
+          }
+          indicator={<RowNumber n={1} />}
+          rx="5x5"
+          title="Bulgarian Split Squat"
+          weight={85}
+        />
+        <ExerciseRow
+          caption={
+            <>
+              <CaptionLead overrides /> • 1:30 Rest
+            </>
+          }
+          indicator={<RowNumber n={2} />}
+          rx="4x10"
+          title="Goblet Squat"
+          weight={50}
+        />
+        <ExerciseRow
+          caption={
+            <>
+              <CaptionLead overrides={false} /> • <Text style={styles.brand}>Up Next</Text>
+            </>
+          }
+          current
+          indicator={<RowNumber n={3} />}
+          onPress={() => {}}
+          rx="5x6"
+          title="Front Squat"
+          weight={90}
+        />
+
+        <Text style={styles.section}>Confirm sheet — the drawer every workout-ender opens</Text>
+        <ConfirmSheetDemo />
+
+        <Text style={styles.section}>Input — default · filled · error · required + count</Text>
+        <View style={styles.group}>
+          <Input label="Label" placeholder="Placeholder Text" />
+          <Input label="Email" value="justin@brethrenstudios.com" onChangeText={() => {}} />
+          <Input label="Weight" required error helperText="Enter a weight" placeholder="0" />
+          <CountedInputDemo />
+        </View>
+
+        <Text style={styles.section}>Top Bar — mark · centered · left-aligned (lucide chrome)</Text>
+        <TopBar
+          left={
+            <Image
+              contentFit="contain"
+              source={require('../../assets/brand/wolfset-mark.svg')}
+              style={styles.mark}
+            />
+          }
+          right={<Settings2 color={color.text.primary} size={24} />}
+          title=""
+        />
+        <TopBar
+          left={<ListTree color={color.text.primary} size={24} />}
+          right={<X color={color.text.primary} size={24} />}
+          title="Plan A • Squat • 4/5"
+        />
+        <TopBar
+          align="left"
+          right={<Settings2 color={color.text.primary} size={24} />}
+          title="Plan A • Squat • 4/5"
+        />
+
+        <Text style={styles.section}>Icon Card — enabled · disabled (the hub tiles)</Text>
+        <View style={styles.chipRow}>
+          <IconCard
+            icon={<BookOpen color={color.text.primary} size={32} />}
+            label={'Edit Current\nMesoCycle'}
+            onPress={() => {}}
+          />
+          <IconCard
+            disabled
+            icon={<History color={color.text.disabled} size={32} />}
+            label={'Workout\nHistory'}
+          />
+        </View>
+
+        <Text style={styles.section}>Week strip — two days · none</Text>
+        <View style={styles.kitWeek}>
+          <WeekStrip week={suggestedWeek(2)} />
+          <WeekStrip week={suggestedWeek(0)} />
+        </View>
+
+        <Text style={styles.section}>Timer ring — resting · approaching · ready</Text>
+        <View style={styles.chipRow}>
+          <TimerRing progress={0.85} size={100} zone="resting" />
+          <TimerRing progress={0.45} size={100} zone="approaching" />
+          <TimerRing progress={0.12} size={100} zone="ready" />
+        </View>
+
+        <Text style={styles.section}>Sets bar — 5 done, 1 current, 2 up</Text>
+        <SegmentedProgress done={5} total={8} />
+
+        <Text style={styles.section}>Weight readout — up · down · unchanged</Text>
+        <WeightReadout unit="Lbs" value={245} was={200} />
+        <WeightReadout unit="Lbs" value={195} was={205} />
+        <WeightReadout unit="Lbs" value={135} />
+
+        <Text style={styles.section}>Keypad</Text>
+        <Keypad onKey={() => {}} />
+
+        <Text style={styles.section}>
+          Brand — mark · watermark logo · slashes (opacity baked in)
+        </Text>
+        <View style={styles.chipRow}>
           <Image
             contentFit="contain"
             source={require('../../assets/brand/wolfset-mark.svg')}
             style={styles.mark}
           />
-        }
-        right={<Settings2 color={color.text.primary} size={24} />}
-        title=""
-      />
-      <TopBar
-        left={<ListTree color={color.text.primary} size={24} />}
-        right={<X color={color.text.primary} size={24} />}
-        title="Plan A • Squat • 4/5"
-      />
-      <TopBar
-        align="left"
-        right={<Settings2 color={color.text.primary} size={24} />}
-        title="Plan A • Squat • 4/5"
-      />
-
-      <Text style={styles.section}>Icon Card — enabled · disabled (the hub tiles)</Text>
-      <View style={styles.chipRow}>
-        <IconCard
-          icon={<BookOpen color={color.text.primary} size={32} />}
-          label={'Edit Current\nMesoCycle'}
-          onPress={() => {}}
-        />
-        <IconCard
-          disabled
-          icon={<History color={color.text.disabled} size={32} />}
-          label={'Workout\nHistory'}
-        />
-      </View>
-
-      <Text style={styles.section}>Week strip — two days · none</Text>
-      <View style={styles.kitWeek}>
-        <WeekStrip week={suggestedWeek(2)} />
-        <WeekStrip week={suggestedWeek(0)} />
-      </View>
-
-      <Text style={styles.section}>Timer ring — resting · approaching · ready</Text>
-      <View style={styles.chipRow}>
-        <TimerRing progress={0.85} size={100} zone="resting" />
-        <TimerRing progress={0.45} size={100} zone="approaching" />
-        <TimerRing progress={0.12} size={100} zone="ready" />
-      </View>
-
-      <Text style={styles.section}>Sets bar — 5 done, 1 current, 2 up</Text>
-      <SegmentedProgress done={5} total={8} />
-
-      <Text style={styles.section}>Weight readout — up · down · unchanged</Text>
-      <WeightReadout unit="Lbs" value={245} was={200} />
-      <WeightReadout unit="Lbs" value={195} was={205} />
-      <WeightReadout unit="Lbs" value={135} />
-
-      <Text style={styles.section}>Keypad</Text>
-      <Keypad onKey={() => {}} />
-
-      <Text style={styles.section}>Brand — mark · watermark logo · slashes (opacity baked in)</Text>
-      <View style={styles.chipRow}>
-        <Image
-          contentFit="contain"
-          source={require('../../assets/brand/wolfset-mark.svg')}
-          style={styles.mark}
-        />
-        <Image
-          contentFit="contain"
-          source={require('../../assets/brand/wolfset-watermark-logo.svg')}
-          style={styles.watermark}
-        />
-        <Image
-          contentFit="contain"
-          source={require('../../assets/brand/wolfset-watermark-slashes.svg')}
-          style={styles.watermark}
-        />
-      </View>
-
-      <Text style={styles.section}>Type scale — Geom</Text>
-      {Object.entries(type).map(([name, style]) => (
-        <Text key={name} numberOfLines={1} style={[style, styles.sample]}>
-          {name} {style.fontSize}px
-        </Text>
-      ))}
-
-      <Text style={styles.section}>Palette</Text>
-      {Object.entries(palette).map(([scale, steps]) => (
-        <View key={scale} style={styles.chipRow}>
-          {Object.entries(steps).map(([step, hex]) => (
-            <View key={step} style={[styles.swatch, { backgroundColor: hex }]} />
-          ))}
-          <Text style={styles.swatchLabel}>{scale}</Text>
+          <Image
+            contentFit="contain"
+            source={require('../../assets/brand/wolfset-watermark-logo.svg')}
+            style={styles.watermark}
+          />
+          <Image
+            contentFit="contain"
+            source={require('../../assets/brand/wolfset-watermark-slashes.svg')}
+            style={styles.watermark}
+          />
         </View>
-      ))}
-    </ScrollView>
+
+        <Text style={styles.section}>Type scale — Geom</Text>
+        {Object.entries(type).map(([name, style]) => (
+          <Text key={name} numberOfLines={1} style={[style, styles.sample]}>
+            {name} {style.fontSize}px
+          </Text>
+        ))}
+
+        <Text style={styles.section}>Palette</Text>
+        {Object.entries(palette).map(([scale, steps]) => (
+          <View key={scale} style={styles.chipRow}>
+            {Object.entries(steps).map(([step, hex]) => (
+              <View key={step} style={[styles.swatch, { backgroundColor: hex }]} />
+            ))}
+            <Text style={styles.swatchLabel}>{scale}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -547,7 +561,7 @@ const KIT_SET: WatchView = {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg.base },
-  content: { paddingHorizontal: 16, gap: 12 },
+  content: { paddingHorizontal: 16, paddingTop: 8, gap: 12 },
   h1: { ...type.h1, color: color.text.primary },
   section: { ...type.label, color: color.text.secondary, marginTop: 16 },
   brand: { color: color.brand },
