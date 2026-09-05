@@ -2,7 +2,8 @@ import { requireOptionalNativeModule, type NativeModule } from 'expo-modules-cor
 
 // The JS face of the native seam (CLAUDE.md: one Kotlin module on the phone). Today it
 // carries heart-rate samples and taps from the watch, the session's start/stop of the
-// watch's stream, the session's view for the watch screen, and the doze-proof rest timer.
+// watch's stream, the session's view for the watch screen, and the workout's foreground
+// service — which keeps the session running off screen and is the doze-proof rest timer.
 // Optional because it only exists on Android with the watch pipeline compiled in — on
 // iOS, in tests, or in a build without it, `WolfsetHr` is null and the app runs without
 // a signal.
@@ -55,10 +56,16 @@ declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
   hasRestPermissions(): boolean;
   /** Ask for them; resolves true when all granted. */
   requestRestPermissions(): Promise<boolean>;
+  /** Hold the workout's foreground service — "Workout in progress · <title>" in the
+   *  shade — so the session keeps running with the app off screen or the phone in a
+   *  pocket. Idempotent; a second call renames the notification. */
+  startWorkout(title: string): void;
+  /** Release it — the session closed. */
+  endWorkout(): void;
   /** Arm the doze-proof rest timer: wake lock, countdown notification, buzz and ding at
    *  `endsAtMs` — the only alert; recovering early is shown, never announced. */
   startRest(endsAtMs: number): void;
-  /** Disarm it — the rest ended (timer, Continue, workout over, screen left). */
+  /** Disarm it — the rest ended (timer, Continue, workout over, skipped). */
   endRest(): void;
 }
 

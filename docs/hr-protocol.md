@@ -34,8 +34,11 @@ The phone stamps `phoneRecvMs` on arrival.
 ## Control message (phone → watch)
 
 `MessageClient` message, path **`/wolfset/control`**, plain-text body `start` or `stop`.
-The phone's session sends `start` when the workout screen mounts and `stop` when the
-session finishes or the screen is left — the user never taps the watch (2026-09-03).
+The phone's session sends `start` when it starts — on the phone, or from the watch — and
+`stop` when it is over — the user never taps the watch (2026-09-03). Leaving the session
+screen on the phone no longer stops anything: the session lives outside the screen
+(`features/set-loop/session-controller.ts`, 2026-09-05) and keeps running, and streaming,
+until Finish on either surface or another day replaces it.
 
 On the watch, `PhoneListenerService` handles it:
 
@@ -113,12 +116,29 @@ soon as the phone publishes a different set.
 - `finish` — Finish on Session Done. Not a machine event: the phone leaves the session
   screen, exactly as its own Finish does, which clears the watch;
 - `startWorkout` — Next Workout on the Watch Tile (`123:3440`), the watch's opening screen
-  whenever there is no session. Not a machine event either: the phone opens its session
-  screen on the plan's up-next day (the hub's arrow), from whichever screen it is on, and
-  the session's first view is what moves the watch on. Ignored while the session screen is
-  already up, or with no plan day to run. The phone app has to be running — the Data
-  Layer wakes the native listener, not React — so a phone whose app was swiped away does
-  nothing, and the tile's button simply comes back after its 4 s wait.
+  whenever there is no session. Not a machine event either: the phone starts the session
+  on the plan's up-next day (the hub's arrow) — or resumes the one under way — and the
+  session's first view is what moves the watch on. With the app on screen, it also opens
+  the session screen. Ignored with no plan day to run. **The phone app need not be
+  running** (the phone-less workout, 2026-09-05): the Data Layer wakes the native
+  listener (`HrListenerService`), which starts the workout's foreground service
+  (`WorkoutService`); that service boots JavaScript when none is running and hands it the
+  action through a React Native headless task, and the session starts from the plan
+  exactly as if the screen had. The service then holds the process for the whole workout
+  ("Workout in progress" in the shade), so a phone in a pocket keeps taking the watch's
+  taps. The one thing Android may refuse is the service start itself from the background
+  (Android 12+ — the emulator refuses it for a shell-broadcast-woken app; whether a Play
+  services delivery counts differently is the hardware question). When it does, the phone
+  posts "Workout A from your watch — tap once so it can run with the phone in your pocket",
+  whose tap opens the session screen (a user action, always allowed), which holds the
+  service from the foreground; with the app alive in the background the session has
+  already started and the watch already flipped — only the protection is missing. The
+  wrist is never a dead end, but that path lights the phone up once. Allowing WOLFSET
+  unrestricted battery use (Settings → Apps → WOLFSET → Battery) is Android's own
+  exemption and removes the refusal entirely (`dumpsys deviceidle whitelist +app.wolfset`
+  on an emulator — with it, the emulator booted a dead app and had the session published
+  in ~2 s, 2026-09-05). The tile's button comes back after its 4 s wait either way; a boot
+  from dead may take longer than that, and the Set screen then arrives on its own.
 
 The phone's session turns each into the same machine event its own button sends
 (`watchActionToEvent`), so a late or repeated tap is a no-op by the machine's guards: a
