@@ -48,6 +48,13 @@ data class SessionView(
     val exercisesDone: Int,
     /** "idle" only: wall-clock ms (the phone's clock) when the workout ends by itself. */
     val idleEndsAt: Long,
+    /** The highest of the watch's tap ids the phone has taken (PendingTaps). */
+    val tapAck: Long,
+    /** Wall-clock ms when the session started — the watch's own Session Done clock. */
+    val startedAt: Long,
+    /** False for a view the watch worked out itself from taps the phone has not taken
+     *  yet (PendingTaps.project): the summary's numbers are unknown, shown as "––". */
+    val synced: Boolean = true,
 ) {
     val isRest: Boolean get() = screen == SCREEN_REST
     val isDone: Boolean get() = screen == SCREEN_DONE
@@ -56,7 +63,7 @@ data class SessionView(
     /** One plan day: its lifts as they would start, weights already progressed. */
     data class DayView(val order: Int, val name: String, val lifts: List<LiftView>)
 
-    data class LiftView(val name: String, val weight: Double, val sets: Int, val reps: Int)
+    data class LiftView(val name: String, val weight: Double, val sets: Int, val reps: Int, val rest: Int)
 
     companion object {
         const val SCREEN_SET = "set"
@@ -98,6 +105,8 @@ data class SessionView(
                 avgBpm = o.optDouble("avgBpm", 0.0),
                 exercisesDone = o.optInt("exercisesDone", 0),
                 idleEndsAt = o.optLong("idleEndsAt", 0L),
+                tapAck = o.optLong("tapAck", 0L),
+                startedAt = o.optLong("startedAt", 0L),
             )
         }
 
@@ -116,6 +125,7 @@ data class SessionView(
                             weight = l.optDouble("weight", 0.0),
                             sets = l.optInt("sets", 0),
                             reps = l.optInt("reps", 0),
+                            rest = l.optInt("rest", 0),
                         )
                     },
                 )

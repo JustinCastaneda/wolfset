@@ -599,6 +599,15 @@ Per flow: 🤖 build → 👤 review → 👤 use in a real session → 🤝 fix
       as it stands at the last activity's time and closes on both surfaces; three hours is
       the ceiling. Everything logged is credit; a forgotten Finish is a clean finish
       (`features/set-loop/idle.ts`, decisions.md)
+- [x] 🤖 **Queued watch taps — never lose a set** (2026-09-05, Massiv-style, Justin's ask):
+      the loop's taps travel as a Data Layer item the watch owns (`/wolfset/taps`), kept
+      until the phone's next view acks them by id, so a Log with the phone in a locker
+      lands when the two meet again — at the time it was tapped, once, with the rests
+      that ran out in between ended first. The wrist draws the loop as the queued taps
+      leave it (`wear/.../PendingTaps.kt`: pips, its own rest from the tap, the next lift
+      from the day, Session Done with the time) and says "Phone out of reach · saved on
+      watch" after four seconds. The forgotten-workout clock holds while the watch is out
+      of reach and forgives the outage when it returns. `docs/hr-protocol.md`
 - [ ] 🤝 **Adjust Weight (swipe up)** — needs design first
 - [x] 🤖 **Change Workout** (`164:4192` → `123:3251`, 2026-09-03) — the plan's days, the
       running one marked Current, the others with the arrow button to a preview whose

@@ -22,7 +22,9 @@ import com.google.android.gms.wearable.WearableListenerService
  * auto-start extra). "stop" always stops; the session is over.
  *
  * Session (`/wolfset/session`): the phone's view of the loop — which set, which rest —
- * lands in WatchState and the screen redraws. A deleted or "none" item clears it.
+ * lands in WatchState and the screen redraws. A deleted or "none" item clears it. Every
+ * view also says which of the watch's taps the phone has taken, and the queue kept for
+ * it (PendingTaps) lets those go.
  */
 class PhoneListenerService : WearableListenerService() {
 
@@ -48,6 +50,7 @@ class PhoneListenerService : WearableListenerService() {
             }
             Log.i(TAG, "session view: ${view?.screen ?: "none"}")
             WatchState.update { it.copy(session = view) }
+            PendingTaps.trim(this, view)
         }
     }
 

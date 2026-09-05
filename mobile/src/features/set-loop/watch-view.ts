@@ -17,6 +17,9 @@ export type WatchView =
   /** Session Done (164:4712), until Finish — on either surface — leaves. */
   | {
       screen: 'done';
+      /** The highest watch tap id the session has taken (session-controller.ts): the
+       *  watch drops every tap up to it from the queue it keeps for the phone. */
+      tapAck: number;
       durationSeconds: number;
       /** Σ weight × reps, the phone's Total Weight. */
       volume: number;
@@ -29,6 +32,10 @@ export type WatchView =
       /** `idle`: "Still lifting?" over the set or rest (idle.ts) — the loop is unchanged
        *  underneath; Continue on the watch answers it, End is the usual End Workout. */
       screen: 'set' | 'rest' | 'idle';
+      tapAck: number;
+      /** Wall-clock ms when the session started — the watch's own Session Done clock
+       *  while the phone is out of range. */
+      startedAt: number;
       /** 1-based position in the workout — "01 • Squat". */
       exerciseNo: number;
       exercise: string;
@@ -55,6 +62,8 @@ export type WatchView =
       reps: number;
       /** Wall-clock ms when the rest ends; 0 outside a rest. */
       restEndsAt: number;
+      /** Length of the rest — the running one, or the one the next Log would start,
+       *  so a watch with no phone in reach can count its own. */
       restSeconds: number;
       /** The gate's verdict for this rest: arms Continue on the watch, never presses it. */
       recovered: boolean;
@@ -68,7 +77,7 @@ export type WatchView =
 export type WatchDay = {
   order: number;
   name: string;
-  lifts: { name: string; weight: number; sets: number; reps: number }[];
+  lifts: { name: string; weight: number; sets: number; reps: number; rest: number }[];
 };
 
 /** What the summary needs that the machine does not hold: the session clock and the
@@ -85,12 +94,15 @@ export function watchView(
   plan: SessionDays,
   /** Set while "Still lifting?" is being asked: when the workout ends unanswered. */
   idleEndsAt = 0,
+  /** The highest watch tap id taken so far (0 before any). */
+  tapAck = 0,
 ): WatchView {
   const phase = state.phase;
   if (phase.name === 'done') {
     const logged = new Set(state.sets.map((s) => s.exerciseIndex));
     return {
       screen: 'done',
+      tapAck,
       durationSeconds: Math.max(0, Math.floor((clock.now - clock.startedAt) / 1000)),
       volume: sessionTotals(state).volume,
       avgBpm: clock.avgBpm === null ? null : Math.round(clock.avgBpm),
@@ -104,6 +116,8 @@ export function watchView(
     // Editing the weight on the phone leaves the watch on the set; its Log would be
     // ignored by the machine until the edit closes, which is the phone's rule too.
     screen: idleEndsAt > 0 ? 'idle' : phase.name === 'resting' ? 'rest' : 'set',
+    tapAck,
+    startedAt: clock.startedAt,
     exerciseNo: state.exerciseIndex + 1,
     exercise: ex.name,
     setsDone: done,
@@ -122,13 +136,14 @@ export function watchView(
         weight: e.weight,
         sets: e.prescribedSets ?? 0,
         reps: e.targetReps,
+        rest: e.restSeconds,
       })),
     })),
     weight: ex.weight,
     unit: 'Lbs',
     reps: ex.targetReps,
     restEndsAt: restEndsAt(phase) ?? 0,
-    restSeconds: phase.name === 'resting' ? phase.restSeconds : 0,
+    restSeconds: phase.name === 'resting' ? phase.restSeconds : ex.restSeconds,
     recovered: phase.name === 'resting' && phase.recovered,
     recoveredBelowBpm: DEFAULT_THRESHOLDS.recoveredBelowBpm,
     approachingUpToBpm: DEFAULT_THRESHOLDS.approachingUpToBpm,

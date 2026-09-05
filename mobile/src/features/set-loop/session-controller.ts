@@ -4,6 +4,7 @@ import {
   EMPTY_STREAM,
   currentBpm,
   ingest,
+  isStale,
   meanBpm,
   type HrStreamState,
 } from '@/features/hr/hr-stream';
@@ -13,7 +14,14 @@ import { advanceNextDay, loadActivePlan, setNextDay } from '@/lib/db/plan-store'
 import { loadAllProgress, saveProgress } from '@/lib/db/progress-store';
 import { loadSnapshot, saveSnapshot } from '@/lib/db/session-store';
 import { abandonSavedSession, endSessionNow, storeFinishedSession } from './end-session';
-import { idleEndsAt, idleVerdict, isLifterActivity, nextIdleCheckAt } from './idle';
+import {
+  MAX_WORKOUT_MS,
+  activityAfterOutage,
+  idleEndsAt,
+  idleVerdict,
+  isLifterActivity,
+  nextIdleCheckAt,
+} from './idle';
 import { isUntouched, reduce, startSession } from './machine';
 import {
   armRestTimer,
@@ -46,6 +54,12 @@ import { watchActionToEvent, watchView } from './watch-view';
 // to close), the settlement when the session is over, and the forgotten-workout clock
 // (idle.ts): twenty idle minutes ask "Still lifting?", thirty end it. Leaving the screen
 // changes nothing; only Finish — on either surface — or starting another day closes it.
+//
+// The watch's taps are kept on the wrist until this session acks them (docs/hr-protocol.md,
+// `/wolfset/taps`): a Log with the phone in a locker is logged here when the phone is back
+// in reach, at the moment it was tapped, once. So a queued tap is applied against the
+// session as it stood at that moment — a rest that had run out by then is ended first —
+// and the highest id taken rides in the watch's view as the ack.
 
 /** The session as the screen sees it; a new object on every change, so React can tell. */
 export type LiveSession = {
@@ -63,6 +77,8 @@ export type LiveSession = {
   lastActivityAt: number;
   /** "Still lifting?" is being asked: when the workout ends unless they answer. */
   idlePromptEndsAt: number | null;
+  /** The highest watch tap id taken (0 before any) — the watch's queue drops up to it. */
+  watchTapAck: number;
 };
 
 /** Every prescribed set answered and every poke grid too: the session is over. */
@@ -98,6 +114,7 @@ function publish() {
           { startedAt: live.startedAt, now: Date.now(), avgBpm: live.avgBpm },
           { dayOrder: live.day.order, days: live.days },
           live.idlePromptEndsAt ?? 0,
+          live.watchTapAck,
         )
       : { screen: 'none' },
   );
@@ -143,7 +160,7 @@ function afterChange() {
   if (!live) return;
   const now = Date.now();
   if (isSessionOver(live.state)) settle(now);
-  else saveSnapshot(live.state, live.startedAt, now);
+  else saveSnapshot(live.state, live.startedAt, now, live.watchTapAck);
   syncRest();
   scheduleIdleCheck();
   publish();
@@ -168,15 +185,24 @@ function touch(at: number) {
   if (asked) dismissStillLifting();
 }
 
+/** The watch streamed this session and has gone quiet: it is out of the phone's reach
+ *  (the locker), not the lifter idle — its taps are queued on the wrist. */
+function isWatchAway(now: number): boolean {
+  return stream.at !== null && isStale(stream, now);
+}
+
 /** The forgotten-workout clock (idle.ts). A JS timer aims at the next boundary, and
  *  every heart-rate sample re-checks too — with the phone asleep in a pocket the timer
- *  may drift, but the watch's samples keep arriving as long as it streams. */
+ *  may drift, but the watch's samples keep arriving as long as it streams. While the
+ *  watch is away only the ceiling counts; its return moves the clock on (onSample). */
 function scheduleIdleCheck() {
   if (idleTimer !== null) clearTimeout(idleTimer);
   idleTimer = null;
   if (!live) return;
   const now = Date.now();
-  const next = nextIdleCheckAt(live.lastActivityAt, live.startedAt, now);
+  const next = isWatchAway(now)
+    ? live.startedAt + MAX_WORKOUT_MS
+    : nextIdleCheckAt(live.lastActivityAt, live.startedAt, now);
   if (next === null) return;
   idleTimer = setTimeout(checkIdle, Math.max(0, next - now));
 }
@@ -184,6 +210,10 @@ function scheduleIdleCheck() {
 function checkIdle() {
   if (!live) return;
   const now = Date.now();
+  if (isWatchAway(now) && now < live.startedAt + MAX_WORKOUT_MS) {
+    scheduleIdleCheck();
+    return;
+  }
   switch (idleVerdict(live.lastActivityAt, live.startedAt, now)) {
     case 'active':
       return;
@@ -222,8 +252,29 @@ function autoEnd(at: number) {
 function onSample(sample: HrSample) {
   if (!live) return;
   const now = Date.now();
+  // The watch is back from an outage: the silence was the locker, not the lifter.
+  const silentFrom = stream.at;
+  const wasAway = isWatchAway(now);
   stream = ingest(stream, sample, now);
   live = { ...live, avgBpm: meanBpm(stream) };
+  if (wasAway && silentFrom !== null) {
+    live = {
+      ...live,
+      lastActivityAt: activityAfterOutage(live.lastActivityAt, silentFrom, now),
+    };
+    // A "Still lifting?" posted during the outage was aimed at nobody: withdraw it if
+    // the moved clock no longer calls for it, and re-aim the timer either way.
+    if (
+      live.idlePromptEndsAt !== null &&
+      idleVerdict(live.lastActivityAt, live.startedAt, now) === 'active'
+    ) {
+      touch(live.lastActivityAt);
+      afterChange();
+    } else {
+      scheduleIdleCheck();
+    }
+    if (!live) return;
+  }
   // The stream is a heartbeat for the forgotten-workout clock (scheduleIdleCheck).
   if (idleVerdict(live.lastActivityAt, live.startedAt, now) !== 'active') {
     checkIdle();
@@ -243,17 +294,37 @@ function onWatch(action: WatchAction) {
   if (!live) return;
   // Next Workout is the entry handler's (installWatchStart); here the session is live.
   if (action.type === 'startWorkout') return;
+  // A queued tap: taken once, by id, and acked in the next view even when it changes
+  // nothing — the watch keeps it until then. One from before this session (a leftover
+  // of a workout the phone closed while the watch was away) is acked and dropped.
+  const queued = action.id > 0;
+  if (queued) {
+    if (action.id <= live.watchTapAck) return;
+    live = { ...live, watchTapAck: action.id };
+    if (action.at < live.startedAt) {
+      afterChange();
+      return;
+    }
+  }
+  const before = live.state;
+  const at = queued ? Math.min(action.at, Date.now()) : Date.now();
+  applyWatchTap(action, at);
+  if (live && live.state === before && queued) afterChange();
+}
+
+function applyWatchTap(action: WatchAction, at: number) {
+  if (!live) return;
   if (action.type === 'finish') {
     if (isSessionOver(live.state)) close();
     return;
   }
   // Continue on the watch's "Still lifting?": back to the loop, clock restarted.
   if (action.type === 'stillLifting') {
-    touch(Date.now());
+    touch(at);
     afterChange();
     return;
   }
-  const event = watchActionToEvent(action, Date.now(), live.days);
+  const event = watchActionToEvent(action, at, live.days);
   if (!event) return;
   if (event.type === 'dayChanged') {
     // The machine only takes it while the workout is untouched; the plan's rotation and
@@ -264,8 +335,20 @@ function onWatch(action: WatchAction) {
     setNextDay(picked.dayId);
     live = { ...live, day: picked };
   }
+  // The tap was made against the loop as the watch showed it then: a rest that had run
+  // out by that moment had already moved the watch on to the next set, so it ends here
+  // first — otherwise the machine's guard would drop the Log as "during a rest". The
+  // watch's clock may run a touch ahead of the phone's; a Log that close to the end
+  // means the wrist saw the rest over.
+  const ends = restEndsAt(live.state.phase);
+  if (ends !== null && ends <= at + CLOCK_SKEW_MS) {
+    dispatch({ type: 'restEnded', reason: 'timer', at: Math.min(ends, at) });
+  }
   dispatch(event);
 }
+
+/** How far the watch's clock may lead the phone's before a tap reads as too early. */
+const CLOCK_SKEW_MS = 2_000;
 
 function close() {
   if (!live) return;
@@ -331,6 +414,7 @@ export const session = {
       // A resumed workout's clock starts now: the lifter just came back to it.
       lastActivityAt: now,
       idlePromptEndsAt: null,
+      watchTapAck: resumed ? resumed.watchTapAck : 0,
     };
     stream = EMPTY_STREAM;
     // The watch streams for the whole session (a resumed session starts it again —

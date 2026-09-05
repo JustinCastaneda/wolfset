@@ -10,7 +10,7 @@ import { STARTER_PLAN } from './seed-plan';
 //
 // Migrations: PRAGMA user_version, additive only. Bump VERSION, append a block.
 
-const VERSION = 7;
+const VERSION = 8;
 
 let db: SQLiteDatabase | null = null;
 
@@ -189,6 +189,14 @@ function migrate(database: SQLiteDatabase) {
           height_cm REAL
         );
         INSERT INTO profile (id) VALUES (1);
+      `);
+    }
+    if (from < 8) {
+      database.execSync(`
+        -- The highest watch tap id the live session has taken (session-controller.ts):
+        -- the watch keeps its taps until the phone acks them, so a session resumed after
+        -- a kill must still know which ones it already applied — never log a set twice.
+        ALTER TABLE session_snapshot ADD COLUMN watch_tap_ack INTEGER NOT NULL DEFAULT 0;
       `);
     }
     database.execSync(`PRAGMA user_version = ${VERSION}`);

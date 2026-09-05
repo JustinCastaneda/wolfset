@@ -93,6 +93,8 @@ class MainActivity : ComponentActivity() {
             } finally {
                 items.release()
             }
+            // The taps this watch still holds for the phone, if the process was gone.
+            PendingTaps.trim(this@MainActivity, WatchState.snapshot.value.session)
         }
     }
 

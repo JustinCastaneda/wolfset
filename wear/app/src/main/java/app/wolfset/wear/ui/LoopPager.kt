@@ -19,6 +19,7 @@ fun LoopPager(
     view: SessionView,
     bpm: Double?,
     now: Long,
+    waitingSince: Long?,
     ambient: Boolean,
     onLog: (reps: Int) -> Unit,
     onContinue: () -> Unit,
@@ -31,8 +32,10 @@ fun LoopPager(
     val wait = rememberPhoneWait(view)
     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize(), userScrollEnabled = !ambient) { page ->
         when {
-            page == 0 && view.isRest -> TimerScreen(view, bpm, now, ambient, onContinue)
-            page == 0 -> SetScreen(view, ambient, wait, onLog)
+            page == 0 && view.isRest -> TimerScreen(view, bpm, now, ambient, onContinue) {
+                OutOfReach(waitingSince, now)
+            }
+            page == 0 -> SetScreen(view, ambient, wait, onLog) { OutOfReach(waitingSince, now) }
             else -> ActionsScreen(
                 ambient = ambient,
                 enabled = !wait.waiting,

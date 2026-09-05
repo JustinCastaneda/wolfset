@@ -20,8 +20,9 @@
             android:foregroundServiceType="health" />
 
         <!-- Play services starts this on every watch message, whatever state the app is in —
-             samples land while the phone is in a pocket. Path prefix must match
-             docs/hr-protocol.md. -->
+             samples land while the phone is in a pocket — and on every change to the
+             watch's queue of taps, which is how a Log tapped out of reach arrives once the
+             two meet again. Paths must match docs/hr-protocol.md. -->
         <service
             android:name="app.wolfset.hr.HrListenerService"
             android:exported="true">
@@ -31,6 +32,13 @@
                     android:scheme="wear"
                     android:host="*"
                     android:pathPrefix="/wolfset" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/wolfset/taps" />
             </intent-filter>
         </service>
 

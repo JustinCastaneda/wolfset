@@ -21,6 +21,8 @@ object WatchState {
         val batching5s: Boolean = false,
         /** The phone's session, as last published; null = nothing to show but the idle screen. */
         val session: SessionView? = null,
+        /** Taps the phone has not taken yet, oldest first (PendingTaps). */
+        val pending: List<PendingTap> = emptyList(),
     ) {
         /** The same staleness rule as the phone (docs/hr-protocol.md): no sample for ~3× the
          *  1.92 s cadence and the number is unknown — shown as "––", never as the last value. */
