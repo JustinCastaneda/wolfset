@@ -73,6 +73,15 @@ class WolfsetHrModule : Module() {
             WorkoutService.stop(context)
         }
 
+        // "Still lifting?" — the forgotten-workout card (features/set-loop/idle.ts).
+        Function("askStillLifting") { endsAtMs: Double ->
+            WorkoutService.askStillLifting(context, endsAtMs.toLong())
+        }
+
+        Function("dismissStillLifting") {
+            WorkoutService.dismissStillLifting(context)
+        }
+
         Function("startRest") { endsAtMs: Double ->
             WorkoutService.startRest(context, endsAtMs.toLong())
         }

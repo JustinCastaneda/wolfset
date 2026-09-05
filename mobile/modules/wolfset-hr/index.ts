@@ -62,6 +62,11 @@ declare class WolfsetHrNativeModule extends NativeModule<WolfsetHrEvents> {
   startWorkout(title: string): void;
   /** Release it — the session closed. */
   endWorkout(): void;
+  /** "Still lifting?" — a buzzing card that ends itself at `endsAtMs`, when the workout
+   *  ends on its own unless the lifter does something; tapping it opens the session. */
+  askStillLifting(endsAtMs: number): void;
+  /** The lifter did something, or the workout ended: the card goes. */
+  dismissStillLifting(): void;
   /** Arm the doze-proof rest timer: wake lock, countdown notification, buzz and ding at
    *  `endsAtMs` — the only alert; recovering early is shown, never announced. */
   startRest(endsAtMs: number): void;

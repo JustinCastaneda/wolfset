@@ -45,6 +45,10 @@ object PhoneActions {
     fun startWorkout(context: Context) =
         send(context, JSONObject().put("type", HrProtocol.ACTION_START_WORKOUT))
 
+    /** Continue on "Still lifting?": yes, still here. */
+    fun stillLifting(context: Context) =
+        send(context, JSONObject().put("type", HrProtocol.ACTION_STILL_LIFTING))
+
     private fun send(context: Context, body: JSONObject) {
         val app = context.applicationContext
         val payload = body.toString().toByteArray()

@@ -31,6 +31,7 @@ fun WatchApp(
     onUndoSkip: () -> Unit,
     onChangeDay: (order: Int) -> Unit,
     onEndWorkout: () -> Unit,
+    onStillLifting: () -> Unit,
     onFinish: () -> Unit,
 ) {
     val state by WatchState.snapshot.collectAsStateWithLifecycle()
@@ -56,6 +57,9 @@ fun WatchApp(
         session == null -> TileScreen(state.isAmbient, onStartWorkout)
         session.isDone -> DoneScreen(session, state.isAmbient, onFinish)
         confirmEnd -> EndWorkoutScreen(session, state.isAmbient, onCancel = { confirmEnd = false }, onEnd = onEndWorkout)
+        // The phone's forgotten-workout clock ran out of patience: ask, over whatever the
+        // loop was doing. End goes through the usual "End Workout?" confirm.
+        session.isIdle -> IdleScreen(session, now, state.isAmbient, onContinue = onStillLifting, onEnd = { confirmEnd = true })
         preview != null -> DayPreviewScreen(
             view = session,
             day = preview,

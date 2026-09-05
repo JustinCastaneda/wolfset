@@ -34,4 +34,6 @@ object HrProtocol {
     /** Next Workout on the Watch Tile (123:3440): the phone opens its session on the
      *  plan's up-next day, and the session's view is what moves the watch on. */
     const val ACTION_START_WORKOUT = "startWorkout"
+    /** Continue on "Still lifting?": the phone restarts its forgotten-workout clock. */
+    const val ACTION_STILL_LIFTING = "stillLifting"
 }

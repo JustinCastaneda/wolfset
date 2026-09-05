@@ -557,6 +557,7 @@ const KIT_SET: WatchView = {
   recovered: false,
   recoveredBelowBpm: 120,
   approachingUpToBpm: 140,
+  idleEndsAt: 0,
 };
 
 const styles = StyleSheet.create({

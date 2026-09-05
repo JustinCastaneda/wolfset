@@ -26,7 +26,9 @@ export type WatchView =
       exercisesDone: number;
     }
   | {
-      screen: 'set' | 'rest';
+      /** `idle`: "Still lifting?" over the set or rest (idle.ts) — the loop is unchanged
+       *  underneath; Continue on the watch answers it, End is the usual End Workout. */
+      screen: 'set' | 'rest' | 'idle';
       /** 1-based position in the workout — "01 • Squat". */
       exerciseNo: number;
       exercise: string;
@@ -58,6 +60,8 @@ export type WatchView =
       recovered: boolean;
       recoveredBelowBpm: number;
       approachingUpToBpm: number;
+      /** `idle` only: wall-clock ms when the workout ends by itself — "ends in 9 min". */
+      idleEndsAt: number;
     };
 
 /** One plan day on the watch: its lifts as they would start (weights progressed). */
@@ -75,7 +79,13 @@ export type SessionClock = { startedAt: number; now: number; avgBpm: number | nu
  *  is the one running. */
 export type SessionDays = { dayOrder: number; days: PlanDayStart[] };
 
-export function watchView(state: SessionState, clock: SessionClock, plan: SessionDays): WatchView {
+export function watchView(
+  state: SessionState,
+  clock: SessionClock,
+  plan: SessionDays,
+  /** Set while "Still lifting?" is being asked: when the workout ends unanswered. */
+  idleEndsAt = 0,
+): WatchView {
   const phase = state.phase;
   if (phase.name === 'done') {
     const logged = new Set(state.sets.map((s) => s.exerciseIndex));
@@ -93,7 +103,7 @@ export function watchView(state: SessionState, clock: SessionClock, plan: Sessio
   return {
     // Editing the weight on the phone leaves the watch on the set; its Log would be
     // ignored by the machine until the edit closes, which is the phone's rule too.
-    screen: phase.name === 'resting' ? 'rest' : 'set',
+    screen: idleEndsAt > 0 ? 'idle' : phase.name === 'resting' ? 'rest' : 'set',
     exerciseNo: state.exerciseIndex + 1,
     exercise: ex.name,
     setsDone: done,
@@ -122,6 +132,7 @@ export function watchView(state: SessionState, clock: SessionClock, plan: Sessio
     recovered: phase.name === 'resting' && phase.recovered,
     recoveredBelowBpm: DEFAULT_THRESHOLDS.recoveredBelowBpm,
     approachingUpToBpm: DEFAULT_THRESHOLDS.approachingUpToBpm,
+    idleEndsAt,
   };
 }
 
@@ -149,6 +160,8 @@ export function watchActionToEvent(
     // The watch already asked "End Workout?" (164:4371) — that is the double confirm.
     case 'endWorkout':
       return { type: 'workoutEnded', at };
+    // Continue on "Still lifting?": not a machine event — the controller resets its idle
+    // clock (idle.ts) and the loop goes on where it was.
     default:
       return null;
   }

@@ -43,6 +43,16 @@ export function releaseWorkout() {
   WolfsetHr?.endWorkout();
 }
 
+/** "Still lifting?" on the phone — a buzzing card that says when the workout ends by
+ *  itself (idle.ts); tapping it opens the session. No module: no-op. */
+export function askStillLifting(endsAtMs: number) {
+  WolfsetHr?.askStillLifting(endsAtMs);
+}
+
+export function dismissStillLifting() {
+  WolfsetHr?.dismissStillLifting();
+}
+
 export function armRestTimer(endsAtMs: number) {
   WolfsetHr?.startRest(endsAtMs);
 }
